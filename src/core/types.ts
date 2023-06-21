@@ -1,4 +1,4 @@
-import { Address, Lucid, UTxO } from "lucid-cardano";
+import { Address, PolicyId, UTxO } from "lucid-cardano";
 
 export type CborHex = string;
 export type RawHex = string;
@@ -47,24 +47,23 @@ export type RemoveNodeConfig = {
 };
 
 export type BuildScriptsConfig = {
-  lucid: Lucid;
-  params: {
-    nodePolicy: {
-      discovery: {
-        initUTXO: UTxO;
-        maxRaise: number;
-        deadline: POSIXTime;
-        penaltyAddress: Address;
-      };
-    };
-    nodeValidator: {
-      prefix: string;
-    };
+  discoveryPolicy: {
+    initUTXO: UTxO;
+    maxRaise: number;
+    deadline: POSIXTime;
+    penaltyAddress: Address;
   };
+  rewardValidator:{
+    projectCS: PolicyId
+    projectTN: string
+    projectAddr: Address
+  }
   unapplied: {
-    nodePolicy: RawHex;
-    nodeValidator: RawHex;
+    discoveryPolicy: RawHex;
+    discoveryValidator: RawHex;
     foldPolicy: RawHex;
     foldValidator: RawHex;
+    rewardPolicy: RawHex;
+    rewardValidator: RawHex;
   };
 };
