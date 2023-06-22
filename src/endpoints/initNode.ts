@@ -41,8 +41,8 @@ export const initNode = async (
   //TODO: Add PDiscoveryNode struct
   const datum = Data.to(
     {
-      key: "Empty",
-      next: "Empty",
+      key: null,
+      next: null,
     },
     SetNode
   );

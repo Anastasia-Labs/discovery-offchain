@@ -10,7 +10,7 @@ import { corrNodeTokenName, originNodeTokenName } from "../core/constants.js";
 import { DiscoveryNodeAction, SetNode } from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";
 
-export const initNode = async (
+export const dinitNode = async (
   lucid: Lucid,
   config: InitNodeConfig
 ): Promise<Result<TxComplete>> => {

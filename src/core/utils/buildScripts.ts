@@ -6,9 +6,8 @@ import {
   MintingPolicy,
   SpendingValidator,
 } from "lucid-cardano";
-import { DiscoveryConfig } from "../contract.types.js";
 import { BuildScriptsConfig, CborHex, Result } from "../types.js";
-import { fromAddress, fromAddressToData, toAddress } from "./utils.js";
+import { fromAddressToData } from "./utils.js";
 
 type Scripts = {
   discoveryPolicy: CborHex;
@@ -23,25 +22,11 @@ export const buildScripts = (
   lucid: Lucid,
   config: BuildScriptsConfig
 ): Result<Scripts> => {
-  // pDiscoverySetValidator ::
-  //   Config ->
-  //   ByteString ->
-  //   ClosedTerm (PAsData PCurrencySymbol :--> PValidator)
-  // pDiscoverySetValidator cfg prefix = plam $ \rewardFoldCS dat redmn ctx' -> popaque $ P.do
-  const discoveryValidator = applyParamsToScript(
-    config.unapplied.discoveryValidator,
-    []
-  );
 
-  const discoverySpendingValidator: SpendingValidator = {
-    type: "PlutusV2",
-    script: discoveryValidator,
-  };
+  const penaltyAddress = fromAddressToData(config.discoveryPolicy.penaltyAddress);
 
-  const addressData = fromAddressToData(config.discoveryPolicy.penaltyAddress);
-
-  if (addressData.type == "error")
-    return { type: "error", error: addressData.error };
+  if (penaltyAddress.type == "error")
+    return { type: "error", error: penaltyAddress.error };
 
   //WARNING: DiscoveryConfig does not work it returns this... missing the following properties from type 'unknown[]': length, pop, push, concat, and 31 more.
   const discoveryPolicy = applyParamsToScript(
@@ -54,8 +39,7 @@ export const buildScripts = (
         ]), // initUTxO PTxOutRef
         BigInt(config.discoveryPolicy.maxRaise), // maxRaise PInteger
         BigInt(config.discoveryPolicy.deadline), // goalRaise PInteger
-        addressData.data, // penaltyAddress PAddress
-        lucid.utils.validatorToScriptHash(discoverySpendingValidator), // nodeVal PSriptHash
+        penaltyAddress.data, // penaltyAddress PAddress
       ]),
     ]
   );
@@ -77,12 +61,12 @@ export const buildScripts = (
     script: foldValidator,
   };
 
-  const foldAddrData = fromAddressToData(
+  const foldValidatorAddress = fromAddressToData(
     lucid.utils.validatorToAddress(foldSpendingValidator)
   );
 
-  if (foldAddrData.type == "error")
-    return { type: "error", error: foldAddrData.error };
+  if (foldValidatorAddress.type == "error")
+    return { type: "error", error: foldValidatorAddress.error };
 
   // data PFoldConfig (s :: S)
   //   = PFoldConfig
@@ -97,7 +81,7 @@ export const buildScripts = (
   const foldPolicy = applyParamsToScript(config.unapplied.foldPolicy, [
     new Constr(0, [
       lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
-      foldAddrData.data,
+      foldValidatorAddress.data,
     ]),
   ]);
 
@@ -119,7 +103,7 @@ export const buildScripts = (
   const rewardPolicy = applyParamsToScript(config.unapplied.rewardPolicy, [
     new Constr(0, [
       lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
-      foldAddrData.data,
+      foldValidatorAddress.data,
     ]),
   ]);
   const rewardMintingPolicy: MintingPolicy = {
@@ -157,9 +141,25 @@ export const buildScripts = (
       ]),
     ]
   );
+
   const rewardSpendingValidator: SpendingValidator = {
     type: "PlutusV2",
     script: rewardValidator,
+  };
+
+  // pDiscoverySetValidator ::
+  //   Config ->
+  //   ByteString ->
+  //   ClosedTerm (PAsData PCurrencySymbol :--> PValidator)
+  // pDiscoverySetValidator cfg prefix = plam $ \rewardFoldCS dat redmn ctx' -> popaque $ P.do
+  const discoveryValidator = applyParamsToScript(
+    config.unapplied.discoveryValidator,
+    [lucid.utils.mintingPolicyToId(rewardMintingPolicy)]
+  );
+
+  const discoverySpendingValidator: SpendingValidator = {
+    type: "PlutusV2",
+    script: discoveryValidator,
   };
 
   return {

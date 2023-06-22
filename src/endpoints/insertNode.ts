@@ -45,8 +45,8 @@ export const insertNode = async (
   const coveringNode = nodeUTXOs.find((value) => {
     if (value.datum) {
       const datum = Data.from(value.datum, SetNode);
-      (datum.key == "Empty" || datum.key.Key < userKey) &&
-        (datum.next == "Empty" || userKey < datum.next.Key);
+      (datum.key == null || datum.key.Key < userKey) &&
+        (datum.next == null || userKey < datum.next.Key);
     }
   });
 

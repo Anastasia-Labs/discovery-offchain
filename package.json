@@ -10,9 +10,12 @@
   ],
   "scripts": {
     "test": "",
-    "build": "tsup src/index.ts --minify --format esm,cjs --dts --clean",
+    "clean": "rm -rf dist",
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "buildtsc": "npm run clean && tsc",
     "lint": "eslint",
-    "repack": "npm run build  && npm pack"
+    "repack": "npm run build  && npm pack",
+    "repacktsc": "npm run buildtsc  && npm pack"
   },
   "keywords": [],
   "author": "",
@@ -25,7 +28,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "lucid-cardano": "^0.10.2"
+    "lucid-cardano": "^0.10.6"
   },
   "directories": {
     "test": "test"

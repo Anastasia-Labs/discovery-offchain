@@ -47,10 +47,8 @@ export const AddressSchema = Data.Object({
 export type AddressD = Data.Static<typeof AddressSchema>;
 export const AddressD = AddressSchema as unknown as AddressD;
 
-export const NodeKeySchema = Data.Enum([
-  Data.Object({ Key: Data.Bytes() }),
-  Data.Literal("Empty"),
-]);
+export const NodeKeySchema = Data.Nullable(Data.Object({ Key: Data.Bytes() }))
+
 export type NodeKey = Data.Static<typeof NodeKeySchema>;
 export const NodeKey = NodeKeySchema as unknown as NodeKey;
 

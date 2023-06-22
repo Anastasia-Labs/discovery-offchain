@@ -11,8 +11,8 @@ import {
   SpendingValidator,
 } from "lucid-cardano";
 import { setNodePrefix } from "../constants.js";
-import {AddressD} from "../contract.types.js";
-import {Result} from "../types.js";
+import { AddressD } from "../contract.types.js";
+import { Result } from "../types.js";
 
 export const toCBORHex = (rawHex: string) => {
   return applyDoubleCborEncoding(rawHex);
@@ -113,22 +113,18 @@ export function mkNodeKeyTN(tokenName: string) {
 }
 
 export const fromAddressToData = (address: Address): Result<Data> => {
-  const addrDetails = getAddressDetails(address)
+  const addrDetails = getAddressDetails(address);
 
-  if (!addrDetails.paymentCredential) return {type: 'error', error: new Error("undefined paymentCredential")}
+  if (!addrDetails.paymentCredential)
+    return { type: "error", error: new Error("undefined paymentCredential") };
 
-  const paymentCred = new Constr(0, [
-    addrDetails.paymentCredential.hash,
-  ]);
+  const paymentCred = new Constr(0, [addrDetails.paymentCredential.hash]);
 
-  if (!addrDetails.stakeCredential) return {type: 'error', error: new Error("undefined stakeCredential")}
+  if (!addrDetails.stakeCredential) return { type: "ok", data: paymentCred };
 
   const stakingCred = new Constr(0, [
-    new Constr(0, [
-      new Constr(0, [addrDetails.stakeCredential.hash]),
-    ]),
-  ])
+    new Constr(0, [new Constr(0, [addrDetails.stakeCredential.hash])]),
+  ]);
 
-  return {type: 'ok', data: new Constr(0, [paymentCred, stakingCred])}
-
-}
+  return { type: "ok", data: new Constr(0, [paymentCred, stakingCred]) };
+};
