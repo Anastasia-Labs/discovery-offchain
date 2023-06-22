@@ -6,7 +6,7 @@ import {
   toUnit,
   TxComplete,
 } from "lucid-cardano";
-import { DiscoveryNodeAction, SetNode } from "../core/contract.types.js";
+import { DiscoveryNodeAction, NodeValidatorAction, SetNode } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
 import { mkNodeKeyTN } from "../index.js";
 
@@ -40,15 +40,17 @@ export const insertNode = async (
     return { type: "error", error: new Error("missing PubKeyHash") };
 
   const nodeUTXOs = await lucid.utxosAt(nodeValidatorAddr);
+  // console.log(nodeUTXOs)
 
   //TODO: move this to utils
   const coveringNode = nodeUTXOs.find((value) => {
     if (value.datum) {
       const datum = Data.from(value.datum, SetNode);
-      (datum.key == null || datum.key.Key < userKey) &&
-        (datum.next == null || userKey < datum.next.Key);
+      return (datum.key == null || datum.key.key < userKey) &&
+        (datum.next == null || userKey < datum.next.key);
     }
   });
+  console.log("found covering node ", coveringNode)
 
   if (!coveringNode || !coveringNode.datum)
     return { type: "error", error: new Error("missing coveringNode") };
@@ -62,14 +64,14 @@ export const insertNode = async (
   const prevNodeDatum = Data.to(
     {
       key: coveringNodeDatum.key,
-      next: { Key: userKey },
+      next: { key: userKey },
     },
     SetNode
   );
 
   const nodeDatum = Data.to(
     {
-      key: { Key: userKey },
+      key: { key: userKey },
       next: coveringNodeDatum.next,
     },
     SetNode
@@ -86,10 +88,13 @@ export const insertNode = async (
     DiscoveryNodeAction
   );
 
+  const redeemerNodeValidator = Data.to("LinkedListAct",NodeValidatorAction)
+
   try {
     const tx = await lucid
       .newTx()
-      .collectFrom([coveringNode])
+      .collectFrom([coveringNode], redeemerNodeValidator)
+      .attachSpendingValidator(nodeValidator)
       .payToContract(
         nodeValidatorAddr,
         { inline: prevNodeDatum },

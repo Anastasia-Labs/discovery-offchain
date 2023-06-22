@@ -5,6 +5,7 @@ import {
   Data,
   toUnit,
   TxComplete,
+  Constr,
 } from "lucid-cardano";
 import { corrNodeTokenName, originNodeTokenName } from "../core/constants.js";
 import { DiscoveryNodeAction, SetNode } from "../core/contract.types.js";
@@ -49,6 +50,7 @@ export const initNode = async (
 
   //TODO: Add Node Action
   const redeemerNodePolicy = Data.to("PInit", DiscoveryNodeAction);
+  // const redeemerNodePolicy = Data.to(new Constr(0,[]));
 
   try {
     const tx = await lucid

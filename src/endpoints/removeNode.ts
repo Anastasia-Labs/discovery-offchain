@@ -47,7 +47,7 @@ export const removeNode = async (
   const node = nodeUTXOs.find((value) => {
     if (value.datum) {
       const datum = Data.from(value.datum, SetNode);
-      datum.key !== null && datum.key.Key == userPubKeyHash;
+      datum.key !== null && datum.key.key == userPubKeyHash;
     }
   });
 
@@ -59,7 +59,7 @@ export const removeNode = async (
   const prevNode = nodeUTXOs.find((value) => {
     if (value.datum) {
       const datum = Data.from(value.datum, SetNode);
-      datum.next !== null && datum.next.Key == userPubKeyHash;
+      datum.next !== null && datum.next.key == userPubKeyHash;
     }
   });
 
