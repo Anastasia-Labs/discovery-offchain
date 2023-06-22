@@ -1,7 +1,7 @@
 import {fromText} from "lucid-cardano"
 
-export const setNodePrefix = "FSN"
-export const corrNodePrefix = "FCN"
+export const SETNODE_PREFIX = "FSN"
+export const CORRNODE_PREFIX = "FCN"
 
-export const originNodeTokenName = fromText(setNodePrefix)
-export const corrNodeTokenName = fromText(corrNodePrefix)
+export const originNodeTokenName = fromText(SETNODE_PREFIX)
+export const corrNodeTokenName = fromText(CORRNODE_PREFIX)

@@ -10,7 +10,7 @@ import {
   Lucid,
   SpendingValidator,
 } from "lucid-cardano";
-import { setNodePrefix } from "../constants.js";
+import { SETNODE_PREFIX } from "../constants.js";
 import { AddressD } from "../contract.types.js";
 import { Result } from "../types.js";
 
@@ -27,26 +27,6 @@ export const generateAccountSeedPhrase = async (assets: Assets) => {
       .wallet.address(),
     assets,
   };
-};
-
-export const utxosAtScript = async (
-  lucid: Lucid,
-  script: string,
-  stakeCredentialHash?: string
-) => {
-  const scriptValidator: SpendingValidator = {
-    type: "PlutusV2",
-    script: script,
-  };
-
-  const scriptValidatorAddr = stakeCredentialHash
-    ? lucid.utils.validatorToAddress(
-        scriptValidator,
-        lucid.utils.keyHashToCredential(stakeCredentialHash)
-      )
-    : lucid.utils.validatorToAddress(scriptValidator);
-
-  return lucid.utxosAt(scriptValidatorAddr);
 };
 
 export function fromAddress(address: Address): AddressD {
@@ -109,7 +89,7 @@ export function toAddress(address: AddressD, lucid: Lucid): Address {
 }
 
 export function mkNodeKeyTN(tokenName: string) {
-  return fromText(setNodePrefix + tokenName);
+  return fromText(SETNODE_PREFIX) + tokenName;
 }
 
 export const fromAddressToData = (address: Address): Result<Data> => {

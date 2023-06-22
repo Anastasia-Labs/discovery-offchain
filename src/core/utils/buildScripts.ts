@@ -29,18 +29,20 @@ export const buildScripts = (
     return { type: "error", error: penaltyAddress.error };
 
   //WARNING: DiscoveryConfig does not work it returns this... missing the following properties from type 'unknown[]': length, pop, push, concat, and 31 more.
+  //TODO: re-enable when scrtips are ready, and also remove nodeValHash param
   const discoveryPolicy = applyParamsToScript(
     config.unapplied.discoveryPolicy,
     [
-      new Constr(0, [
-        new Constr(0, [
-          new Constr(0, [config.discoveryPolicy.initUTXO.txHash]),
-          BigInt(config.discoveryPolicy.initUTXO.outputIndex),
-        ]), // initUTxO PTxOutRef
-        BigInt(config.discoveryPolicy.maxRaise), // maxRaise PInteger
-        BigInt(config.discoveryPolicy.deadline), // goalRaise PInteger
-        penaltyAddress.data, // penaltyAddress PAddress
-      ]),
+      // new Constr(0, [
+      //   new Constr(0, [
+      //     new Constr(0, [config.discoveryPolicy.initUTXO.txHash]),
+      //     BigInt(config.discoveryPolicy.initUTXO.outputIndex),
+      //   ]), // initUTxO PTxOutRef
+      //   BigInt(config.discoveryPolicy.maxRaise), // maxRaise PInteger
+      //   BigInt(config.discoveryPolicy.deadline), // goalRaise PInteger
+      //   penaltyAddress.data, // penaltyAddress PAddress
+      //   "2cbaa3591f6626646aed6350755d8f80feb97b5a07c7cce29963518f"
+      // ]),
     ]
   );
 
@@ -125,9 +127,10 @@ export const buildScripts = (
   //                ]
   //           )
   //       )
-  const projectAddrData = fromAddressToData(config.rewardValidator.projectAddr);
-  if (projectAddrData.type == "error")
-    return { type: "error", error: projectAddrData.error };
+  const projectAddress = fromAddressToData(config.rewardValidator.projectAddr);
+  if (projectAddress.type == "error")
+    return { type: "error", error: projectAddress.error };
+
   const rewardValidator = applyParamsToScript(
     config.unapplied.rewardValidator,
     [
@@ -136,7 +139,7 @@ export const buildScripts = (
         lucid.utils.mintingPolicyToId(foldMintingPolicy),
         config.rewardValidator.projectCS,
         fromText(config.rewardValidator.projectTN),
-        projectAddrData.data,
+        projectAddress.data,
         BigInt(config.discoveryPolicy.deadline),
       ]),
     ]
@@ -152,9 +155,12 @@ export const buildScripts = (
   //   ByteString ->
   //   ClosedTerm (PAsData PCurrencySymbol :--> PValidator)
   // pDiscoverySetValidator cfg prefix = plam $ \rewardFoldCS dat redmn ctx' -> popaque $ P.do
+  // TODO: re-enable when scripts are ready
   const discoveryValidator = applyParamsToScript(
     config.unapplied.discoveryValidator,
-    [lucid.utils.mintingPolicyToId(rewardMintingPolicy)]
+    [
+      // lucid.utils.mintingPolicyToId(rewardMintingPolicy)
+    ]
   );
 
   const discoverySpendingValidator: SpendingValidator = {

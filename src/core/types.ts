@@ -1,4 +1,5 @@
-import { Address, PolicyId, UTxO } from "lucid-cardano";
+import { Address, OutRef, PolicyId, UTxO } from "lucid-cardano";
+import {SetNode} from "./contract.types.js";
 
 export type CborHex = string;
 export type RawHex = string;
@@ -7,6 +8,10 @@ export type POSIXTime = number;
 export type Result<T> =
   | { type: "ok"; data: T }
   | { type: "error"; error: Error };
+
+export type Either<L, R> =
+  | { type: "left"; value: L }
+  | { type: "right"; value: R };
 
 export type AppliedScripts = {
   nodePolicy: string;
@@ -67,3 +72,8 @@ export type BuildScriptsConfig = {
     rewardValidator: RawHex;
   };
 };
+
+export type ReadableUTxO = {
+  outRef: OutRef,
+  datum: SetNode
+}
