@@ -50,7 +50,7 @@ export const insertNode = async (
         (datum.next == null || userKey < datum.next.key);
     }
   });
-  console.log("found covering node ", coveringNode)
+  // console.log("found covering node ", coveringNode)
 
   if (!coveringNode || !coveringNode.datum)
     return { type: "error", error: new Error("missing coveringNode") };

@@ -8,6 +8,7 @@ import {
 } from "lucid-cardano";
 import {
   DiscoveryNodeAction,
+  NodeValidatorAction,
   SetNode,
 } from "../core/contract.types.js";
 import { RemoveNodeConfig, Result } from "../core/types.js";
@@ -47,7 +48,7 @@ export const removeNode = async (
   const node = nodeUTXOs.find((value) => {
     if (value.datum) {
       const datum = Data.from(value.datum, SetNode);
-      datum.key !== null && datum.key.key == userPubKeyHash;
+      return datum.key !== null && datum.key.key == userPubKeyHash;
     }
   });
 
@@ -59,7 +60,7 @@ export const removeNode = async (
   const prevNode = nodeUTXOs.find((value) => {
     if (value.datum) {
       const datum = Data.from(value.datum, SetNode);
-      datum.next !== null && datum.next.key == userPubKeyHash;
+      return datum.next !== null && datum.next.key == userPubKeyHash;
     }
   });
 
@@ -89,11 +90,13 @@ export const removeNode = async (
     },
     DiscoveryNodeAction
   );
+  const redeemerNodeValidator = Data.to("LinkedListAct",NodeValidatorAction)
 
   try {
     const tx = await lucid
       .newTx()
-      .collectFrom([node,prevNode])
+      .collectFrom([node,prevNode], redeemerNodeValidator)
+      .attachSpendingValidator(nodeValidator)
       .payToContract(
         nodeValidatorAddr,
         { inline: newPrevNodeDatum },

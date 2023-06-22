@@ -44,8 +44,12 @@ beforeEach<LucidContext>(async (context) => {
   context.lucid = await Lucid.new(context.emulator);
 });
 
-test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
-  const logFlag = false
+test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode", async ({
+  lucid,
+  users,
+  emulator,
+}) => {
+  const logFlag = false;
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
@@ -98,13 +102,80 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
     // console.log(initNodeHash)
   }
   emulator.awaitBlock(4);
-  logFlag ? console.log(
-    "initNode result ",
-    JSON.stringify(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
-      undefined,
-      2
-    )
-  ) : null
+  logFlag
+    ? console.log(
+        "initNode result ",
+        JSON.stringify(
+          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
+          undefined,
+          2
+        )
+      )
+    : null;
 
+  //NOTE: INSERT NODE
+  lucid.selectWalletFromSeed(users.account1.seedPhrase);
+
+  const insertNodeConfig: InsertNodeConfig = {
+    scripts: {
+      nodePolicy: newScripts.data.discoveryPolicy,
+      nodeValidator: newScripts.data.discoveryValidator,
+    },
+  };
+
+  const insertNodeUnsigned = await insertNode(lucid, insertNodeConfig);
+
+  expect(insertNodeUnsigned.type).toBe("ok");
+
+  if (insertNodeUnsigned.type == "ok") {
+    // console.log(insertNodeUnsigned.data.txComplete.to_json())
+    const insertNodeSigned = await insertNodeUnsigned.data.sign().complete();
+    const insertNodeHash = await insertNodeSigned.submit();
+  }
+
+  emulator.awaitBlock(4);
+
+  logFlag
+    ? console.log(
+        "insertNode result",
+        JSON.stringify(
+          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
+          undefined,
+          2
+        )
+      )
+    : null;
+
+  //NOTE: INSERT NODE
+  lucid.selectWalletFromSeed(users.account2.seedPhrase);
+
+  const insertNodeConfig2: InsertNodeConfig = {
+    scripts: {
+      nodePolicy: newScripts.data.discoveryPolicy,
+      nodeValidator: newScripts.data.discoveryValidator,
+    },
+  };
+
+  const insertNodeUnsigned2 = await insertNode(lucid, insertNodeConfig2);
+
+  expect(insertNodeUnsigned2.type).toBe("ok");
+
+  if (insertNodeUnsigned2.type == "ok") {
+    // console.log(insertNodeUnsigned.data.txComplete.to_json())
+    const insertNodeSigned2 = await insertNodeUnsigned2.data.sign().complete();
+    const insertNodeHash2 = await insertNodeSigned2.submit();
+  }
+
+  emulator.awaitBlock(4);
+
+  logFlag
+    ? console.log(
+        "insertNode result",
+        JSON.stringify(
+          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
+          undefined,
+          2
+        )
+      )
+    : null;
 });
