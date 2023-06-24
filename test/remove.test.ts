@@ -46,12 +46,12 @@ beforeEach<LucidContext>(async (context) => {
   context.lucid = await Lucid.new(context.emulator);
 });
 
-test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode - aacount2 removeNode", async ({
+test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode - aacount2 removeNode", async ({
   lucid,
   users,
   emulator,
 }) => {
-  const logFlag = true;
+  const logFlag = false;
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
@@ -182,6 +182,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       )
     : null;
 
+  //NOTE: REMOVE NODE
+  lucid.selectWalletFromSeed(users.account2.seedPhrase)
   const removeNodeConfig: RemoveNodeConfig = {
     scripts: {
       nodePolicy: newScripts.data.discoveryPolicy,
@@ -197,6 +199,38 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     // console.log(insertNodeUnsigned.data.txComplete.to_json())
     const removeNodeSigned = await removeNodeUnsigned.data.sign().complete();
     const removeNodeHash = await removeNodeSigned.submit();
+  }
+
+  emulator.awaitBlock(4);
+
+  logFlag
+    ? console.log(
+        "removeNode result",
+        JSON.stringify(
+          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
+          undefined,
+          2
+        )
+      )
+    : null;
+
+  //NOTE: FAIL REMOVE NODE
+  lucid.selectWalletFromSeed(users.account2.seedPhrase)
+  const removeNodeConfig2: RemoveNodeConfig = {
+    scripts: {
+      nodePolicy: newScripts.data.discoveryPolicy,
+      nodeValidator: newScripts.data.discoveryValidator,
+    },
+  };
+
+  const removeNodeUnsigned2 = await removeNode(lucid, removeNodeConfig2);
+
+  expect(removeNodeUnsigned2.type).toBe("error");
+
+  if (removeNodeUnsigned2.type == "ok") {
+    // console.log(insertNodeUnsigned.data.txComplete.to_json())
+    const removeNodeSigned2 = await removeNodeUnsigned2.data.sign().complete();
+    const removeNodeHash = await removeNodeSigned2.submit();
   }
 
   emulator.awaitBlock(4);

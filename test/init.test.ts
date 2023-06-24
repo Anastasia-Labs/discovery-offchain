@@ -14,6 +14,12 @@ import {
 } from "price-discovery-offchain";
 import { test, beforeAll, expect, beforeEach } from "vitest";
 import scripts from "./plutus.json";
+import discoveryValidator from "./compiled/discoveryValidator.json"
+import discoveryPolicy from "./compiled/discoveryMinting.json"
+import foldPolicy from "./compiled/foldMint.json"
+import foldValidator from "./compiled/foldValidator.json"
+import rewardPolicy from "./compiled/rewardFoldMint.json"
+import rewardValidator from "./compiled/rewardFoldValidator.json"
 
 type LucidContext = {
   lucid: Lucid;
@@ -53,7 +59,6 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
       initUTXO: treasuryUTxO,
-      maxRaise: 100_000_000, // 100 ADA
       deadline: emulator.now() + 600_000, // 10 minutes
       penaltyAddress: treasuryAddress,
     },
@@ -63,14 +68,16 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
       projectAddr: treasuryAddress,
     },
     unapplied: {
-      discoveryPolicy: scripts.NodeMP,
-      discoveryValidator: scripts.NodeValidator,
-      foldPolicy: scripts.NodeMP,
-      foldValidator: scripts.NodeValidator,
-      rewardPolicy: scripts.NodeMP,
-      rewardValidator: scripts.NodeValidator,
+      discoveryPolicy: discoveryPolicy.cborHex,
+      discoveryValidator: discoveryValidator.cborHex,
+      foldPolicy: foldPolicy.cborHex,
+      foldValidator: foldValidator.cborHex,
+      rewardPolicy: rewardPolicy.cborHex,
+      rewardValidator: rewardValidator.cborHex
     },
   });
+
+  expect(newScripts.type).toBe("ok")
 
   if (newScripts.type == "error") return console.log(newScripts.error);
   //
@@ -89,6 +96,7 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
     },
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
+  console.log(initNodeUnsigned)
 
   expect(initNodeUnsigned.type).toBe("ok");
   if (initNodeUnsigned.type == "ok") {
