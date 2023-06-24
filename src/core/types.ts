@@ -54,7 +54,6 @@ export type RemoveNodeConfig = {
 export type BuildScriptsConfig = {
   discoveryPolicy: {
     initUTXO: UTxO;
-    maxRaise: number;
     deadline: POSIXTime;
     penaltyAddress: Address;
   };
