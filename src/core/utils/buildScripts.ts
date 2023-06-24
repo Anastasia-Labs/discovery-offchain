@@ -23,26 +23,39 @@ export const buildScripts = (
   config: BuildScriptsConfig
 ): Result<Scripts> => {
 
-  const penaltyAddress = fromAddressToData(config.discoveryPolicy.penaltyAddress);
+  const initUTxO = new Constr(0, [
+    new Constr(0, [config.discoveryPolicy.initUTXO.txHash]),
+    BigInt(config.discoveryPolicy.initUTXO.outputIndex),
+  ]);
+
+  const penaltyAddress = fromAddressToData(
+    config.discoveryPolicy.penaltyAddress
+  );
 
   if (penaltyAddress.type == "error")
     return { type: "error", error: penaltyAddress.error };
 
-  //WARNING: DiscoveryConfig does not work it returns this... missing the following properties from type 'unknown[]': length, pop, push, concat, and 31 more.
-  //TODO: re-enable when scrtips are ready, and also remove nodeValHash param
+  //NOTE: DISCOVERY POLICY
+  //
+  // data PDiscoveryConfig (s :: S)
+  // = PDiscoveryConfig
+  //     ( Term
+  //         s
+  //         ( PDataRecord
+  //             '[ "initUTxO" ':= PTxOutRef
+  //              , "discoveryDeadline" ':= PPOSIXTime
+  //              , "penaltyAddress" ':= PAddress
+  //              ]
+  //         )
+  //     )
   const discoveryPolicy = applyParamsToScript(
     config.unapplied.discoveryPolicy,
     [
-      // new Constr(0, [
-      //   new Constr(0, [
-      //     new Constr(0, [config.discoveryPolicy.initUTXO.txHash]),
-      //     BigInt(config.discoveryPolicy.initUTXO.outputIndex),
-      //   ]), // initUTxO PTxOutRef
-      //   BigInt(config.discoveryPolicy.maxRaise), // maxRaise PInteger
-      //   BigInt(config.discoveryPolicy.deadline), // goalRaise PInteger
-      //   penaltyAddress.data, // penaltyAddress PAddress
-      //   "2cbaa3591f6626646aed6350755d8f80feb97b5a07c7cce29963518f"
-      // ]),
+      new Constr(0, [
+        initUTxO,
+        BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
+        penaltyAddress.data, // penaltyAddress PAddress
+      ]),
     ]
   );
 
@@ -51,9 +64,11 @@ export const buildScripts = (
     script: discoveryPolicy,
   };
 
+  //NOTE: FOLD VALIDATOR
+  //
   // pfoldValidatorW :: Term s (PAsData PCurrencySymbol :--> PAsData PPOSIXTime :--> PValidator)
   // pfoldValidatorW = phoistAcyclic $
-  //   plam $ \nodeCS discoveryDeadline datum _redeemer ctx -> unTermCont $ do
+  //   plam $ \nodeCS discoveryDeadline datum redeemer ctx ->
   const foldValidator = applyParamsToScript(config.unapplied.foldValidator, [
     lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
     BigInt(config.discoveryPolicy.deadline),
@@ -70,13 +85,15 @@ export const buildScripts = (
   if (foldValidatorAddress.type == "error")
     return { type: "error", error: foldValidatorAddress.error };
 
-  // data PFoldConfig (s :: S)
-  //   = PFoldConfig
+  //NOTE: FOLD POLICY
+  //
+  // data PFoldMintConfig (s :: S)
+  //   = PFoldMintConfig
   //       ( Term
   //           s
   //           ( PDataRecord
   //               '[ "nodeCS" ':= PCurrencySymbol
-  //                  "foldAddr" ':= PAddress
+  //                , "foldAddr" ':= PAddress
   //                ]
   //           )
   //       )
@@ -92,27 +109,12 @@ export const buildScripts = (
     script: foldPolicy,
   };
 
-  // data PFoldMintConfig (s :: S)
-  //   = PFoldMintConfig
-  //       ( Term
-  //           s
-  //           ( PDataRecord
-  //               '[ "nodeCS" ':= PCurrencySymbol
-  //                , "foldAddr" ':= PAddress
-  //                ]
-  //           )
-  //       )
-  const rewardPolicy = applyParamsToScript(config.unapplied.rewardPolicy, [
-    new Constr(0, [
-      lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
-      foldValidatorAddress.data,
-    ]),
-  ]);
-  const rewardMintingPolicy: MintingPolicy = {
-    type: "PlutusV2",
-    script: rewardPolicy,
-  };
+  const projectAddress = fromAddressToData(config.rewardValidator.projectAddr);
+  if (projectAddress.type == "error")
+    return { type: "error", error: projectAddress.error };
 
+  //NOTE: REWARD VALIDATOR
+  //
   // data PRewardFoldConfig (s :: S)
   //   = PRewardFoldConfig
   //       ( Term
@@ -127,10 +129,6 @@ export const buildScripts = (
   //                ]
   //           )
   //       )
-  const projectAddress = fromAddressToData(config.rewardValidator.projectAddr);
-  if (projectAddress.type == "error")
-    return { type: "error", error: projectAddress.error };
-
   const rewardValidator = applyParamsToScript(
     config.unapplied.rewardValidator,
     [
@@ -150,16 +148,54 @@ export const buildScripts = (
     script: rewardValidator,
   };
 
-  // pDiscoverySetValidator ::
-  //   Config ->
-  //   ByteString ->
-  //   ClosedTerm (PAsData PCurrencySymbol :--> PValidator)
-  // pDiscoverySetValidator cfg prefix = plam $ \rewardFoldCS dat redmn ctx' -> popaque $ P.do
-  // TODO: re-enable when scripts are ready
+  //NOTE: REWARD POLICY
+  //
+  // data PRewardMintFoldConfig (s :: S)
+  //   = PRewardMintFoldConfig
+  //       ( Term
+  //           s
+  //           ( PDataRecord
+  //               '[ "initUTxO" ':= PTxOutRef
+  //                , "nodeCS" ':= PCurrencySymbol
+  //                , "rewardScriptAddr" ':= PAddress
+  //                , "projectTN" ':= PTokenName
+  //                , "projectCS" ':= PCurrencySymbol
+  //                ]
+  //           )
+  //       )
+  const rewardPolicy = applyParamsToScript(config.unapplied.rewardPolicy, [
+    new Constr(0, [
+      initUTxO,
+      lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
+      lucid.utils.validatorToScriptHash(rewardSpendingValidator),
+      fromText(config.rewardValidator.projectTN),
+      config.rewardValidator.projectCS,
+    ]),
+  ]);
+  const rewardMintingPolicy: MintingPolicy = {
+    type: "PlutusV2",
+    script: rewardPolicy,
+  };
+
+  // NOTE: DISCOVERY VALIDATOR
+  //
+  // data PDiscoveryLaunchConfig (s :: S)
+  //   = PDiscoveryLaunchConfig
+  //       ( Term
+  //           s
+  //           ( PDataRecord
+  //               '[ "discoveryDeadline" ':= PPOSIXTime
+  //                , "penaltyAddress" ':= PAddress
+  //                , "rewardsCS" ':= PCurrencySymbol
+  //                ]
+  //           )
+  //       )
   const discoveryValidator = applyParamsToScript(
     config.unapplied.discoveryValidator,
     [
-      // lucid.utils.mintingPolicyToId(rewardMintingPolicy)
+      BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
+      penaltyAddress.data, // penaltyAddress PAddress
+      lucid.utils.mintingPolicyToId(rewardMintingPolicy), // rewardsCS PCurrencySymbol
     ]
   );
 
