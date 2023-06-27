@@ -47,7 +47,13 @@ export const AddressSchema = Data.Object({
 export type AddressD = Data.Static<typeof AddressSchema>;
 export const AddressD = AddressSchema as unknown as AddressD;
 
-export const NodeKeySchema = Data.Nullable(Data.Object({ key: Data.Bytes() }))
+export const NodeKeySchema = Data.Nullable(Data.Bytes())
+// export const NodeKeySchema = Data.Enum([
+//   Data.Object({ Key: Data.Tuple([Data.Bytes()]) }),
+//   Data.Literal("Empty"),
+// ]);
+//
+export type NodeKeySchema = Data.Static<typeof NodeKeySchema>;
 
 export type NodeKey = Data.Static<typeof NodeKeySchema>;
 export const NodeKey = NodeKeySchema as unknown as NodeKey;
@@ -92,13 +98,40 @@ export const DiscoveryConfig =
 // data PNodeValidatorAction (s :: S)
 //   = PLinkedListAct (Term s (PDataRecord '[]))
 //   | PModifyCommitment (Term s (PDataRecord '[]))
-//   | PRewardFoldAct (Term s (PDataRecord '[]))
+//   | PRewardFoldAct (Term s (PDataRecord '["rewardsIdx" ':= PInteger]))
 
 export const NodeValidatorActionSchema = Data.Enum([
   Data.Literal("LinkedListAct"),
   Data.Literal("ModifyCommitment"),
-  Data.Literal("RewardFoldAct")
+  Data.Object({
+    RewardFoldAct: Data.Object({
+      rewardsIdx: Data.Integer(),
+    }),
+  }),
 ])
 export type NodeValidatorAction = Data.Static<typeof NodeValidatorActionSchema>
 export const NodeValidatorAction = NodeValidatorActionSchema as unknown as NodeValidatorAction
 
+
+export const FoldDatumSchema = Data.Object({
+  currNode: SetNodeSchema,
+  committed: Data.Integer(),
+  owner: AddressSchema
+})
+
+export type FoldDatum = Data.Static<typeof FoldDatumSchema>
+export const FoldDatum = FoldDatumSchema as unknown as FoldDatum
+
+
+export const FoldActSchema = Data.Enum([
+  Data.Object({
+    FoldNoes: Data.Object({
+      nodeIdxs: Data.Array(Data.Integer()),
+      nodeOutIdxs: Data.Array(Data.Integer()),
+    }),
+  }),
+  Data.Literal("FoldNode"),
+  Data.Literal("Reclaim"),
+]);
+export type FoldAct = Data.Static<typeof FoldActSchema>
+export const FoldAct = FoldActSchema as unknown as FoldAct
