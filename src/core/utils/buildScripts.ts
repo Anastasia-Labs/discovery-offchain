@@ -22,7 +22,6 @@ export const buildScripts = (
   lucid: Lucid,
   config: BuildScriptsConfig
 ): Result<Scripts> => {
-
   const initUTxO = new Constr(0, [
     new Constr(0, [config.discoveryPolicy.initUTXO.txHash]),
     BigInt(config.discoveryPolicy.initUTXO.outputIndex),
@@ -193,9 +192,11 @@ export const buildScripts = (
   const discoveryValidator = applyParamsToScript(
     config.unapplied.discoveryValidator,
     [
-      BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
-      penaltyAddress.data, // penaltyAddress PAddress
-      lucid.utils.mintingPolicyToId(rewardMintingPolicy), // rewardsCS PCurrencySymbol
+      new Constr(0, [
+        BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
+        penaltyAddress.data, // penaltyAddress PAddress
+        lucid.utils.mintingPolicyToId(rewardMintingPolicy), // rewardsCS PCurrencySymbol
+      ]),
     ]
   );
 

@@ -36,7 +36,7 @@ export const initNode = async (
 
   const assets = {
     [toUnit(nodePolicyId, originNodeTokenName)]: 1n,
-    [toUnit(nodePolicyId, corrNodeTokenName)]: 1n,
+    // [toUnit(nodePolicyId, corrNodeTokenName)]: 1n,
   };
 
   //TODO: Add PDiscoveryNode struct
@@ -59,7 +59,7 @@ export const initNode = async (
       .payToContract(
         nodeValidatorAddr,
         { inline: datum },
-        { ...assets, lovelace: 2_000_000n }
+        { ...assets, lovelace: 3_000_000n }
       )
       .mintAssets(assets, redeemerNodePolicy)
       .attachMintingPolicy(nodePolicy)

@@ -10,6 +10,7 @@ import {
   InsertNodeConfig,
   Lucid,
   parseUTxOsAtScript,
+  replacer,
   utxosAtScript,
 } from "price-discovery-offchain";
 import { test, beforeAll, expect, beforeEach } from "vitest";
@@ -96,7 +97,6 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
     },
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
-  console.log(initNodeUnsigned)
 
   expect(initNodeUnsigned.type).toBe("ok");
   if (initNodeUnsigned.type == "ok") {
@@ -110,7 +110,7 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
     "initNode result ",
     JSON.stringify(
       await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
-      undefined,
+      replacer,
       2
     )
   ) : null

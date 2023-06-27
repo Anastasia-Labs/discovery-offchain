@@ -1,6 +1,6 @@
-import {Data, Lucid, SpendingValidator, UTxO} from "lucid-cardano";
-import {SetNode} from "../contract.types.js";
-import {Either, ReadableUTxO} from "../types.js";
+import { Data, Lucid, SpendingValidator, UTxO } from "lucid-cardano";
+import { SetNode } from "../contract.types.js";
+import { Either, ReadableUTxO } from "../types.js";
 
 export const utxosAtScript = async (
   lucid: Lucid,
@@ -31,7 +31,7 @@ export const parseDatum = (
       const parsedDatum = Data.from(utxo.datum, SetNode);
       return {
         type: "right",
-        value: parsedDatum
+        value: parsedDatum,
       };
     } catch (error) {
       return { type: "left", value: `invalid datum : ${error}` };
@@ -56,9 +56,32 @@ export const parseUTxOsAtScript = async (
           outputIndex: utxo.outputIndex,
         },
         datum: result.value,
+        assets: utxo.assets,
       };
     } else {
       return [];
     }
   });
+};
+
+// export const sortUTxOs = (utxos: ReadableUTxO[]) => {
+//   utxos.sort((a, b) => {
+//     if (a.datum.next == b.datum.key){
+//       return -1
+//     }
+//     else return 1
+//   });
+// };
+//
+// //NOTE: use mod to make groups of 10
+// export const groupUTxOs = (utxos: ReadableUTxO[]) => {
+//   const test = utxos.console.log(test);
+// };
+//
+
+export const replacer = (key: unknown, value: unknown) =>
+  typeof value === "bigint" ? value.toString() : value;
+
+export const divCeil = (a: bigint, b: bigint) => {
+  return 1n + (a - 1n) / b;
 };

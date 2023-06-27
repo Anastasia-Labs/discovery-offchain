@@ -1,5 +1,5 @@
 import { Address, OutRef, PolicyId, UTxO } from "lucid-cardano";
-import {SetNode} from "./contract.types.js";
+import { SetNode } from "./contract.types.js";
 
 export type CborHex = string;
 export type RawHex = string;
@@ -42,12 +42,35 @@ export type InsertNodeConfig = {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
   };
+  currenTime?: POSIXTime;
 };
 
 export type RemoveNodeConfig = {
   scripts: {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
+  };
+  deadline: POSIXTime;
+  penaltyAddress: Address;
+  currenTime?: POSIXTime;
+};
+
+export type InitFoldConfig = {
+  nodeRefInput: OutRef;
+  scripts: {
+    nodeValidator: CborHex;
+    nodePolicy: CborHex;
+    foldPolicy: CborHex;
+    foldValidator: CborHex;
+  };
+};
+
+export type FoldNodesConfig = {
+  nodeRefInputs: OutRef[];
+  foldOutRef: OutRef;
+  scripts: {
+    foldPolicy: CborHex;
+    foldValidator: CborHex;
   };
 };
 
@@ -57,11 +80,11 @@ export type BuildScriptsConfig = {
     deadline: POSIXTime;
     penaltyAddress: Address;
   };
-  rewardValidator:{
-    projectCS: PolicyId
-    projectTN: string
-    projectAddr: Address
-  }
+  rewardValidator: {
+    projectCS: PolicyId;
+    projectTN: string;
+    projectAddr: Address;
+  };
   unapplied: {
     discoveryPolicy: RawHex;
     discoveryValidator: RawHex;
@@ -73,6 +96,6 @@ export type BuildScriptsConfig = {
 };
 
 export type ReadableUTxO = {
-  outRef: OutRef,
-  datum: SetNode
-}
+  outRef: OutRef;
+  datum: SetNode;
+};
