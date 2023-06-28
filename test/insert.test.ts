@@ -127,6 +127,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
       nodeValidator: newScripts.data.discoveryValidator,
     },
     currenTime: emulator.now(),
+    userAddres: users.account1.address
   };
 
   const insertNodeUnsigned = await insertNode(lucid, insertNodeConfig);
@@ -161,6 +162,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
       nodeValidator: newScripts.data.discoveryValidator,
     },
     currenTime: emulator.now(),
+    userAddres: users.account2.address
   };
 
   const insertNodeUnsigned2 = await insertNode(lucid, insertNodeConfig2);

@@ -40,7 +40,7 @@ export const insertNode = async (
 
   const nodePolicyId = lucid.utils.mintingPolicyToId(nodePolicy);
 
-  const userKey = lucid.utils.getAddressDetails(await lucid.wallet.address())
+  const userKey = lucid.utils.getAddressDetails(config.userAddres)
     .paymentCredential?.hash;
 
   if (!userKey)
