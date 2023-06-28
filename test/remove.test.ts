@@ -144,7 +144,6 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   // console.log(await utxosAtScript(lucid,alwaysFailValidator.cborHex))
 
   //NOTE: INIT NODE
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initNodeConfig: InitNodeConfig = {
     initUTXO: treasuryUTxO,
     scripts: {
@@ -154,11 +153,14 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
+    userAddres: users.treasury1.address
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
   expect(initNodeUnsigned.type).toBe("ok");
   if (initNodeUnsigned.type == "error") return;
+
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   // console.log(tx.data.txComplete.to_json())
   const initNodeSigned = await initNodeUnsigned.data.sign().complete();
   const initNodeHash = await initNodeSigned.submit();
@@ -290,7 +292,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   expect(removeNodeUnsigned.type).toBe("ok");
 
   if (removeNodeUnsigned.type == "error") return
-    console.log(removeNodeUnsigned.data.txComplete.to_json())
+    // console.log(removeNodeUnsigned.data.txComplete.to_json())
     lucid.selectWalletFromSeed(users.account2.seedPhrase);
     const removeNodeSigned = await removeNodeUnsigned.data.sign().complete();
     const removeNodeHash = await removeNodeSigned.submit();

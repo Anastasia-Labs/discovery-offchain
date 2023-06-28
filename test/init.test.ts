@@ -126,7 +126,6 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
   );
 
   //NOTE: INIT NODE
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initNodeConfig: InitNodeConfig = {
     initUTXO: treasuryUTxO,
     scripts: {
@@ -136,11 +135,13 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
+    userAddres: users.treasury1.address
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
   expect(initNodeUnsigned.type).toBe("ok");
   if (initNodeUnsigned.type == "error") return;
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   // console.log(tx.data.txComplete.to_json())
   const initNodeSigned = await initNodeUnsigned.data.sign().complete();
   const initNodeHash = await initNodeSigned.submit();

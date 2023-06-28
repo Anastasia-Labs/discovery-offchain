@@ -14,6 +14,9 @@ export const initNode = async (
   lucid: Lucid,
   config: InitNodeConfig
 ): Promise<Result<TxComplete>> => {
+
+  lucid.selectWalletFrom({address: config.userAddres})
+
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
