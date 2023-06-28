@@ -83,7 +83,6 @@ export const removeNode = async (
 
   const newPrevNodeDatum = Data.to(newPrevNode, SetNode);
 
-  //TODO: Add Node Action
   const redeemerNodePolicy = Data.to(
     {
       PRemove: {
@@ -101,6 +100,7 @@ export const removeNode = async (
   const beforeDeadline = upperBound < config.deadline;
   const beforeTwentyFourHours =
     upperBound < config.deadline - TWENTY_FOUR_HOURS_MS;
+
   console.log("beforeDeadline", beforeDeadline);
   console.log("beforeTwentyFourHours", beforeTwentyFourHours);
   console.log(
@@ -140,12 +140,11 @@ export const removeNode = async (
         .complete();
       return { type: "ok", data: tx };
     } else if (beforeDeadline && !beforeTwentyFourHours) {
-
       console.log("beforeDeadline && !beforeTwentyFourHours");
-      console.log("node value", node.assets)
-      console.log("penaly ", divCeil(node.assets["lovelace"], 8n));
+      console.log("node value", node.assets);
+      console.log("penaly ", divCeil(node.assets["lovelace"], 4n));
 
-      const penaltyAmount = divCeil(node.assets["lovelace"], 8n);
+      const penaltyAmount = divCeil(node.assets["lovelace"], 4n);
 
       const tx = await lucid
         .newTx()
@@ -167,9 +166,8 @@ export const removeNode = async (
         .complete();
 
       return { type: "ok", data: tx };
-
     } else {
-      console.log("else");
+      //TODO: tests removing the node once project token is in user's wallet
       const tx = await lucid
         .newTx()
         .collectFrom([node, prevNode], redeemerNodeValidator)

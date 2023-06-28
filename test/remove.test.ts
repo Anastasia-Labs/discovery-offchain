@@ -182,6 +182,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     const insertNodeSigned2 = await insertNodeUnsigned2.data.sign().complete();
     const insertNodeHash2 = await insertNodeSigned2.submit();
   }
+
     // let finalCheck =
     //     pif
     //       (pafter # discDeadline # validityRange) -- valid range --> | deadline
@@ -207,16 +208,14 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   // emulator.awaitBlock(100); //Pass
 
   //NOTE: within 24 hours of deadline
-  // ptrace $ pshow (pafter # (discDeadline - 86_400_000) # validityRange) -- PFalse
-  // ptrace $ pshow (pafter # discDeadline # validityRange) -- PTrue
-  // ptrace $ pshow (pbefore # discDeadline # validityRange) -- PFalse
-  // ptrace $ pshow (pcountOfUniqueTokens # removedValue) 2
   // emulator.awaitBlock(167);
 
   //NOTE: after deadline 24 hours + 1 hour = 4500 - 12 blocks from previous = 4488
   //4486 is before deadline
   // emulator.awaitBlock(4486); //Pass
-  emulator.awaitBlock(400)
+
+  //within 24 hours
+  emulator.awaitBlock(200)
 
   logFlag
     ? console.log(
@@ -252,8 +251,6 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     const removeNodeSigned = await removeNodeUnsigned.data.sign().complete();
     const removeNodeHash = await removeNodeSigned.submit();
   }
-  // 1688131332229
-  // 1687872372229
 
   emulator.awaitBlock(4);
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
