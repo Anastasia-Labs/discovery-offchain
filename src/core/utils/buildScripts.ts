@@ -93,13 +93,17 @@ export const buildScripts = (
   //           ( PDataRecord
   //               '[ "nodeCS" ':= PCurrencySymbol
   //                , "foldAddr" ':= PAddress
+  //                , "discoveryDeadline" ':= PPOSIXTime
   //                ]
   //           )
   //       )
+  //   deriving stock (Generic)
+  //   deriving anyclass (PlutusType, PIsData, PDataFields)
   const foldPolicy = applyParamsToScript(config.unapplied.foldPolicy, [
     new Constr(0, [
       lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
       foldValidatorAddress.data,
+      BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
     ]),
   ]);
 

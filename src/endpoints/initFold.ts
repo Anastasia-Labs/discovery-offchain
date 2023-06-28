@@ -5,27 +5,29 @@ import {
   Data,
   toUnit,
   TxComplete,
-  Constr,
   fromText,
 } from "lucid-cardano";
 import {
   cFold,
-  corrNodeTokenName,
-  originNodeTokenName,
   SETNODE_PREFIX,
 } from "../core/constants.js";
 import {
-  DiscoveryNodeAction,
   FoldDatum,
+  FoldMintAct,
   SetNode,
 } from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 
-export const initNode = async (
+export const initFold = async (
   lucid: Lucid,
   config: InitFoldConfig
 ): Promise<Result<TxComplete>> => {
+
+  config.currenTime ??= Date.now();
+
+  lucid.selectWalletFrom({ address: config.userAddres });
+
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
@@ -77,7 +79,7 @@ export const initNode = async (
     FoldDatum
   );
 
-  const redeemerNodePolicy = Data.to(new Constr(0, []));
+  const redeemerNodePolicy = Data.to("MintFold",FoldMintAct);
 
   const assets = {
     [toUnit(foldPolicyId, cFold)]: 1n,
@@ -90,6 +92,8 @@ export const initNode = async (
       .payToContract(foldValidatorAddr, { inline: datum }, assets)
       .mintAssets(assets, redeemerNodePolicy)
       .attachMintingPolicy(foldPolicy)
+      .validFrom(config.currenTime)
+      .validTo(config.currenTime)
       .complete();
 
     return { type: "ok", data: tx };

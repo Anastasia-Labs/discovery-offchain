@@ -87,6 +87,8 @@ export type InitFoldConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
+  userAddres: Address;
+  currenTime?: POSIXTime;
 };
 
 export type FoldNodesConfig = {
