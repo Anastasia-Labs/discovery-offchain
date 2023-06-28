@@ -40,7 +40,7 @@ export const removeNode = async (
   const nodePolicyId = lucid.utils.mintingPolicyToId(nodePolicy);
 
   const userPubKeyHash = lucid.utils.getAddressDetails(
-    await lucid.wallet.address()
+   config.userAddres
   ).paymentCredential?.hash;
 
   if (!userPubKeyHash)

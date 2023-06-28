@@ -42,6 +42,7 @@ export type InsertNodeConfig = {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
   };
+  userAddres: Address;
   currenTime?: POSIXTime;
 };
 
@@ -50,6 +51,7 @@ export type RemoveNodeConfig = {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
   };
+  userAddres: Address;
   deadline: POSIXTime;
   penaltyAddress: Address;
   currenTime?: POSIXTime;

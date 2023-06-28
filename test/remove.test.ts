@@ -64,7 +64,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
-  const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS// 48 hours + 1 hour 
+  const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 48 hours + 1 hour
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
@@ -126,7 +126,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
         )
       )
     : null;
-  console.log("treasury1 ", await lucid.wallet.getUtxos())
+  console.log("treasury1 ", await lucid.wallet.getUtxos());
 
   //NOTE: INSERT NODE
   lucid.selectWalletFromSeed(users.account1.seedPhrase);
@@ -136,7 +136,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: newScripts.data.discoveryPolicy,
       nodeValidator: newScripts.data.discoveryValidator,
     },
-    currenTime: emulator.now()
+    currenTime: emulator.now(),
+    userAddres: users.account1.address,
   };
 
   const insertNodeUnsigned = await insertNode(lucid, insertNodeConfig);
@@ -170,7 +171,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: newScripts.data.discoveryPolicy,
       nodeValidator: newScripts.data.discoveryValidator,
     },
-    currenTime: emulator.now()
+    currenTime: emulator.now(),
+    userAddres: users.account2.address,
   };
 
   const insertNodeUnsigned2 = await insertNode(lucid, insertNodeConfig2);
@@ -183,22 +185,21 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     const insertNodeHash2 = await insertNodeSigned2.submit();
   }
 
-    // let finalCheck =
-    //     pif
-    //       (pafter # discDeadline # validityRange) -- valid range --> | deadline
-    //       ( pif
-    //           (pafter # (discDeadline - 86_400_000) # validityRange) -- valid range --> | deadline - 24hour
-    //           (pconstant True)
-    //           ( pany
-    //               # plam
-    //                 ( \out ->
-    //                     pfield @"address" # out #== configF.penaltyAddress #&& ownInputFee #<= plovelaceValueOf # (pfield @"value" # out)
-    //                 )
-    //               # outs -- must pay 25% fee
-    //           )
-    //       )
-    //       ((pbefore # discDeadline # validityRange) #&& (pcountOfUniqueTokens # removedValue #== 3))
-
+  // let finalCheck =
+  //     pif
+  //       (pafter # discDeadline # validityRange) -- valid range --> | deadline
+  //       ( pif
+  //           (pafter # (discDeadline - 86_400_000) # validityRange) -- valid range --> | deadline - 24hour
+  //           (pconstant True)
+  //           ( pany
+  //               # plam
+  //                 ( \out ->
+  //                     pfield @"address" # out #== configF.penaltyAddress #&& ownInputFee #<= plovelaceValueOf # (pfield @"value" # out)
+  //                 )
+  //               # outs -- must pay 25% fee
+  //           )
+  //       )
+  //       ((pbefore # discDeadline # validityRange) #&& (pcountOfUniqueTokens # removedValue #== 3))
 
   //1 block = 20 secs
   //1 hour = 180 blocks
@@ -215,7 +216,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   // emulator.awaitBlock(4486); //Pass
 
   //within 24 hours
-  emulator.awaitBlock(200)
+  emulator.awaitBlock(200);
 
   logFlag
     ? console.log(
@@ -229,7 +230,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     : null;
 
   //NOTE: REMOVE NODE
-  lucid.selectWalletFromSeed(users.account2.seedPhrase)
+  lucid.selectWalletFromSeed(users.account2.seedPhrase);
   const removeNodeConfig: RemoveNodeConfig = {
     scripts: {
       nodePolicy: newScripts.data.discoveryPolicy,
@@ -237,12 +238,12 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     },
     currenTime: emulator.now(),
     deadline: deadline,
-    penaltyAddress: treasuryAddress
+    penaltyAddress: treasuryAddress,
+    userAddres: users.account2.address,
   };
 
-
   const removeNodeUnsigned = await removeNode(lucid, removeNodeConfig);
-  console.log(removeNodeUnsigned)
+  console.log(removeNodeUnsigned);
 
   expect(removeNodeUnsigned.type).toBe("ok");
 
@@ -254,7 +255,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
 
   emulator.awaitBlock(4);
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
-  console.log("treasury1 address ", await lucid.wallet.getUtxos())
+  console.log("treasury1 address ", await lucid.wallet.getUtxos());
 
   logFlag
     ? console.log(
@@ -268,12 +269,15 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     : null;
 
   //NOTE: FAIL REMOVE NODE
-  lucid.selectWalletFromSeed(users.account2.seedPhrase)
+  lucid.selectWalletFromSeed(users.account2.seedPhrase);
   const removeNodeConfig2: RemoveNodeConfig = {
     scripts: {
       nodePolicy: newScripts.data.discoveryPolicy,
       nodeValidator: newScripts.data.discoveryValidator,
     },
+    userAddres: users.account2.address,
+    deadline: deadline,
+    penaltyAddress: treasuryAddress,
   };
 
   const removeNodeUnsigned2 = await removeNode(lucid, removeNodeConfig2);
