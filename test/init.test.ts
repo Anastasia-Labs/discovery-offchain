@@ -1,26 +1,23 @@
-import { writeFile, readFileSync } from "fs";
 import {
   buildScripts,
+  deployRefScripts,
+  DeployRefScriptsConfig,
   Emulator,
-  fromAddressToData,
   generateAccountSeedPhrase,
   initNode,
   InitNodeConfig,
-  insertNode,
-  InsertNodeConfig,
   Lucid,
   parseUTxOsAtScript,
   replacer,
-  utxosAtScript,
 } from "price-discovery-offchain";
-import { test, beforeAll, expect, beforeEach } from "vitest";
-import scripts from "./plutus.json";
-import discoveryValidator from "./compiled/discoveryValidator.json"
-import discoveryPolicy from "./compiled/discoveryMinting.json"
-import foldPolicy from "./compiled/foldMint.json"
-import foldValidator from "./compiled/foldValidator.json"
-import rewardPolicy from "./compiled/rewardFoldMint.json"
-import rewardValidator from "./compiled/rewardFoldValidator.json"
+import { test, expect, beforeEach } from "vitest";
+import discoveryValidator from "./compiled/discoveryValidator.json";
+import discoveryPolicy from "./compiled/discoveryMinting.json";
+import foldPolicy from "./compiled/foldMint.json";
+import foldValidator from "./compiled/foldValidator.json";
+import rewardPolicy from "./compiled/rewardFoldMint.json";
+import rewardValidator from "./compiled/rewardFoldValidator.json";
+import alwaysFailValidator from "./compiled/alwaysFailValidator.json";
 
 type LucidContext = {
   lucid: Lucid;
@@ -40,19 +37,23 @@ beforeEach<LucidContext>(async (context) => {
     account2: await generateAccountSeedPhrase({
       lovelace: BigInt(100_000_000),
     }),
+    account3: await generateAccountSeedPhrase({
+      lovelace: BigInt(100_000_000),
+    }),
   };
 
   context.emulator = new Emulator([
     context.users.treasury1,
     context.users.account1,
     context.users.account2,
+    context.users.account3,
   ]);
 
   context.lucid = await Lucid.new(context.emulator);
 });
 
 test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
-  const logFlag = false
+  const logFlag = false;
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
@@ -74,18 +75,55 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
       foldPolicy: foldPolicy.cborHex,
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
-      rewardValidator: rewardValidator.cborHex
+      rewardValidator: rewardValidator.cborHex,
     },
   });
 
-  expect(newScripts.type).toBe("ok")
+  expect(newScripts.type).toBe("ok");
+  if (newScripts.type == "error") return;
 
-  if (newScripts.type == "error") return console.log(newScripts.error);
-  //
-  // writeFile("scripts.json", JSON.stringify(newScripts.data), (error) => {
-  //   error ? console.log(error) : console.log("ok");
-  // });
-  // const appliedScripts = JSON.parse(readFileSync("./scripts.json", "utf8"));
+  //NOTE: DEPLOY
+  lucid.selectWalletFromSeed(users.account3.seedPhrase);
+  const deployRefScriptsConfig: DeployRefScriptsConfig = {
+    scripts: {
+      nodePolicy: newScripts.data.discoveryPolicy,
+      nodeValidator: newScripts.data.discoveryValidator,
+    },
+    alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: emulator.now(),
+  };
+
+  const deployRefScriptsUnsigned = await deployRefScripts(
+    lucid,
+    deployRefScriptsConfig
+  );
+
+  expect(deployRefScriptsUnsigned.type).toBe("ok");
+  if (deployRefScriptsUnsigned.type == "error") return;
+  // console.log(tx.data.txComplete.to_json())
+  const deployRefScrtipsSigned = await deployRefScriptsUnsigned.data.tx
+    .sign()
+    .complete();
+  const deployRefScriptsHash = await deployRefScrtipsSigned.submit();
+
+  emulator.awaitBlock(4);
+
+  //Find node refs script
+  const [nodeValidatorUTxO] = await lucid.utxosAtWithUnit(
+    lucid.utils.validatorToAddress({
+      type: "PlutusV2",
+      script: alwaysFailValidator.cborHex,
+    }),
+    deployRefScriptsUnsigned.data.unit.nodeValidator
+  );
+
+  const [nodePolicyUTxO] = await lucid.utxosAtWithUnit(
+    lucid.utils.validatorToAddress({
+      type: "PlutusV2",
+      script: alwaysFailValidator.cborHex,
+    }),
+    deployRefScriptsUnsigned.data.unit.nodePolicy
+  );
 
   //NOTE: INIT NODE
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
@@ -95,24 +133,27 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
       nodePolicy: newScripts.data.discoveryPolicy,
       nodeValidator: newScripts.data.discoveryValidator,
     },
+    refScripts: {
+      nodePolicy: nodePolicyUTxO,
+    },
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
   expect(initNodeUnsigned.type).toBe("ok");
-  if (initNodeUnsigned.type == "ok") {
-    // console.log(tx.data.txComplete.to_json())
-    const initNodeSigned = await initNodeUnsigned.data.sign().complete();
-    const initNodeHash = await initNodeSigned.submit();
-    // console.log(initNodeHash)
-  }
+  if (initNodeUnsigned.type == "error") return;
+  // console.log(tx.data.txComplete.to_json())
+  const initNodeSigned = await initNodeUnsigned.data.sign().complete();
+  const initNodeHash = await initNodeSigned.submit();
+  // console.log(initNodeHash)
   emulator.awaitBlock(4);
-  logFlag ? console.log(
-    "initNode result ",
-    JSON.stringify(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
-      replacer,
-      2
-    )
-  ) : null
-
+  logFlag
+    ? console.log(
+        "initNode result ",
+        JSON.stringify(
+          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
+          replacer,
+          2
+        )
+      )
+    : null;
 });

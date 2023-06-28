@@ -22,12 +22,25 @@ export type AssetClass = {
   tokenName: string;
 };
 
+export type DeployRefScriptsConfig = {
+  scripts: {
+    nodePolicy: CborHex;
+    nodeValidator: CborHex;
+  };
+  alwaysFails: CborHex;
+  currenTime?: POSIXTime;
+};
+
 export type InitNodeConfig = {
   initUTXO: UTxO;
   scripts: {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
   };
+  refScripts?: {
+    nodePolicy?: UTxO;
+  };
+  userAddres: Address;
 };
 
 export type DInitNodeConfig = {
@@ -42,7 +55,12 @@ export type InsertNodeConfig = {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
   };
+  refScripts?: {
+    nodeValidator?: UTxO;
+    nodePolicy?: UTxO;
+  };
   userAddres: Address;
+  amountLovelace: number;
   currenTime?: POSIXTime;
 };
 
@@ -50,6 +68,10 @@ export type RemoveNodeConfig = {
   scripts: {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
+  };
+  refScripts?: {
+    nodeValidator?: UTxO;
+    nodePolicy?: UTxO;
   };
   userAddres: Address;
   deadline: POSIXTime;
