@@ -5,9 +5,8 @@ import {
   Data,
   toUnit,
   TxComplete,
-  Constr,
 } from "lucid-cardano";
-import { corrNodeTokenName, originNodeTokenName } from "../core/constants.js";
+import { originNodeTokenName } from "../core/constants.js";
 import { DiscoveryNodeAction, SetNode } from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";
 
@@ -15,6 +14,9 @@ export const initNode = async (
   lucid: Lucid,
   config: InitNodeConfig
 ): Promise<Result<TxComplete>> => {
+
+  lucid.selectWalletFrom({address: config.userAddres})
+
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
@@ -48,21 +50,24 @@ export const initNode = async (
     SetNode
   );
 
-  //TODO: Add Node Action
   const redeemerNodePolicy = Data.to("PInit", DiscoveryNodeAction);
-  // const redeemerNodePolicy = Data.to(new Constr(0,[]));
 
   try {
     const tx = await lucid
       .newTx()
       .collectFrom([config.initUTXO])
-      .payToContract(
+      .payToAddressWithData(
         nodeValidatorAddr,
-        { inline: datum },
+        { inline: datum, scriptRef: nodeValidator },
         { ...assets, lovelace: 3_000_000n }
       )
       .mintAssets(assets, redeemerNodePolicy)
-      .attachMintingPolicy(nodePolicy)
+      // .attachMintingPolicy(nodePolicy)
+      .compose(
+        config.refScripts?.nodePolicy
+          ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
+          : lucid.newTx().attachMintingPolicy(nodePolicy)
+      )
       .complete();
 
     return { type: "ok", data: tx };

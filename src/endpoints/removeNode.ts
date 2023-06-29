@@ -5,7 +5,6 @@ import {
   Data,
   toUnit,
   TxComplete,
-  C,
 } from "lucid-cardano";
 import {
   DiscoveryNodeAction,
@@ -20,6 +19,8 @@ export const removeNode = async (
   config: RemoveNodeConfig
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
+
+  lucid.selectWalletFrom({ address: config.userAddres });
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
@@ -40,7 +41,7 @@ export const removeNode = async (
   const nodePolicyId = lucid.utils.mintingPolicyToId(nodePolicy);
 
   const userPubKeyHash = lucid.utils.getAddressDetails(
-   config.userAddres
+    await lucid.wallet.address()
   ).paymentCredential?.hash;
 
   if (!userPubKeyHash)
@@ -101,32 +102,37 @@ export const removeNode = async (
   const beforeTwentyFourHours =
     upperBound < config.deadline - TWENTY_FOUR_HOURS_MS;
 
-  console.log("beforeDeadline", beforeDeadline);
-  console.log("beforeTwentyFourHours", beforeTwentyFourHours);
-  console.log(
-    "time delta deadline - upperBound ms",
-    config.deadline - upperBound
-  );
-  console.log(
-    "time delta deadline - upperBound secs",
-    (config.deadline - upperBound) / 1_000
-  );
-  console.log(
-    "time delta deadline - upperBound min",
-    (config.deadline - upperBound) / 60_000
-  );
-  console.log(
-    "time delta deadline - upperBound hours",
-    (config.deadline - upperBound) / 3_600_000
-  );
+  // console.log("beforeDeadline", beforeDeadline);
+  // console.log("beforeTwentyFourHours", beforeTwentyFourHours);
+  // console.log(
+  //   "time delta deadline - upperBound ms",
+  //   config.deadline - upperBound
+  // );
+  // console.log(
+  //   "time delta deadline - upperBound secs",
+  //   (config.deadline - upperBound) / 1_000
+  // );
+  // console.log(
+  //   "time delta deadline - upperBound min",
+  //   (config.deadline - upperBound) / 60_000
+  // );
+  // console.log(
+  //   "time delta deadline - upperBound hours",
+  //   (config.deadline - upperBound) / 3_600_000
+  // );
 
   try {
     if (beforeDeadline && beforeTwentyFourHours) {
-      console.log("beforeDeadline && beforeTwentyFourHours");
+      // console.log("beforeDeadline && beforeTwentyFourHours");
       const tx = await lucid
         .newTx()
         .collectFrom([node, prevNode], redeemerNodeValidator)
-        .attachSpendingValidator(nodeValidator)
+        // .attachSpendingValidator(nodeValidator)
+        .compose(
+          config.refScripts?.nodeValidator
+            ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
+            : lucid.newTx().attachSpendingValidator(nodeValidator)
+        )
         .payToContract(
           nodeValidatorAddr,
           { inline: newPrevNodeDatum },
@@ -134,22 +140,32 @@ export const removeNode = async (
         )
         .addSignerKey(userPubKeyHash)
         .mintAssets(assets, redeemerNodePolicy)
-        .attachMintingPolicy(nodePolicy)
+        // .attachMintingPolicy(nodePolicy)
+        .compose(
+          config.refScripts?.nodePolicy
+            ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
+            : lucid.newTx().attachMintingPolicy(nodePolicy)
+        )
         .validFrom(config.currenTime)
         .validTo(upperBound)
         .complete();
       return { type: "ok", data: tx };
     } else if (beforeDeadline && !beforeTwentyFourHours) {
-      console.log("beforeDeadline && !beforeTwentyFourHours");
-      console.log("node value", node.assets);
-      console.log("penaly ", divCeil(node.assets["lovelace"], 4n));
+      // console.log("beforeDeadline && !beforeTwentyFourHours");
+      // console.log("node value", node.assets);
+      // console.log("penaly ", divCeil(node.assets["lovelace"], 4n));
 
       const penaltyAmount = divCeil(node.assets["lovelace"], 4n);
 
       const tx = await lucid
         .newTx()
         .collectFrom([node, prevNode], redeemerNodeValidator)
-        .attachSpendingValidator(nodeValidator)
+        // .attachSpendingValidator(nodeValidator)
+        .compose(
+          config.refScripts?.nodeValidator
+            ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
+            : lucid.newTx().attachSpendingValidator(nodeValidator)
+        )
         .payToContract(
           nodeValidatorAddr,
           { inline: newPrevNodeDatum },
@@ -160,7 +176,12 @@ export const removeNode = async (
         })
         .addSignerKey(userPubKeyHash)
         .mintAssets(assets, redeemerNodePolicy)
-        .attachMintingPolicy(nodePolicy)
+        // .attachMintingPolicy(nodePolicy)
+        .compose(
+          config.refScripts?.nodePolicy
+            ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
+            : lucid.newTx().attachMintingPolicy(nodePolicy)
+        )
         .validFrom(config.currenTime)
         .validTo(upperBound)
         .complete();
@@ -171,7 +192,12 @@ export const removeNode = async (
       const tx = await lucid
         .newTx()
         .collectFrom([node, prevNode], redeemerNodeValidator)
-        .attachSpendingValidator(nodeValidator)
+        // .attachSpendingValidator(nodeValidator)
+        .compose(
+          config.refScripts?.nodeValidator
+            ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
+            : lucid.newTx().attachSpendingValidator(nodeValidator)
+        )
         .payToContract(
           nodeValidatorAddr,
           { inline: newPrevNodeDatum },
@@ -179,7 +205,12 @@ export const removeNode = async (
         )
         .addSignerKey(userPubKeyHash)
         .mintAssets(assets, redeemerNodePolicy)
-        .attachMintingPolicy(nodePolicy)
+        // .attachMintingPolicy(nodePolicy)
+        .compose(
+          config.refScripts?.nodePolicy
+            ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
+            : lucid.newTx().attachMintingPolicy(nodePolicy)
+        )
         .validFrom(config.currenTime)
         .validTo(upperBound)
         .complete();

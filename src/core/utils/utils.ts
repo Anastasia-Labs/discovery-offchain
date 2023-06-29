@@ -98,9 +98,16 @@ export const fromAddressToData = (address: Address): Result<Data> => {
   if (!addrDetails.paymentCredential)
     return { type: "error", error: new Error("undefined paymentCredential") };
 
-  const paymentCred = new Constr(0, [addrDetails.paymentCredential.hash]);
+  const paymentCred =
+    addrDetails.paymentCredential.type == "Key"
+      ? new Constr(0, [addrDetails.paymentCredential.hash])
+      : new Constr(1, [addrDetails.paymentCredential.hash]);
 
-  if (!addrDetails.stakeCredential) return { type: "ok", data: paymentCred };
+  if (!addrDetails.stakeCredential)
+    return {
+      type: "ok",
+      data: new Constr(0, [paymentCred, new Constr(1, [])]),
+    };
 
   const stakingCred = new Constr(0, [
     new Constr(0, [new Constr(0, [addrDetails.stakeCredential.hash])]),

@@ -5,7 +5,6 @@ import {
   Data,
   toUnit,
   TxComplete,
-  Constr,
 } from "lucid-cardano";
 import {
   DiscoveryNodeAction,
@@ -13,14 +12,16 @@ import {
   SetNode,
 } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
-import { mkNodeKeyTN } from "../index.js";
+import { MINIMUM_LOVELACE, mkNodeKeyTN } from "../index.js";
 
 export const insertNode = async (
   lucid: Lucid,
   config: InsertNodeConfig
 ): Promise<Result<TxComplete>> => {
-
   config.currenTime ??= Date.now();
+
+  lucid.selectWalletFrom({ address: config.userAddres });
+
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
@@ -40,7 +41,7 @@ export const insertNode = async (
 
   const nodePolicyId = lucid.utils.mintingPolicyToId(nodePolicy);
 
-  const userKey = lucid.utils.getAddressDetails(config.userAddres)
+  const userKey = lucid.utils.getAddressDetails(await lucid.wallet.address())
     .paymentCredential?.hash;
 
   if (!userKey)
@@ -66,10 +67,6 @@ export const insertNode = async (
 
   const coveringNodeDatum = Data.from(coveringNode.datum, SetNode);
 
-  const assets = {
-    [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
-  };
-
   const prevNodeDatum = Data.to(
     {
       key: coveringNodeDatum.key,
@@ -83,7 +80,7 @@ export const insertNode = async (
 
   const nodeDatum = Data.to(
     {
-      key:  userKey,
+      key: userKey,
       next: coveringNodeDatum.next,
     },
     SetNode
@@ -113,14 +110,28 @@ export const insertNode = async (
   //   ])
   // );
 
-  const redeemerNodeValidator = Data.to("LinkedListAct",NodeValidatorAction)
+  const redeemerNodeValidator = Data.to("LinkedListAct", NodeValidatorAction);
   // const redeemerNodeValidator = Data.to(new Constr(0, []));
+
+  const assets = {
+    [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
+  };
+
+  const correctAmount =
+    BigInt(config.amountLovelace) > MINIMUM_LOVELACE
+      ? BigInt(config.amountLovelace)
+      : MINIMUM_LOVELACE;
 
   try {
     const tx = await lucid
       .newTx()
       .collectFrom([coveringNode], redeemerNodeValidator)
-      .attachSpendingValidator(nodeValidator)
+      .compose(
+        config.refScripts?.nodeValidator
+          ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
+          : lucid.newTx().attachSpendingValidator(nodeValidator)
+      )
+      // .attachSpendingValidator(nodeValidator)
       .payToContract(
         nodeValidatorAddr,
         { inline: prevNodeDatum },
@@ -129,11 +140,16 @@ export const insertNode = async (
       .payToContract(
         nodeValidatorAddr,
         { inline: nodeDatum },
-        { ...assets, lovelace: 3_000_000n }
+        { ...assets, lovelace: correctAmount }
       )
       .addSignerKey(userKey)
       .mintAssets(assets, redeemerNodePolicy)
-      .attachMintingPolicy(nodePolicy)
+      // .attachMintingPolicy(nodePolicy)
+      .compose(
+        config.refScripts?.nodePolicy
+          ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
+          : lucid.newTx().attachMintingPolicy(nodePolicy)
+      )
       .validFrom(config.currenTime)
       .validTo(config.currenTime)
       .complete();

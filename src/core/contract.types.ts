@@ -118,16 +118,14 @@ export const FoldDatumSchema = Data.Object({
   committed: Data.Integer(),
   owner: AddressSchema
 })
-
 export type FoldDatum = Data.Static<typeof FoldDatumSchema>
 export const FoldDatum = FoldDatumSchema as unknown as FoldDatum
 
 
 export const FoldActSchema = Data.Enum([
   Data.Object({
-    FoldNoes: Data.Object({
+    FoldNodes: Data.Object({
       nodeIdxs: Data.Array(Data.Integer()),
-      nodeOutIdxs: Data.Array(Data.Integer()),
     }),
   }),
   Data.Literal("FoldNode"),
@@ -135,3 +133,11 @@ export const FoldActSchema = Data.Enum([
 ]);
 export type FoldAct = Data.Static<typeof FoldActSchema>
 export const FoldAct = FoldActSchema as unknown as FoldAct
+
+export const FoldMintActSchema = Data.Enum([
+  Data.Literal("MintFold"),
+  Data.Literal("BurnFold")
+])
+export type FoldMintAct = Data.Static<typeof FoldMintActSchema>
+export const FoldMintAct = FoldMintActSchema as unknown as FoldMintAct
+
