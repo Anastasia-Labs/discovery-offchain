@@ -11,8 +11,10 @@ import {
   insertNode,
   InsertNodeConfig,
   Lucid,
+  ONE_HOUR_MS,
   parseUTxOsAtScript,
   replacer,
+  TWENTY_FOUR_HOURS_MS,
   utxosAtScript,
 } from "price-discovery-offchain";
 import { test, expect, beforeEach } from "vitest";
@@ -66,11 +68,13 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
+  const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 48 hours + 1 hour
+  console.log(deadline)
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
       initUTXO: treasuryUTxO,
-      deadline: emulator.now() + 600_000, // 10 minutes
+      deadline: deadline,
       penaltyAddress: treasuryAddress,
     },
     rewardValidator: {
@@ -237,7 +241,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
   const insertNodeSigned2 = await insertNodeUnsigned2.data.sign().complete();
   const insertNodeHash2 = await insertNodeSigned2.submit();
 
-  emulator.awaitBlock(4);
+  emulator.awaitBlock(6000);
 
   logFlag
     ? console.log(
@@ -252,20 +256,27 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
 
   //NOTE: INIT FOLD
   const initFoldConfig : InitFoldConfig = {
-    nodeRefInput: {
-      txHash: "",
-      outputIndex: 0
-    },
     scripts: {
       nodeValidator: newScripts.data.discoveryValidator,
       nodePolicy: newScripts.data.discoveryPolicy,
       foldPolicy: newScripts.data.foldPolicy,
       foldValidator: newScripts.data.foldValidator
     },
-    userAddres: users.treasury1.address
+    userAddres: users.treasury1.address,
+    currenTime: emulator.now()
   }
 
   const initFoldUnsigned = await initFold(lucid,initFoldConfig)
-  console.log(initFoldUnsigned)
+
+  expect(initFoldUnsigned.type).toBe("ok");
+  if (initFoldUnsigned.type == "error") return;
+  // console.log(insertNodeUnsigned.data.txComplete.to_json())
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
+  const initFoldSigned = await initFoldUnsigned.data.sign().complete();
+  const initFoldHash = await initFoldSigned.submit();
+
+  emulator.awaitBlock(4)
+
+  console.log(await utxosAtScript(lucid, newScripts.data.foldValidator))
   
 });

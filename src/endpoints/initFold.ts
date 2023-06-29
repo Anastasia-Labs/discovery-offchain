@@ -84,6 +84,8 @@ export const initFold = async (
   const assets = {
     [toUnit(foldPolicyId, cFold)]: 1n,
   };
+  console.log(foldValidatorAddr)
+  const upperBound = config.currenTime + 100_000;
 
   try {
     const tx = await lucid
@@ -93,7 +95,7 @@ export const initFold = async (
       .mintAssets(assets, redeemerNodePolicy)
       .attachMintingPolicy(foldPolicy)
       .validFrom(config.currenTime)
-      .validTo(config.currenTime)
+      .validTo(upperBound)
       .complete();
 
     return { type: "ok", data: tx };
