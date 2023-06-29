@@ -3,20 +3,14 @@ import {
   SpendingValidator,
   MintingPolicy,
   Data,
-  toUnit,
   TxComplete,
 } from "lucid-cardano";
-import {
-  DiscoveryNodeAction,
-  NodeValidatorAction,
-  SetNode,
-} from "../core/contract.types.js";
-import { FoldNodesConfig, Result } from "../core/types.js";
-import { mkNodeKeyTN, utxosAtScript } from "../index.js";
+import { FoldAct, FoldDatum, SetNode } from "../core/contract.types.js";
+import { FoldNodeConfig, Result } from "../core/types.js";
 
-export const foldNodes = async (
+export const foldNode = async (
   lucid: Lucid,
-  config: FoldNodesConfig
+  config: FoldNodeConfig
 ): Promise<Result<TxComplete>> => {
   const walletUtxos = await lucid.wallet.getUtxos();
 
@@ -37,32 +31,38 @@ export const foldNodes = async (
 
   const foldPolicyId = lucid.utils.mintingPolicyToId(foldPolicy);
 
-  const foldUTxO = (
-    await lucid.utxosByOutRef([config.foldOutRef])
-  )[0];
+  const foldUTxO = (await lucid.utxosByOutRef([config.foldOutRef]))[0];
 
   if (!foldUTxO || !foldUTxO.datum)
     return { type: "error", error: new Error("missing foldUTxO") };
 
-  // const nodeUTXOs = await utxosAtScript(lucid, config.scripts.)
+  const oldFoldDatum = Data.from(foldUTxO.datum, FoldDatum);
+
+  const [nodeRefUTxO] = await lucid.utxosByOutRef([config.nodeRefInput]);
+  const nodeDatum = Data.from(nodeRefUTxO.datum!, SetNode);
+
+  const newFoldDatum = Data.to(
+    {
+      currNode: nodeDatum,
+      committed: oldFoldDatum.committed + nodeRefUTxO.assets.lovelace,
+      owner: oldFoldDatum.owner,
+    },
+    FoldDatum
+  );
+
+  const foldAct = Data.to("FoldNode", FoldAct);
 
   try {
     const tx = await lucid
       .newTx()
-      // .collectFrom([foldUTxO], redeemerNodeValidator)
-      // .attachSpendingValidator(nodeValidator)
-      // .payToContract(
-      //   nodeValidatorAddr,
-      //   { inline: prevNodeDatum },
-      //   coveringNode.assets
-      // )
-      // .payToContract(
-      //   nodeValidatorAddr,
-      //   { inline: nodeDatum },
-      //   { ...assets, lovelace: 2_000_000n }
-      // )
-      // .mintAssets(assets, redeemerNodePolicy)
-      // .attachMintingPolicy(nodePolicy)
+      .readFrom([nodeRefUTxO])
+      .collectFrom([foldUTxO], foldAct)
+      .attachSpendingValidator(foldValidator)
+      .payToContract(
+        foldValidatorAddr,
+        { inline: newFoldDatum },
+        foldUTxO.assets
+      )
       .complete();
 
     return { type: "ok", data: tx };

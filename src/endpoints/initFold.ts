@@ -84,7 +84,7 @@ export const initFold = async (
   const assets = {
     [toUnit(foldPolicyId, cFold)]: 1n,
   };
-  console.log(foldValidatorAddr)
+
   const upperBound = config.currenTime + 100_000;
 
   try {

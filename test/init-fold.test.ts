@@ -1,5 +1,6 @@
 import {
   buildScripts,
+  chunkArray,
   deployRefScripts,
   DeployRefScriptsConfig,
   Emulator,
@@ -14,6 +15,7 @@ import {
   ONE_HOUR_MS,
   parseUTxOsAtScript,
   replacer,
+  sortByKeysNodeUTxOs,
   TWENTY_FOUR_HOURS_MS,
   utxosAtScript,
 } from "price-discovery-offchain";
@@ -38,6 +40,9 @@ beforeEach<LucidContext>(async (context) => {
     treasury1: await generateAccountSeedPhrase({
       lovelace: BigInt(100_000_000),
     }),
+    project1: await generateAccountSeedPhrase({
+      lovelace: BigInt(100_000_000),
+    }),
     account1: await generateAccountSeedPhrase({
       lovelace: BigInt(100_000_000),
     }),
@@ -51,6 +56,7 @@ beforeEach<LucidContext>(async (context) => {
 
   context.emulator = new Emulator([
     context.users.treasury1,
+    context.users.project1,
     context.users.account1,
     context.users.account2,
     context.users.account3,
@@ -59,7 +65,7 @@ beforeEach<LucidContext>(async (context) => {
   context.lucid = await Lucid.new(context.emulator);
 });
 
-test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode", async ({
+test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode - account3 insertNode - treasury1 initFold", async ({
   lucid,
   users,
   emulator,
@@ -69,7 +75,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
   const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 48 hours + 1 hour
-  console.log(deadline)
+  // console.log(deadline)
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
@@ -93,10 +99,10 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
   });
 
   expect(newScripts.type).toBe("ok");
-  if (newScripts.type == "error") return
+  if (newScripts.type == "error") return;
 
   //NOTE: DEPLOY
-  lucid.selectWalletFromSeed(users.account3.seedPhrase);
+  lucid.selectWalletFromSeed(users.project1.seedPhrase);
   const deployRefScriptsConfig: DeployRefScriptsConfig = {
     scripts: {
       nodePolicy: newScripts.data.discoveryPolicy,
@@ -150,7 +156,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
-    userAddres: users.treasury1.address
+    userAddres: users.treasury1.address,
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
@@ -176,7 +182,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
       )
     : null;
 
-  //NOTE: INSERT NODE
+  //NOTE: INSERT NODE ACCOUNT 1
 
   const insertNodeConfig: InsertNodeConfig = {
     scripts: {
@@ -216,7 +222,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
       )
     : null;
 
-  //NOTE: INSERT NODE
+  //NOTE: INSERT NODE ACCOUNT 2
 
   const insertNodeConfig2: InsertNodeConfig = {
     scripts: {
@@ -241,6 +247,44 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
   const insertNodeSigned2 = await insertNodeUnsigned2.data.sign().complete();
   const insertNodeHash2 = await insertNodeSigned2.submit();
 
+  emulator.awaitBlock(500);
+
+  logFlag
+    ? console.log(
+        "insertNode result",
+        JSON.stringify(
+          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
+          replacer,
+          2
+        )
+      )
+    : null;
+
+  //NOTE: INSERT NODE ACCOUNT 3
+
+  const insertNodeConfig3: InsertNodeConfig = {
+    scripts: {
+      nodePolicy: newScripts.data.discoveryPolicy,
+      nodeValidator: newScripts.data.discoveryValidator,
+    },
+    refScripts: {
+      nodeValidator: nodeValidatorUTxO,
+      nodePolicy: nodePolicyUTxO,
+    },
+    amountLovelace: 5_000_000,
+    userAddres: users.account3.address,
+    currenTime: emulator.now(),
+  };
+
+  const insertNodeUnsigned3 = await insertNode(lucid, insertNodeConfig3);
+
+  expect(insertNodeUnsigned3.type).toBe("ok");
+  if (insertNodeUnsigned3.type == "error") return;
+  // console.log(insertNodeUnsigned.data.txComplete.to_json())
+  lucid.selectWalletFromSeed(users.account3.seedPhrase);
+  const insertNodeSigned3 = await insertNodeUnsigned3.data.sign().complete();
+  const insertNodeHash3 = await insertNodeSigned3.submit();
+
   emulator.awaitBlock(6000);
 
   logFlag
@@ -254,19 +298,20 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
       )
     : null;
 
+
   //NOTE: INIT FOLD
-  const initFoldConfig : InitFoldConfig = {
+  const initFoldConfig: InitFoldConfig = {
     scripts: {
       nodeValidator: newScripts.data.discoveryValidator,
       nodePolicy: newScripts.data.discoveryPolicy,
       foldPolicy: newScripts.data.foldPolicy,
-      foldValidator: newScripts.data.foldValidator
+      foldValidator: newScripts.data.foldValidator,
     },
     userAddres: users.treasury1.address,
-    currenTime: emulator.now()
-  }
+    currenTime: emulator.now(),
+  };
 
-  const initFoldUnsigned = await initFold(lucid,initFoldConfig)
+  const initFoldUnsigned = await initFold(lucid, initFoldConfig);
 
   expect(initFoldUnsigned.type).toBe("ok");
   if (initFoldUnsigned.type == "error") return;
@@ -275,8 +320,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode"
   const initFoldSigned = await initFoldUnsigned.data.sign().complete();
   const initFoldHash = await initFoldSigned.submit();
 
-  emulator.awaitBlock(4)
+  emulator.awaitBlock(4);
 
-  console.log(await utxosAtScript(lucid, newScripts.data.foldValidator))
-  
+  // console.log(await utxosAtScript(lucid, newScripts.data.foldValidator))
+
 });

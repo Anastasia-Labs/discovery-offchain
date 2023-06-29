@@ -1,4 +1,4 @@
-import { Address, OutRef, PolicyId, UTxO } from "lucid-cardano";
+import { Address, Assets, OutRef, PolicyId, UTxO } from "lucid-cardano";
 import { SetNode } from "./contract.types.js";
 
 export type CborHex = string;
@@ -80,7 +80,6 @@ export type RemoveNodeConfig = {
 };
 
 export type InitFoldConfig = {
-  nodeRefInput: OutRef;
   scripts: {
     nodeValidator: CborHex;
     nodePolicy: CborHex;
@@ -91,8 +90,18 @@ export type InitFoldConfig = {
   currenTime?: POSIXTime;
 };
 
-export type FoldNodesConfig = {
+export type MultiFoldConfig = {
   nodeRefInputs: OutRef[];
+  scripts: {
+    foldPolicy: CborHex;
+    foldValidator: CborHex;
+  };
+  userAddres: Address;
+  currenTime?: POSIXTime;
+};
+
+export type FoldNodeConfig = {
+  nodeRefInput: OutRef;
   foldOutRef: OutRef;
   scripts: {
     foldPolicy: CborHex;
@@ -124,4 +133,5 @@ export type BuildScriptsConfig = {
 export type ReadableUTxO = {
   outRef: OutRef;
   datum: SetNode;
+  assets: Assets;
 };

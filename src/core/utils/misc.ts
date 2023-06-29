@@ -64,20 +64,70 @@ export const parseUTxOsAtScript = async (
   });
 };
 
-// export const sortUTxOs = (utxos: ReadableUTxO[]) => {
-//   utxos.sort((a, b) => {
-//     if (a.datum.next == b.datum.key){
-//       return -1
-//     }
-//     else return 1
-//   });
-// };
+//NOTE: remove head node before, sorting the node utxos
+export const sortByKeysNodeUTxOs = (utxos: ReadableUTxO[]) => {
+  return (
+    utxos
+      // .flatMap((readableUTxO) => {
+      //   return readableUTxO.datum.key == null ? [] : readableUTxO;
+      // })
+      .sort((a, b) => {
+        if (a.datum.key == null) {
+          return -1;
+        } else if (b.datum.key == null) {
+          return -1;
+        } else if (a.datum.key < b.datum.key) {
+          return -1;
+        } else if (a.datum.key > b.datum.key) {
+          return 1;
+        } else return 0;
+      })
+  );
+};
+
+export type ResultSorted = {
+  state: boolean
+  sorted: ReadableUTxO[]
+}
+
+export const reduceByKeysNodeUTxOs = (utxos: ReadableUTxO[]) => {
+  return utxos.reduce( (result, current): ResultSorted  => {
+      if (!result.state) {
+        const head = utxos.find((readableUTxO) => {
+          readableUTxO.datum.key == null;
+        });
+        if (!head) throw new Error("head error");
+        result.state = true;
+        result.sorted.push(head)
+        return result
+      }
+
+      const node = utxos.find((readableUTxO) =>{
+        readableUTxO.datum.key == result.sorted[result.sorted.length -1].datum.next
+      })
+
+      if (!node) throw new Error("head error");
+      result.sorted.push(node)
+      return result
+    },
+    { state: false, sorted: [] as ReadableUTxO[] }
+  );
+};
+
+
 //
 // //NOTE: use mod to make groups of 10
 // export const groupUTxOs = (utxos: ReadableUTxO[]) => {
 //   const test = utxos.console.log(test);
 // };
 //
+export const chunkArray = <T>(array: T[], chunkSize: number) => {
+  const numberOfChunks = Math.ceil(array.length / chunkSize);
+
+  return [...Array(numberOfChunks)].map((value, index) => {
+    return array.slice(index * chunkSize, (index + 1) * chunkSize);
+  });
+};
 
 export const replacer = (key: unknown, value: unknown) =>
   typeof value === "bigint" ? value.toString() : value;

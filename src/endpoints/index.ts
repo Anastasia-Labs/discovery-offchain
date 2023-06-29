@@ -4,4 +4,5 @@ export * from "./insertNode.js"
 export * from "./removeNode.js"
 export * from "./deployRefScripts.js"
 export * from "./initFold.js"
+export * from "./multiFold.js"
 
