@@ -345,6 +345,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     2
   );
 
+  //NOTE: MULTIFOLD
+
   const multiFoldConfig : MultiFoldConfig = {
     nodeRefInputs: sortByOutRefWithIndex(await parseUTxOsAtScript(lucid,newScripts.data.discoveryValidator)).map((data) =>{return data.value.outRef}),
     indices : sortByOutRefWithIndex(await parseUTxOsAtScript(lucid,newScripts.data.discoveryValidator)).map((data) =>{return data.index}),
@@ -357,6 +359,16 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   }
 
   const multiFoldUnsigned = await multiFold(lucid, multiFoldConfig)
-  console.log(multiFoldUnsigned)
+  // console.log(multiFoldUnsigned)
+
+  expect(multiFoldUnsigned.type).toBe("ok");
+  if (multiFoldUnsigned.type == "error") return;
+  // console.log(insertNodeUnsigned.data.txComplete.to_json())
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
+  const multiFoldSigned = await multiFoldUnsigned.data.sign().complete();
+  const multiFoldHash = await multiFoldSigned.submit();
+
+  emulator.awaitBlock(4);
+
 
 });
