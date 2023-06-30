@@ -1,6 +1,7 @@
 import {
   buildScripts,
   chunkArray,
+  Data,
   deployRefScripts,
   DeployRefScriptsConfig,
   Emulator,
@@ -34,6 +35,7 @@ import rewardValidator from "./compiled/rewardFoldValidator.json";
 import projectTokenHolderPolicy from "./compiled/projectTokenHolderMint.json"
 import projectTokenHolderValidator from "./compiled/projectTokenHolderValidator.json"
 import alwaysFailValidator from "./compiled/alwaysFailValidator.json";
+import {FoldDatum} from "price-discovery-offchain/dist/core/contract.types";
 
 type LucidContext = {
   lucid: Lucid;
@@ -394,4 +396,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   const multiFoldHash = await multiFoldSigned.submit();
 
   emulator.awaitBlock(4);
+
+  // console.log(await utxosAtScript(lucid,newScripts.data.foldValidator))
+  // console.log(Data.from((await utxosAtScript(lucid,newScripts.data.foldValidator))[0].datum,FoldDatum))
+
+
 });
