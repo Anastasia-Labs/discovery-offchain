@@ -335,69 +335,13 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
   );
 
-  // console.log(
-  //   "sorted outRef",
-  //   (await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)).sort(
-  //     (a, b) => {
-  //
-  //
-  //     }
-  //   )
-  // );
-
-  // console.log(
-  //   "sorted keys",
-  //   sortByKeysNodeUTxOs(
-  //     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-  //   )
-  // );
-
-
-  // console.log(
-  //   "reduce sorted keys with index",
-  //   reduceByKeysNodeUTxOs(
-  //     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-  //   ).map((value, index) => {
-  //     return {
-  //       value,
-  //       index,
-  //     };
-  //   })
-  // );
-
   console.log(
     "reduce sorted keys with index",
     JSON.stringify(sortByOutRefWithIndex(await parseUTxOsAtScript(lucid,newScripts.data.discoveryValidator)),replacer,2)
   );
 
-  //
-  // console.log(
-  //   "sorted keys - OutRef only",
-  //   sortByKeysNodeUTxOs(
-  //     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-  //   ).map((readableUTxO) => {
-  //     return readableUTxO.outRef;
-  //   })
-  // );
-  //
-  // console.log(
-  //   "sorted key - OutRef only - chunks",
-  //   chunkArray(
-  //     reduceByKeysNodeUTxOs(
-  //       await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-  //     ).map((readableUTxO) => {
-  //       return readableUTxO.outRef;
-  //     }),
-  //     2
-  //   )
-  // );
-
   const chunksNodeRefInputs = chunkArray(
-    sortByKeysNodeUTxOs(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-    ).map((readableUTxO) => {
-      return readableUTxO.outRef;
-    }),
+      (await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)).map((readableUTxO) => { return readableUTxO.outRef; }),
     2
   );
 
@@ -414,8 +358,5 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
 
   const multiFoldUnsigned = await multiFold(lucid, multiFoldConfig)
   console.log(multiFoldUnsigned)
-  // console.log(multiFoldUnsigned.data.txComplete.to_json())
-  // PKeyScott 0x0550913fa8a8fd31848cef5e36c2f4d092d32657f8c4754ff782c718PEmptyScott"
-  // PKeyScott 0x7101985b014f23157ccc0eac7604b41dc7862ed024f340969715db91PKeyScott 0x9906859ea0036f30cee761ca64e88436a47475f07e89aa8cd9c2f6a5"
 
 });
