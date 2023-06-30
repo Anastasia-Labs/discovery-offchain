@@ -121,6 +121,9 @@ export type BuildScriptsConfig = {
     projectTN: string;
     projectAddr: Address;
   };
+  projectTokenHolder: {
+    initUTXO: UTxO;
+  };
   unapplied: {
     discoveryPolicy: RawHex;
     discoveryValidator: RawHex;
@@ -128,6 +131,8 @@ export type BuildScriptsConfig = {
     foldValidator: RawHex;
     rewardPolicy: RawHex;
     rewardValidator: RawHex;
+    projectTokenHolderValidator: RawHex;
+    projectTokenHolderPolicy: RawHex;
   };
 };
 

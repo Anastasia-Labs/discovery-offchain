@@ -26,6 +26,8 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
+import projectTokenHolderPolicy from "./compiled/projectTokenHolderMint.json";
+import projectTokenHolderValidator from "./compiled/projectTokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFailValidator.json";
 
 type LucidContext = {
@@ -75,7 +77,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
   const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 48 hours + 1 hour
-  // console.log(deadline)
+  const [project1UTxO] = await lucid
+    .selectWalletFromSeed(users.project1.seedPhrase)
+    .wallet.getUtxos();
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
@@ -88,6 +92,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       projectTN: "test",
       projectAddr: treasuryAddress,
     },
+    projectTokenHolder: {
+      initUTXO: project1UTxO,
+    },
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
       discoveryValidator: discoveryValidator.cborHex,
@@ -95,6 +102,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
+      projectTokenHolderPolicy: projectTokenHolderPolicy.cborHex,
+      projectTokenHolderValidator: projectTokenHolderValidator.cborHex,
     },
   });
 

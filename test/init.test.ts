@@ -17,6 +17,8 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
+import projectTokenHolderPolicy from "./compiled/projectTokenHolderMint.json"
+import projectTokenHolderValidator from "./compiled/projectTokenHolderValidator.json"
 import alwaysFailValidator from "./compiled/alwaysFailValidator.json";
 
 type LucidContext = {
@@ -29,6 +31,9 @@ type LucidContext = {
 beforeEach<LucidContext>(async (context) => {
   context.users = {
     treasury1: await generateAccountSeedPhrase({
+      lovelace: BigInt(100_000_000),
+    }),
+    project1: await generateAccountSeedPhrase({
       lovelace: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
@@ -44,6 +49,7 @@ beforeEach<LucidContext>(async (context) => {
 
   context.emulator = new Emulator([
     context.users.treasury1,
+    context.users.project1,
     context.users.account1,
     context.users.account2,
     context.users.account3,
@@ -57,6 +63,7 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
+  const [project1UTxO] = await lucid.selectWalletFromSeed(users.project1.seedPhrase).wallet.getUtxos()
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
@@ -69,6 +76,9 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
       projectTN: "test",
       projectAddr: treasuryAddress,
     },
+    projectTokenHolder:{
+      initUTXO: project1UTxO
+    },
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
       discoveryValidator: discoveryValidator.cborHex,
@@ -76,11 +86,15 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
+      projectTokenHolderPolicy: projectTokenHolderPolicy.cborHex,
+      projectTokenHolderValidator: projectTokenHolderValidator.cborHex
     },
   });
 
   expect(newScripts.type).toBe("ok");
   if (newScripts.type == "error") return;
+  //TODO: call projectTokenHolderPolicy
+  //NOTE: PROJECT TOKEN HOLDER - project1 account utxo
 
   //NOTE: DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
@@ -125,7 +139,7 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
     deployRefScriptsUnsigned.data.unit.nodePolicy
   );
 
-  //NOTE: INIT NODE
+  //NOTE: INIT NODE - treasury1 account
   const initNodeConfig: InitNodeConfig = {
     initUTXO: treasuryUTxO,
     scripts: {

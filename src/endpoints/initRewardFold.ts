@@ -9,7 +9,11 @@ import {
   fromText,
   OutRef,
 } from "lucid-cardano";
-import { cFold, SETNODE_PREFIX } from "../core/constants.js";
+import {
+  cFold,
+  originNodeTokenName,
+  SETNODE_PREFIX,
+} from "../core/constants.js";
 import {
   SetNode,
   FoldDatum,
@@ -29,6 +33,7 @@ export type InitRewardFoldConfig = {
     rewardFoldPolicy: CborHex;
     rewardFoldValidator: CborHex;
     tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
   };
 };
 
@@ -47,6 +52,13 @@ export const initRewardFold = async (
   config: InitRewardFoldConfig
 ): Promise<Result<TxComplete>> => {
   const walletUtxos = await lucid.wallet.getUtxos();
+  const tokenHolderValidator: SpendingValidator = {
+    type: "PlutusV2",
+    script: config.scripts.tokenHolderValidator,
+  };
+
+  const tokenHolderValidatorAddr =
+    lucid.utils.validatorToAddress(tokenHolderValidator);
 
   if (!walletUtxos.length)
     return { type: "error", error: new Error("No utxos in wallet") };
@@ -150,6 +162,7 @@ export const initRewardFold = async (
     const tx = await lucid
       .newTx()
       .readFrom([headNodeUTxO])
+      .collectFrom([tokenHolderUTxO], Data.void())
       .collectFrom([commitFoldUTxO!], reclaimCommitFoldAct)
       .payToContract(
         rewardFoldValidatorAddr,
@@ -165,6 +178,8 @@ export const initRewardFold = async (
       .attachMintingPolicy(rewardFoldPolicy)
       .attachMintingPolicy(commitFoldPolicy)
       .attachMintingPolicy(tokenHolderPolicy)
+      .attachSpendingValidator(commitFoldValidator)
+      .attachSpendingValidator(tokenHolderValidator)
       .addSigner(toAddress(commitFoldDatum.owner, lucid))
       .complete();
 
