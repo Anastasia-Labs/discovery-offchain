@@ -16,9 +16,11 @@ import {
   MultiFoldConfig,
   ONE_HOUR_MS,
   parseUTxOsAtScript,
+  ReadableUTxO,
   reduceByKeysNodeUTxOs,
   replacer,
   sortByKeysNodeUTxOs,
+  sortByOutRefWithIndex,
   TWENTY_FOUR_HOURS_MS,
   utxosAtScript,
 } from "price-discovery-offchain";
@@ -332,40 +334,63 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     "unsorted keys",
     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
   );
-  console.log(
-    "sorted keys",
-    sortByKeysNodeUTxOs(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-    )
-  );
+
+  // console.log(
+  //   "sorted outRef",
+  //   (await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)).sort(
+  //     (a, b) => {
+  //
+  //
+  //     }
+  //   )
+  // );
+
+  // console.log(
+  //   "sorted keys",
+  //   sortByKeysNodeUTxOs(
+  //     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+  //   )
+  // );
+
+
+  // console.log(
+  //   "reduce sorted keys with index",
+  //   reduceByKeysNodeUTxOs(
+  //     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+  //   ).map((value, index) => {
+  //     return {
+  //       value,
+  //       index,
+  //     };
+  //   })
+  // );
 
   console.log(
-    "reduce sorted keys",
-    reduceByKeysNodeUTxOs(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-    )
+    "reduce sorted keys with index",
+    JSON.stringify(sortByOutRefWithIndex(await parseUTxOsAtScript(lucid,newScripts.data.discoveryValidator)),replacer,2)
   );
 
-  console.log(
-    "sorted keys - OutRef only",
-    sortByKeysNodeUTxOs(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-    ).map((readableUTxO) => {
-      return readableUTxO.outRef;
-    })
-  );
-
-  console.log(
-    "sorted key - OutRef only - chunks",
-    chunkArray(
-      sortByKeysNodeUTxOs(
-        await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-      ).map((readableUTxO) => {
-        return readableUTxO.outRef;
-      }),
-      2
-    )
-  );
+  //
+  // console.log(
+  //   "sorted keys - OutRef only",
+  //   sortByKeysNodeUTxOs(
+  //     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+  //   ).map((readableUTxO) => {
+  //     return readableUTxO.outRef;
+  //   })
+  // );
+  //
+  // console.log(
+  //   "sorted key - OutRef only - chunks",
+  //   chunkArray(
+  //     reduceByKeysNodeUTxOs(
+  //       await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+  //     ).map((readableUTxO) => {
+  //       return readableUTxO.outRef;
+  //     }),
+  //     2
+  //   )
+  // );
 
   const chunksNodeRefInputs = chunkArray(
     sortByKeysNodeUTxOs(
@@ -377,7 +402,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   );
 
   const multiFoldConfig : MultiFoldConfig = {
-    nodeRefInputs: sortByKeysNodeUTxOs( await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)).map((readableUTxO) => { return readableUTxO.outRef; }),
+    nodeRefInputs: sortByOutRefWithIndex(await parseUTxOsAtScript(lucid,newScripts.data.discoveryValidator)).map((data) =>{return data.value.outRef}),
+    indices : sortByOutRefWithIndex(await parseUTxOsAtScript(lucid,newScripts.data.discoveryValidator)).map((data) =>{return data.index}),
     scripts: {
       foldPolicy: newScripts.data.foldPolicy,
       foldValidator: newScripts.data.foldValidator,
@@ -388,34 +414,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
 
   const multiFoldUnsigned = await multiFold(lucid, multiFoldConfig)
   console.log(multiFoldUnsigned)
-  console.log(multiFoldUnsigned.data.txComplete.to_json())
-  
-  //   {
-  //     txHash: 'efadc0a6ff0026c9b6ecba2a1ca42e49b85ded7f86532f4a9eeb3037bfdcf322',
-  //     outputIndex: 0
-  //   },
-  //   {
-  //     txHash: 'efadc0a6ff0026c9b6ecba2a1ca42e49b85ded7f86532f4a9eeb3037bfdcf322',
-  //     outputIndex: 1
-  //   }
-  // ],
-  //  [
-  //   {
-  //     txHash: 'ee0147a7da918d5f2a15882509717908c65fa0be20d6070ff5779419483f0e0d',
-  //     outputIndex: 1
-  //   },
-  //   {
-  //     txHash: '006e15820d070b3f1c2ab5c99b1005a86e7040bce20008f27a522d3a06025c34',
-  //     outputIndex: 1
-  //   }
-  // ],
-  // [
-  //   {
-  //     txHash: '78f9c69dc1304dc7088a7c7925ff6a320abab74afe074a8baa0305b943ae7a57',
-  //     outputIndex: 1
-  //   }
-  // ]
-
-
+  // console.log(multiFoldUnsigned.data.txComplete.to_json())
+  // PKeyScott 0x0550913fa8a8fd31848cef5e36c2f4d092d32657f8c4754ff782c718PEmptyScott"
+  // PKeyScott 0x7101985b014f23157ccc0eac7604b41dc7862ed024f340969715db91PKeyScott 0x9906859ea0036f30cee761ca64e88436a47475f07e89aa8cd9c2f6a5"
 
 });

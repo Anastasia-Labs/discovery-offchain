@@ -92,6 +92,7 @@ export type InitFoldConfig = {
 
 export type MultiFoldConfig = {
   nodeRefInputs: OutRef[];
+  indices: number[];
   scripts: {
     foldPolicy: CborHex;
     foldValidator: CborHex;

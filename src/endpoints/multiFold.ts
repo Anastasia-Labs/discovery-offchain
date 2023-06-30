@@ -50,29 +50,33 @@ export const multiFold = async (
   //NOTE: node nodeRefUTxOs shuold be already ordered by keys, utxo type is better than outref since outref does not holds datum information, not sure yet if using utxo though
   const nodeRefUTxOs = await lucid.utxosByOutRef(config.nodeRefInputs);
 
-  const lastNodeRef = nodeRefUTxOs[nodeRefUTxOs.length - 1].datum;
+  const lastNodeRef = nodeRefUTxOs[config.indices.length - 1 ].datum;
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
 
-  const lastNodeRefDatum = Data.from(lastNodeRef,SetNode)
+  const lastNodeRefDatum = Data.from(lastNodeRef, SetNode);
+  console.log("lastNodeRefDatum", lastNodeRefDatum )
+  const committed = nodeRefUTxOs.reduce((result: bigint, utxo: UTxO) => {
+    return result + utxo.assets.lovelace - 3_000_000n;
+  }, 0n);
+  console.log("committed", committed);
 
   const newFoldDatum = Data.to(
     {
       currNode: {
         key: oldFoldDatum.currNode.key,
-        next: lastNodeRefDatum.next
+        next: lastNodeRefDatum.next,
       },
-      committed: nodeRefUTxOs.reduce((result: bigint, utxo: UTxO) => {
-        return result + utxo.assets.lovelace;
-      }, 0n),
+      committed: oldFoldDatum.committed + committed,
       owner: oldFoldDatum.owner,
     },
     FoldDatum
   );
+  console.log(config.indices);
 
   const redeemerValidator = Data.to(
     {
       FoldNodes: {
-        nodeIdxs: [1, 2, 3].map((index) => {
+        nodeIdxs: config.indices.map((index) => {
           return BigInt(index);
         }),
       },

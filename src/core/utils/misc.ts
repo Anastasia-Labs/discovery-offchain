@@ -86,34 +86,104 @@ export const sortByKeysNodeUTxOs = (utxos: ReadableUTxO[]) => {
 };
 
 export type ResultSorted = {
-  state: boolean
-  sorted: ReadableUTxO[]
-}
+  index: number;
+  value: ReadableUTxO;
+};
 
-export const reduceByKeysNodeUTxOs = (utxos: ReadableUTxO[]) => {
-  return utxos.reduce( (result, current): ResultSorted  => {
-      if (!result.state) {
-        const head = utxos.find((readableUTxO) => {
-          readableUTxO.datum.key == null;
-        });
-        if (!head) throw new Error("head error");
-        result.state = true;
-        result.sorted.push(head)
-        return result
-      }
+export const reduceByKeysNodeUTxOs = (
+  utxos: ResultSorted[],
+  startKey: string | null
+) => {
+  console.log(startKey)
+  console.log("ResultSorted", utxos)
+  const firstItem = utxos.find((readableUTxO) => {
+    return readableUTxO.value.datum.key == startKey;
+  });
+  if (!firstItem) throw new Error("firstItem error");
+  if (!startKey) throw new Error("startKey error")
 
-      const node = utxos.find((readableUTxO) =>{
-        readableUTxO.datum.key == result.sorted[result.sorted.length -1].datum.next
-      })
-
-      if (!node) throw new Error("head error");
-      result.sorted.push(node)
-      return result
+  return utxos.reduce(
+    (result, current) => {
+      if (current.value.datum.next == null) return result;
+      const item = utxos.find((readableUTxO) => {
+        return (
+          readableUTxO.value.datum.key ==
+          result[result.length - 1].value.datum.next
+        );
+      });
+      if (!item) throw new Error("item error");
+      result.push(item);
+      return result;
     },
-    { state: false, sorted: [] as ReadableUTxO[] }
+    [firstItem] as ResultSorted[]
   );
 };
 
+export const sortByOutRefWithIndex = (utxos: ReadableUTxO[]) => {
+  // const sorted = reduceByKeysNodeUTxOs(utxos)
+  // sorted.shift()
+  // if (!sorted) return [];
+  // return sorted
+  //   .map((value, index) => {
+  //     return {
+  //       value,
+  //       index,
+  //     };
+  //   })
+  //   .
+  const head = utxos.find((utxo) => {
+    return utxo.datum.key == null;
+  });
+  if (!head) throw new Error("head error");
+
+  const sortedByOutRef = utxos
+    .filter((utxo) => {
+      return head != utxo;
+    })
+    .sort((a, b) => {
+      if (a.outRef.txHash < b.outRef.txHash) {
+        return -1;
+      } else if (a.outRef.txHash > b.outRef.txHash) {
+        return 1;
+      } else if (a.outRef.txHash == b.outRef.txHash) {
+        if (a.outRef.outputIndex < b.outRef.outputIndex) {
+          return -1;
+        } else return 1;
+      } else return 0;
+    })
+    .map((value, index) => {
+      return {
+        value,
+        index,
+      };
+    });
+
+  return reduceByKeysNodeUTxOs(sortedByOutRef, head.datum.next)
+};
+
+// export const sortByOutRefWithIndex = (utxos: ReadableUTxO[]) => {
+//   const sorted = reduceByKeysNodeUTxOs(utxos)
+//   sorted.shift()
+//   if (!sorted) return [];
+//   return sorted
+//     .map((value, index) => {
+//       return {
+//         value,
+//         index,
+//       };
+//     })
+//     .sort((a, b) => {
+//       if (a.value.outRef.txHash < b.value.outRef.txHash) {
+//         return -1;
+//       } else if (a.value.outRef.txHash > b.value.outRef.txHash) {
+//         return 1;
+//       } else if (a.value.outRef.txHash == b.value.outRef.txHash) {
+//         if (a.value.outRef.outputIndex < b.value.outRef.outputIndex) {
+//           return -1;
+//         } else return 1;
+//       } else return 0;
+//     });
+// };
 
 //
 // //NOTE: use mod to make groups of 10
