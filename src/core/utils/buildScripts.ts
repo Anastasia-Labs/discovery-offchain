@@ -16,8 +16,8 @@ type Scripts = {
   foldValidator: CborHex;
   rewardPolicy: CborHex;
   rewardValidator: CborHex;
-  projectTokenHolderPolicy: CborHex;
-  projectTokenHolderValidator: CborHex;
+  tokenHolderPolicy: CborHex;
+  tokenHolderValidator: CborHex;
 };
 
 export const buildScripts = (
@@ -29,14 +29,14 @@ export const buildScripts = (
     BigInt(config.discoveryPolicy.initUTXO.outputIndex),
   ]);
 
-  const projectTokenHolderPolicy = applyParamsToScript(
-    config.unapplied.projectTokenHolderPolicy,
+  const tokenHolderPolicy = applyParamsToScript(
+    config.unapplied.tokenHolderPolicy,
     [initUTXOprojectTokenHolder]
   );
 
-  const projectTokenHolderMintingPolicy: MintingPolicy = {
+  const tokenHolderMintingPolicy: MintingPolicy = {
     type: "PlutusV2",
-    script: projectTokenHolderPolicy,
+    script: tokenHolderPolicy,
   };
 
   const initUTxO = new Constr(0, [
@@ -192,7 +192,7 @@ export const buildScripts = (
   const rewardPolicy = applyParamsToScript(config.unapplied.rewardPolicy, [
     new Constr(0, [
       lucid.utils.mintingPolicyToId(discoveryMintingPolicy), // nodeCS
-      lucid.utils.mintingPolicyToId(projectTokenHolderMintingPolicy), //tokenHolderCS
+      lucid.utils.mintingPolicyToId(tokenHolderMintingPolicy), //tokenHolderCS
       rewardValidatorAddress.data, // rewardScriptAddr
       fromText(config.rewardValidator.projectTN), // projectTN
       config.rewardValidator.projectCS, // projectCS
@@ -236,8 +236,8 @@ export const buildScripts = (
   //NOTE: PROJECT TOKEN HOLDER VALIDATOR
   // pprojectTokenHolder :: Term s (PAsData PCurrencySymbol :--> PValidator)
   // pprojectTokenHolder = phoistAcyclic $ plam $ \rewardsCS _dat _redeemer ctx -> unTermCont $ do
-  const projectTokenHolderValidator = applyParamsToScript(
-    config.unapplied.projectTokenHolderValidator,
+  const tokenHolderValidator = applyParamsToScript(
+    config.unapplied.tokenHolderValidator,
     [lucid.utils.mintingPolicyToId(rewardMintingPolicy)]
   );
 
@@ -250,8 +250,8 @@ export const buildScripts = (
       foldValidator: foldValidator,
       rewardPolicy: rewardPolicy,
       rewardValidator: rewardValidator,
-      projectTokenHolderPolicy: projectTokenHolderPolicy,
-      projectTokenHolderValidator: projectTokenHolderValidator,
+      tokenHolderPolicy: tokenHolderPolicy,
+      tokenHolderValidator: tokenHolderValidator,
     },
   };
 };

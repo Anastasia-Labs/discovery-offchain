@@ -6,9 +6,12 @@ import {
   generateAccountSeedPhrase,
   initNode,
   InitNodeConfig,
+  initTokenHolder,
+  InitTokenHolderConfig,
   Lucid,
   parseUTxOsAtScript,
   replacer,
+  utxosAtScript,
 } from "price-discovery-offchain";
 import { test, expect, beforeEach } from "vitest";
 import discoveryValidator from "./compiled/discoveryValidator.json";
@@ -17,8 +20,8 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import projectTokenHolderPolicy from "./compiled/projectTokenHolderMint.json"
-import projectTokenHolderValidator from "./compiled/projectTokenHolderValidator.json"
+import projectTokenHolderPolicy from "./compiled/projectTokenHolderMint.json";
+import projectTokenHolderValidator from "./compiled/projectTokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFailValidator.json";
 
 type LucidContext = {
@@ -58,26 +61,29 @@ beforeEach<LucidContext>(async (context) => {
   context.lucid = await Lucid.new(context.emulator);
 });
 
-test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
+test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({ lucid, users, emulator }) => {
   const logFlag = false;
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
-  const treasuryAddress = await lucid.wallet.address();
-  const [treasuryUTxO] = await lucid.wallet.getUtxos();
-  const [project1UTxO] = await lucid.selectWalletFromSeed(users.project1.seedPhrase).wallet.getUtxos()
+
+  const [treasuryUTxO] = await lucid
+    .selectWalletFrom({ address: users.treasury1.address })
+    .wallet.getUtxos();
+  const [project1UTxO] = await lucid
+    .selectWalletFrom({ address: users.project1.address })
+    .wallet.getUtxos();
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
       initUTXO: treasuryUTxO,
       deadline: emulator.now() + 600_000, // 10 minutes
-      penaltyAddress: treasuryAddress,
+      penaltyAddress: users.treasury1.address,
     },
     rewardValidator: {
       projectCS: "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
       projectTN: "test",
-      projectAddr: treasuryAddress,
+      projectAddr: users.treasury1.address,
     },
-    projectTokenHolder:{
-      initUTXO: project1UTxO
+    projectTokenHolder: {
+      initUTXO: project1UTxO,
     },
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
@@ -86,15 +92,13 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
-      projectTokenHolderPolicy: projectTokenHolderPolicy.cborHex,
-      projectTokenHolderValidator: projectTokenHolderValidator.cborHex
+      tokenHolderPolicy: projectTokenHolderPolicy.cborHex,
+      tokenHolderValidator: projectTokenHolderValidator.cborHex,
     },
   });
 
   expect(newScripts.type).toBe("ok");
   if (newScripts.type == "error") return;
-  //TODO: call projectTokenHolderPolicy
-  //NOTE: PROJECT TOKEN HOLDER - project1 account utxo
 
   //NOTE: DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
@@ -139,6 +143,35 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
     deployRefScriptsUnsigned.data.unit.nodePolicy
   );
 
+  //NOTE: INIT PROJECT TOKEN HOLDER
+  const initTokenHolderConfig: InitTokenHolderConfig = {
+    initUTXO: project1UTxO,
+    scripts: {
+      tokenHolderPolicy: newScripts.data.tokenHolderPolicy,
+      tokenHolderValidator: newScripts.data.tokenHolderValidator,
+    },
+    userAddress: users.project1.address,
+  };
+
+  const initTokenHolderUnsigned = await initTokenHolder(
+    lucid,
+    initTokenHolderConfig
+  );
+  expect(initTokenHolderUnsigned.type).toBe("ok");
+  if (initTokenHolderUnsigned.type == "ok") {
+    lucid.selectWalletFromSeed(users.project1.seedPhrase);
+    const initTokenHolderSigned = await initTokenHolderUnsigned.data
+      .sign()
+      .complete();
+    const initTokenHolderHash = await initTokenHolderSigned.submit();
+  }
+
+  emulator.awaitBlock(4);
+  // console.log(
+  //   "utxos at tokenholderScript",
+  //   await utxosAtScript(lucid, newScripts.data.tokenHolderValidator)
+  // );
+
   //NOTE: INIT NODE - treasury1 account
   const initNodeConfig: InitNodeConfig = {
     initUTXO: treasuryUTxO,
@@ -149,7 +182,7 @@ test<LucidContext>("Test - initNode", async ({ lucid, users, emulator }) => {
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
-    userAddres: users.treasury1.address
+    userAddress: users.treasury1.address,
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 

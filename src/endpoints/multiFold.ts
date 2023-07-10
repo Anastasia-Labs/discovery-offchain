@@ -18,7 +18,7 @@ export const multiFold = async (
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
-  lucid.selectWalletFrom({ address: config.userAddres });
+  lucid.selectWalletFrom({ address: config.userAddress });
 
   const walletUtxos = await lucid.wallet.getUtxos();
 
@@ -54,11 +54,11 @@ export const multiFold = async (
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
 
   const lastNodeRefDatum = Data.from(lastNodeRef, SetNode);
-  console.log("lastNodeRefDatum", lastNodeRefDatum )
+  // console.log("lastNodeRefDatum", lastNodeRefDatum )
   const committed = nodeRefUTxOs.reduce((result: bigint, utxo: UTxO) => {
     return result + utxo.assets.lovelace - 3_000_000n;
   }, 0n);
-  console.log("committed", committed);
+  // console.log("committed", committed);
 
   const newFoldDatum = Data.to(
     {
@@ -71,7 +71,7 @@ export const multiFold = async (
     },
     FoldDatum
   );
-  console.log(config.indices);
+  // console.log("indices", config.indices);
 
   const redeemerValidator = Data.to(
     {

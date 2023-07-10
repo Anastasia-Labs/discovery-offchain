@@ -102,8 +102,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
-      projectTokenHolderPolicy: projectTokenHolderPolicy.cborHex,
-      projectTokenHolderValidator: projectTokenHolderValidator.cborHex,
+      tokenHolderPolicy: projectTokenHolderPolicy.cborHex,
+      tokenHolderValidator: projectTokenHolderValidator.cborHex,
     },
   });
 
@@ -165,7 +165,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
-    userAddres: users.treasury1.address,
+    userAddress: users.treasury1.address,
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
@@ -203,7 +203,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 4_000_000,
-    userAddres: users.account1.address,
+    userAddress: users.account1.address,
     currenTime: emulator.now(),
   };
 
@@ -243,7 +243,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 5_000_000,
-    userAddres: users.account2.address,
+    userAddress: users.account2.address,
     currenTime: emulator.now(),
   };
 
@@ -281,7 +281,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 5_000_000,
-    userAddres: users.account3.address,
+    userAddress: users.account3.address,
     currenTime: emulator.now(),
   };
 
@@ -316,7 +316,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       foldPolicy: newScripts.data.foldPolicy,
       foldValidator: newScripts.data.foldValidator,
     },
-    userAddres: users.treasury1.address,
+    userAddress: users.treasury1.address,
     currenTime: emulator.now(),
   };
 

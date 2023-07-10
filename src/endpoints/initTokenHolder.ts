@@ -7,15 +7,8 @@ import {
   TxComplete,
   fromText,
 } from "lucid-cardano";
-import { Result } from "../core/types.js";
-
-export type InitTokenHolderConfig = {
-  scripts: {
-    tokenHolderPolicy: string;
-    tokenHolderValidator: string;
-  };
-  userAddress: string;
-};
+import { PTHOLDER } from "../core/constants.js";
+import { InitTokenHolderConfig, Result } from "../core/types.js";
 
 export const TokenHolderMintActionSchema = Data.Enum([
   Data.Literal("PMintHolder"),
@@ -27,10 +20,18 @@ export type TokenHolderMintAction = Data.Static<
 export const TokenHolderMintAction =
   TokenHolderMintActionSchema as unknown as TokenHolderMintAction;
 
-export const tokenHolderInit = async (
+export const initTokenHolder = async (
   lucid: Lucid,
   config: InitTokenHolderConfig
 ): Promise<Result<TxComplete>> => {
+
+  lucid.selectWalletFrom({ address: config.userAddress });
+
+  const walletUtxos = await lucid.wallet.getUtxos();
+
+  if (!walletUtxos.length)
+    return { type: "error", error: new Error("No utxos in wallet") };
+
   const tokenHolderValidator: SpendingValidator = {
     type: "PlutusV2",
     script: config.scripts.tokenHolderValidator,
@@ -46,14 +47,14 @@ export const tokenHolderInit = async (
 
   const tokenHolderPolicyId = lucid.utils.mintingPolicyToId(tokenHolderPolicy);
 
-  const [initUTxO] = await lucid.utxosAt(config.userAddress);
-
-  const ptHolderAsset = toUnit(tokenHolderPolicyId, fromText("PTHolder"));
+  const ptHolderAsset = toUnit(tokenHolderPolicyId, fromText(PTHOLDER));
   const mintPTHolderAct = Data.to("PMintHolder", TokenHolderMintAction);
+
+  //TODO: Need to lock the project token?
   try {
     const tx = await lucid
       .newTx()
-      .collectFrom([initUTxO])
+      .collectFrom([config.initUTXO])
       .payToContract(
         tokenHolderValidatorAddr,
         { inline: Data.void() },

@@ -10,6 +10,8 @@ import {
   InitFoldConfig,
   initNode,
   InitNodeConfig,
+  initTokenHolder,
+  InitTokenHolderConfig,
   insertNode,
   InsertNodeConfig,
   Lucid,
@@ -107,8 +109,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
-      projectTokenHolderPolicy: projectTokenHolderPolicy.cborHex,
-      projectTokenHolderValidator: projectTokenHolderValidator.cborHex
+      tokenHolderPolicy: projectTokenHolderPolicy.cborHex,
+      tokenHolderValidator: projectTokenHolderValidator.cborHex
     },
   });
 
@@ -116,7 +118,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   if (newScripts.type == "error") return;
 
   //NOTE: DEPLOY
-  lucid.selectWalletFromSeed(users.project1.seedPhrase);
+  lucid.selectWalletFromSeed(users.account3.seedPhrase);
   const deployRefScriptsConfig: DeployRefScriptsConfig = {
     scripts: {
       nodePolicy: newScripts.data.discoveryPolicy,
@@ -160,6 +162,35 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
 
   // console.log(await utxosAtScript(lucid,alwaysFailValidator.cborHex))
 
+  //NOTE: INIT PROJECT TOKEN HOLDER
+  const initTokenHolderConfig: InitTokenHolderConfig = {
+    initUTXO: project1UTxO,
+    scripts: {
+      tokenHolderPolicy: newScripts.data.tokenHolderPolicy,
+      tokenHolderValidator: newScripts.data.tokenHolderValidator,
+    },
+    userAddress: users.project1.address,
+  };
+
+  const initTokenHolderUnsigned = await initTokenHolder(
+    lucid,
+    initTokenHolderConfig
+  );
+  expect(initTokenHolderUnsigned.type).toBe("ok");
+  if (initTokenHolderUnsigned.type == "ok") {
+    lucid.selectWalletFromSeed(users.project1.seedPhrase);
+    const initTokenHolderSigned = await initTokenHolderUnsigned.data
+      .sign()
+      .complete();
+    const initTokenHolderHash = await initTokenHolderSigned.submit();
+  }
+
+  emulator.awaitBlock(4);
+  console.log(
+    "utxos at tokenholderScript",
+    await utxosAtScript(lucid, newScripts.data.tokenHolderValidator)
+  );
+
   //NOTE: INIT NODE
   const initNodeConfig: InitNodeConfig = {
     initUTXO: treasuryUTxO,
@@ -170,7 +201,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
-    userAddres: users.treasury1.address,
+    userAddress: users.treasury1.address,
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
@@ -208,7 +239,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 4_000_000,
-    userAddres: users.account1.address,
+    userAddress: users.account1.address,
     currenTime: emulator.now(),
   };
 
@@ -248,7 +279,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 5_000_000,
-    userAddres: users.account2.address,
+    userAddress: users.account2.address,
     currenTime: emulator.now(),
   };
 
@@ -286,7 +317,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 5_000_000,
-    userAddres: users.account3.address,
+    userAddress: users.account3.address,
     currenTime: emulator.now(),
   };
 
@@ -320,7 +351,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       foldPolicy: newScripts.data.foldPolicy,
       foldValidator: newScripts.data.foldValidator,
     },
-    userAddres: users.treasury1.address,
+    userAddress: users.treasury1.address,
     currenTime: emulator.now(),
   };
 
@@ -335,25 +366,23 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
 
   emulator.awaitBlock(4);
 
-  // console.log(await utxosAtScript(lucid, newScripts.data.foldValidator))
-
   //NOTE: TEST NEW FUNCTIONS
 
-  console.log(
-    "unsorted keys",
-    await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-  );
-
-  console.log(
-    "reduce sorted keys with index",
-    JSON.stringify(
-      sortByOutRefWithIndex(
-        await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
-      ),
-      replacer,
-      2
-    )
-  );
+  // console.log(
+  //   "unsorted keys",
+  //   await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+  // );
+  //
+  // console.log(
+  //   "reduce sorted keys with index",
+  //   JSON.stringify(
+  //     sortByOutRefWithIndex(
+  //       await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+  //     ),
+  //     replacer,
+  //     2
+  //   )
+  // );
 
   const chunksNodeRefInputs = chunkArray(
     (await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)).map(
@@ -381,7 +410,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       foldPolicy: newScripts.data.foldPolicy,
       foldValidator: newScripts.data.foldValidator,
     },
-    userAddres: users.treasury1.address,
+    userAddress: users.treasury1.address,
     currenTime: emulator.now(),
   };
 

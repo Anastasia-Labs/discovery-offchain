@@ -26,9 +26,24 @@ export type DeployRefScriptsConfig = {
   scripts: {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
+    foldPolicy: CborHex;
+    foldValidator: CborHex;
+    rewardFoldPolicy: CborHex;
+    rewardFoldValidator: CborHex;
+    tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
   };
   alwaysFails: CborHex;
   currenTime?: POSIXTime;
+};
+
+export type InitTokenHolderConfig = {
+  initUTXO: UTxO;
+  scripts: {
+    tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
+  };
+  userAddress: Address;
 };
 
 export type InitNodeConfig = {
@@ -40,7 +55,7 @@ export type InitNodeConfig = {
   refScripts?: {
     nodePolicy?: UTxO;
   };
-  userAddres: Address;
+  userAddress: Address;
 };
 
 export type DInitNodeConfig = {
@@ -59,7 +74,7 @@ export type InsertNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  userAddres: Address;
+  userAddress: Address;
   amountLovelace: number;
   currenTime?: POSIXTime;
 };
@@ -73,7 +88,7 @@ export type RemoveNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  userAddres: Address;
+  userAddress: Address;
   deadline: POSIXTime;
   penaltyAddress: Address;
   currenTime?: POSIXTime;
@@ -86,7 +101,7 @@ export type InitFoldConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
-  userAddres: Address;
+  userAddress: Address;
   currenTime?: POSIXTime;
 };
 
@@ -97,7 +112,7 @@ export type MultiFoldConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
-  userAddres: Address;
+  userAddress: Address;
   currenTime?: POSIXTime;
 };
 
@@ -108,6 +123,20 @@ export type FoldNodeConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
+};
+
+export type InitRewardFoldConfig = {
+  scripts: {
+    nodeValidator: CborHex;
+    nodePolicy: CborHex;
+    foldPolicy: CborHex;
+    foldValidator: CborHex;
+    rewardFoldPolicy: CborHex;
+    rewardFoldValidator: CborHex;
+    tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
+  };
+  userAddress: Address
 };
 
 export type BuildScriptsConfig = {
@@ -131,8 +160,8 @@ export type BuildScriptsConfig = {
     foldValidator: RawHex;
     rewardPolicy: RawHex;
     rewardValidator: RawHex;
-    projectTokenHolderValidator: RawHex;
-    projectTokenHolderPolicy: RawHex;
+    tokenHolderValidator: RawHex;
+    tokenHolderPolicy: RawHex;
   };
 };
 
