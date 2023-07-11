@@ -127,7 +127,6 @@ export const FoldActSchema = Data.Enum([
       nodeIdxs: Data.Array(Data.Integer()),
     }),
   }),
-  Data.Literal("FoldNode"),
   Data.Literal("Reclaim"),
 ]);
 export type FoldAct = Data.Static<typeof FoldActSchema>;

@@ -24,9 +24,9 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import projectTokenHolderPolicy from "./compiled/projectTokenHolderMint.json";
-import projectTokenHolderValidator from "./compiled/projectTokenHolderValidator.json";
-import alwaysFailValidator from "./compiled/alwaysFailValidator.json";
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import alwaysFailValidator from "./compiled/alwaysFails.json";
 
 type LucidContext = {
   lucid: Lucid;
@@ -38,16 +38,20 @@ type LucidContext = {
 beforeEach<LucidContext>(async (context) => {
   context.users = {
     treasury1: await generateAccountSeedPhrase({
-      lovelace: BigInt(100_000_000),
+      lovelace: BigInt(500_000_000),
     }),
     project1: await generateAccountSeedPhrase({
-      lovelace: BigInt(100_000_000),
+      lovelace: BigInt(500_000_000),
+      [toUnit(
+        "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
+        fromText("LOBSTER")
+      )]: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
-      lovelace: BigInt(100_000_000),
+      lovelace: BigInt(500_000_000),
     }),
     account2: await generateAccountSeedPhrase({
-      lovelace: BigInt(100_000_000),
+      lovelace: BigInt(500_000_000),
     }),
     account3: await generateAccountSeedPhrase({
       lovelace: BigInt(500_000_000),
@@ -87,7 +91,7 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
     },
     rewardValidator: {
       projectCS: "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
-      projectTN: "test",
+      projectTN: "LOBSTER",
       projectAddr: users.treasury1.address,
     },
     projectTokenHolder: {
@@ -100,8 +104,8 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
-      tokenHolderPolicy: projectTokenHolderPolicy.cborHex,
-      tokenHolderValidator: projectTokenHolderValidator.cborHex,
+      tokenHolderPolicy: tokenHolderPolicy.cborHex,
+      tokenHolderValidator: tokenHolderValidator.cborHex,
     },
   });
 
@@ -278,6 +282,9 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
   //NOTE: INIT PROJECT TOKEN HOLDER
   const initTokenHolderConfig: InitTokenHolderConfig = {
     initUTXO: project1UTxO,
+    projectCS: "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
+    projectTN: "LOBSTER",
+    projectAmount: 100_000_000,
     scripts: {
       tokenHolderPolicy: newScripts.data.tokenHolderPolicy,
       tokenHolderValidator: newScripts.data.tokenHolderValidator,

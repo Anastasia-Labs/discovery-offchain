@@ -23,9 +23,9 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import projectTokenHolderPolicy from "./compiled/projectTokenHolderMint.json";
-import projectTokenHolderValidator from "./compiled/projectTokenHolderValidator.json";
-import alwaysFailValidator from "./compiled/alwaysFailValidator.json";
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import alwaysFailValidator from "./compiled/alwaysFails.json";
 
 type LucidContext = {
   lucid: Lucid;
@@ -99,8 +99,8 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
-      tokenHolderPolicy: projectTokenHolderPolicy.cborHex,
-      tokenHolderValidator: projectTokenHolderValidator.cborHex,
+      tokenHolderPolicy: tokenHolderPolicy.cborHex,
+      tokenHolderValidator: tokenHolderValidator.cborHex,
     },
   });
 

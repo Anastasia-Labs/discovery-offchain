@@ -74,6 +74,7 @@ export const initRewardFold = async (
     type: "PlutusV2",
     script: config.scripts.nodeValidator,
   };
+  console.log("script hash", lucid.utils.validatorToScriptHash(tokenHolderValidator))
 
   const [headNodeUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress(discoveryValidator),
@@ -86,19 +87,15 @@ export const initRewardFold = async (
   if (!headNodeUTxO || !headNodeUTxO.datum)
     return { type: "error", error: new Error("missing nodeRefInputUTxO") };
 
-  const currentNode = Data.from(headNodeUTxO.datum, SetNode);
+  const headNodeDatum = Data.from(headNodeUTxO.datum, SetNode);
 
   const ptHolderUnit = toUnit(tokenHolderPolicyId, fromText("PTHolder"));
 
   const tokenHolderUTxO = await lucid.utxoByUnit(ptHolderUnit);
 
-  const [projectToken] = Object.keys(tokenHolderUTxO.assets).filter(
-    (unit) => unit == ptHolderUnit
-  );
-
-  const commitFoldAsset = toUnit(commitFoldPolicyId, cFold);
+  const commitFoldUnit = toUnit(commitFoldPolicyId, cFold);
   const commitFoldUTxO = (
-    await lucid.utxosAtWithUnit(commitFoldValidatorAddr, commitFoldAsset)
+    await lucid.utxosAtWithUnit(commitFoldValidatorAddr, commitFoldUnit)
   ).find((value) => {
     if (value.datum) {
       const datum = Data.from(value.datum, FoldDatum);
@@ -110,13 +107,17 @@ export const initRewardFold = async (
     return { type: "error", error: new Error("missing commitFoldUTxO") };
 
   const commitFoldDatum = Data.from(commitFoldUTxO.datum, FoldDatum);
-  console.log("projectToken", projectToken)
-  console.log("tokenHolderUTxO assets", tokenHolderUTxO.assets)
+
+  console.log("tokenHolderUTxO assets", tokenHolderUTxO.assets);
+  console.log("headNodeDatum", headNodeDatum);
+  console.log("commitFoldUTxO", commitFoldUTxO)
+
+  const projectUnit = toUnit(config.projectCS, fromText(config.projectTN));
 
   const datum = Data.to(
     {
-      currNode: currentNode,
-      totalProjectTokens: tokenHolderUTxO.assets[projectToken],
+      currNode: headNodeDatum,
+      totalProjectTokens: tokenHolderUTxO.assets[projectUnit],
       totalCommitted: commitFoldDatum.committed,
       owner: fromAddress(config.userAddress),
     },
@@ -129,10 +130,6 @@ export const initRewardFold = async (
 
   const reclaimCommitFoldAct = Data.to(new Constr(1, []));
 
-  const rewardFoldAssets = {
-    [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n,
-    [projectToken]: tokenHolderUTxO.assets[projectToken],
-  };
 
   try {
     const tx = await lucid
@@ -143,20 +140,40 @@ export const initRewardFold = async (
       .payToContract(
         rewardFoldValidatorAddr,
         { inline: datum },
-        rewardFoldAssets
+        {
+          [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n,
+          [projectUnit]: tokenHolderUTxO.assets[projectUnit],
+        }
       )
-      .mintAssets(
-        { [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n },
-        mintRewardAct
-      )
-      .mintAssets({ [commitFoldAsset]: -1n }, burnCommitFoldAct)
+      .mintAssets( { [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n }, Data.void())
+      .mintAssets({ [commitFoldUnit]: -1n }, burnCommitFoldAct)
       .mintAssets({ [ptHolderUnit]: -1n }, burnPTHolderAct)
-      .attachMintingPolicy(rewardFoldPolicy)
-      .attachMintingPolicy(commitFoldPolicy)
-      .attachMintingPolicy(tokenHolderPolicy)
-      .attachSpendingValidator(commitFoldValidator)
-      .attachSpendingValidator(tokenHolderValidator)
-      .addSigner(toAddress(commitFoldDatum.owner, lucid))
+      .compose(
+        config.refScripts?.tokenHolderValidator
+          ? lucid.newTx().readFrom([config.refScripts.tokenHolderValidator])
+          : lucid.newTx().attachSpendingValidator(tokenHolderValidator)
+      )
+      .compose(
+        config.refScripts?.commitFoldValidator
+          ? lucid.newTx().readFrom([config.refScripts.commitFoldValidator])
+          : lucid.newTx().attachSpendingValidator(commitFoldValidator)
+      )
+      .compose(
+        config.refScripts?.rewardFoldPolicy
+          ? lucid.newTx().readFrom([config.refScripts.rewardFoldPolicy])
+          : lucid.newTx().attachMintingPolicy(rewardFoldPolicy)
+      )
+      .compose(
+        config.refScripts?.commitFoldPolicy
+          ? lucid.newTx().readFrom([config.refScripts.commitFoldPolicy])
+          : lucid.newTx().attachMintingPolicy(commitFoldPolicy)
+      )
+      .compose(
+        config.refScripts?.tokenHolderPolicy
+          ? lucid.newTx().readFrom([config.refScripts.tokenHolderPolicy])
+          : lucid.newTx().attachMintingPolicy(tokenHolderPolicy)
+      )
+      .addSigner(config.userAddress)
       .complete();
 
     return { type: "ok", data: tx };

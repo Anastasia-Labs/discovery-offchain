@@ -38,6 +38,9 @@ export type DeployRefScriptsConfig = {
 
 export type InitTokenHolderConfig = {
   initUTXO: UTxO;
+  projectCS: string;
+  projectTN: string;
+  projectAmount: number;
   scripts: {
     tokenHolderPolicy: CborHex;
     tokenHolderValidator: CborHex;
@@ -125,6 +128,8 @@ export type FoldNodeConfig = {
 };
 
 export type InitRewardFoldConfig = {
+  projectCS: string;
+  projectTN: string;
   scripts: {
     nodeValidator: CborHex;
     nodePolicy: CborHex;
@@ -134,6 +139,16 @@ export type InitRewardFoldConfig = {
     rewardFoldValidator: CborHex;
     tokenHolderPolicy: CborHex;
     tokenHolderValidator: CborHex;
+  };
+  refScripts?: {
+    nodeValidator?: UTxO;
+    nodePolicy?: UTxO;
+    commitFoldPolicy?: UTxO;
+    commitFoldValidator?: UTxO;
+    rewardFoldPolicy?: UTxO;
+    rewardFoldValidator?: UTxO;
+    tokenHolderPolicy?: UTxO;
+    tokenHolderValidator?: UTxO;
   };
   userAddress: Address;
 };
