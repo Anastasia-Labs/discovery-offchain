@@ -1,4 +1,12 @@
-import { Address, Assets, OutRef, PolicyId, UTxO } from "lucid-cardano";
+import {
+  Address,
+  Assets,
+  MintingPolicy,
+  OutRef,
+  PolicyId,
+  SpendingValidator,
+  UTxO,
+} from "lucid-cardano";
 import { SetNode } from "./contract.types.js";
 
 export type CborHex = string;
@@ -23,18 +31,9 @@ export type AssetClass = {
 };
 
 export type DeployRefScriptsConfig = {
-  scripts: {
-    nodePolicy: CborHex;
-    nodeValidator: CborHex;
-    foldPolicy: CborHex;
-    foldValidator: CborHex;
-    rewardFoldPolicy: CborHex;
-    rewardFoldValidator: CborHex;
-    tokenHolderPolicy: CborHex;
-    tokenHolderValidator: CborHex;
-  };
+  script: CborHex;
+  name: string;
   alwaysFails: CborHex;
-  currenTime?: POSIXTime;
 };
 
 export type InitTokenHolderConfig = {
@@ -136,7 +135,7 @@ export type InitRewardFoldConfig = {
     tokenHolderPolicy: CborHex;
     tokenHolderValidator: CborHex;
   };
-  userAddress: Address
+  userAddress: Address;
 };
 
 export type BuildScriptsConfig = {

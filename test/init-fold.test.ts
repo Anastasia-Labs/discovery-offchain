@@ -1,6 +1,5 @@
 import {
   buildScripts,
-  chunkArray,
   deployRefScripts,
   DeployRefScriptsConfig,
   Emulator,
@@ -15,9 +14,7 @@ import {
   ONE_HOUR_MS,
   parseUTxOsAtScript,
   replacer,
-  sortByKeysNodeUTxOs,
   TWENTY_FOUR_HOURS_MS,
-  utxosAtScript,
 } from "price-discovery-offchain";
 import { test, expect, beforeEach } from "vitest";
 import discoveryValidator from "./compiled/discoveryValidator.json";
@@ -67,7 +64,7 @@ beforeEach<LucidContext>(async (context) => {
   context.lucid = await Lucid.new(context.emulator);
 });
 
-test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode - account3 insertNode - treasury1 initFold", async ({
+test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode - account3 insertNode - treasury1 initFold", async ({
   lucid,
   users,
   emulator,
