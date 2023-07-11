@@ -181,10 +181,10 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
   }
 
   emulator.awaitBlock(4);
-  console.log(
-    "utxos at tokenholderScript",
-    await utxosAtScript(lucid, newScripts.data.tokenHolderValidator)
-  );
+  // console.log(
+  //   "utxos at tokenholderScript",
+  //   await utxosAtScript(lucid, newScripts.data.tokenHolderValidator)
+  // );
 
   //NOTE: INIT NODE
   const initNodeConfig: InitNodeConfig = {

@@ -34,10 +34,10 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
-import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFails.json";
-import {FoldDatum} from "price-discovery-offchain/dist/core/contract.types";
+import { FoldDatum } from "price-discovery-offchain/dist/core/contract.types";
 
 type LucidContext = {
   lucid: Lucid;
@@ -90,7 +90,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
   const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 48 hours + 1 hour
-  const [project1UTxO] = await lucid.selectWalletFromSeed(users.project1.seedPhrase).wallet.getUtxos()
+  const [project1UTxO] = await lucid
+    .selectWalletFromSeed(users.project1.seedPhrase)
+    .wallet.getUtxos();
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
@@ -103,8 +105,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       projectTN: "LOBSTER",
       projectAddr: treasuryAddress,
     },
-    projectTokenHolder:{
-      initUTXO: project1UTxO
+    projectTokenHolder: {
+      initUTXO: project1UTxO,
     },
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
@@ -114,7 +116,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
       tokenHolderPolicy: tokenHolderPolicy.cborHex,
-      tokenHolderValidator: tokenHolderValidator.cborHex
+      tokenHolderValidator: tokenHolderValidator.cborHex,
     },
   });
 
@@ -305,7 +307,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     lucid,
     initTokenHolderConfig
   );
-  console.log(initTokenHolderUnsigned)
+  // console.log(initTokenHolderUnsigned)
 
   expect(initTokenHolderUnsigned.type).toBe("ok");
   if (initTokenHolderUnsigned.type == "ok") {
@@ -317,10 +319,10 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   }
 
   emulator.awaitBlock(4);
-  console.log(
-    "utxos at tokenholderScript",
-    await utxosAtScript(lucid, newScripts.data.tokenHolderValidator)
-  );
+  // console.log(
+  //   "utxos at tokenholderScript",
+  //   await utxosAtScript(lucid, newScripts.data.tokenHolderValidator)
+  // );
 
   //NOTE: INIT NODE
   const initNodeConfig: InitNodeConfig = {
@@ -560,7 +562,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   // console.log("fold validator utxo", await utxosAtScript(lucid,newScripts.data.foldValidator))
   // console.log(Data.from((await utxosAtScript(lucid, newScripts.data.foldValidator))[0].datum! ,FoldDatum))
 
-  const initRewardFoldConfig : InitRewardFoldConfig = {
+  const initRewardFoldConfig: InitRewardFoldConfig = {
     projectCS: "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
     projectTN: "LOBSTER",
     scripts: {
@@ -571,32 +573,36 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       rewardFoldPolicy: newScripts.data.rewardPolicy,
       rewardFoldValidator: newScripts.data.rewardValidator,
       tokenHolderPolicy: newScripts.data.tokenHolderPolicy,
-      tokenHolderValidator: newScripts.data.tokenHolderValidator
+      tokenHolderValidator: newScripts.data.tokenHolderValidator,
     },
-    refScripts:{
+    refScripts: {
       nodePolicy: nodePolicyUTxO,
-      nodeValidator:nodeValidatorUTxO,
+      nodeValidator: nodeValidatorUTxO,
       commitFoldPolicy: foldPolicyUTxO,
       commitFoldValidator: foldValidatorUTxO,
       rewardFoldPolicy: rewardPolicyUTxO,
       rewardFoldValidator: rewardValidatorUTxO,
       tokenHolderPolicy: tokenHolderPolicyUTxO,
-      tokenHolderValidator: tokenHolderValidatorUTxO
+      tokenHolderValidator: tokenHolderValidatorUTxO,
     },
-    userAddress: users.treasury1.address
-  }
-  const initRewardFoldUnsigned = await initRewardFold(lucid,initRewardFoldConfig)
+    userAddress: users.treasury1.address,
+  };
 
-  console.log(initRewardFoldUnsigned)
+  const initRewardFoldUnsigned = await initRewardFold(
+    lucid,
+    initRewardFoldConfig
+  );
+
+  // console.log(initRewardFoldUnsigned)
 
   expect(initRewardFoldUnsigned.type).toBe("ok");
   if (initRewardFoldUnsigned.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
-  const initRewardFoldSigned = await initRewardFoldUnsigned.data.sign().complete();
+  const initRewardFoldSigned = await initRewardFoldUnsigned.data
+    .sign()
+    .complete();
   const initRewardFoldHash = await initRewardFoldSigned.submit();
 
   emulator.awaitBlock(4);
-
-
 });

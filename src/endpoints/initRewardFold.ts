@@ -74,7 +74,7 @@ export const initRewardFold = async (
     type: "PlutusV2",
     script: config.scripts.nodeValidator,
   };
-  console.log("script hash", lucid.utils.validatorToScriptHash(tokenHolderValidator))
+  // console.log("script hash", lucid.utils.validatorToScriptHash(tokenHolderValidator))
 
   const [headNodeUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress(discoveryValidator),
@@ -108,9 +108,9 @@ export const initRewardFold = async (
 
   const commitFoldDatum = Data.from(commitFoldUTxO.datum, FoldDatum);
 
-  console.log("tokenHolderUTxO assets", tokenHolderUTxO.assets);
-  console.log("headNodeDatum", headNodeDatum);
-  console.log("commitFoldUTxO", commitFoldUTxO)
+  // console.log("tokenHolderUTxO assets", tokenHolderUTxO.assets);
+  // console.log("headNodeDatum", headNodeDatum);
+  // console.log("commitFoldUTxO", commitFoldUTxO)
 
   const projectUnit = toUnit(config.projectCS, fromText(config.projectTN));
 
@@ -126,8 +126,6 @@ export const initRewardFold = async (
 
   const burnPTHolderAct = Data.to(new Constr(1, []));
   const burnCommitFoldAct = Data.to(new Constr(1, []));
-  const mintRewardAct = Data.void();
-
   const reclaimCommitFoldAct = Data.to(new Constr(1, []));
 
 

@@ -49,11 +49,7 @@ export const initTokenHolder = async (
 
   const ptHolderAsset = toUnit(tokenHolderPolicyId, fromText(PTHOLDER));
   const mintPTHolderAct = Data.to("PMintHolder", TokenHolderMintAction);
-  console.log(walletUtxos)
-  console.log(toUnit(config.projectCS, fromText(config.projectTN)))
-  console.log(fromText(config.projectTN))
 
-  //TODO: Need to lock the project token?
   try {
     const tx = await lucid
       .newTx()
@@ -62,7 +58,6 @@ export const initTokenHolder = async (
         tokenHolderValidatorAddr,
         { inline: Data.void() },
         { [ptHolderAsset]: BigInt(1), 
-          // ["2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e265050563425443"]: 100000000n
           [toUnit(config.projectCS, fromText(config.projectTN))]: BigInt(config.projectAmount)
         }
       )
