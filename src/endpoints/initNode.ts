@@ -9,6 +9,7 @@ import {
 import { originNodeTokenName } from "../core/constants.js";
 import { DiscoveryNodeAction, SetNode } from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";
+import { NODE_ADA } from "../core/constants.js";
 
 export const initNode = async (
   lucid: Lucid,
@@ -59,7 +60,7 @@ export const initNode = async (
       .payToAddressWithData(
         nodeValidatorAddr,
         { inline: datum, scriptRef: nodeValidator },
-        { ...assets, lovelace: 3_000_000n }
+        { ...assets, lovelace: NODE_ADA }
       )
       .mintAssets(assets, redeemerNodePolicy)
       // .attachMintingPolicy(nodePolicy)

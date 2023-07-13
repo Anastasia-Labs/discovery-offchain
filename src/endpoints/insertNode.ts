@@ -12,7 +12,7 @@ import {
   SetNode,
 } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
-import { MINIMUM_LOVELACE, mkNodeKeyTN } from "../index.js";
+import { NODE_ADA, mkNodeKeyTN } from "../index.js";
 
 export const insertNode = async (
   lucid: Lucid,
@@ -117,10 +117,7 @@ export const insertNode = async (
     [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
   };
 
-  const correctAmount =
-    BigInt(config.amountLovelace) > MINIMUM_LOVELACE
-      ? BigInt(config.amountLovelace)
-      : MINIMUM_LOVELACE;
+  const correctAmount = (BigInt(config.amountLovelace) + NODE_ADA)
 
   try {
     const tx = await lucid

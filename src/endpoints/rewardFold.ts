@@ -114,6 +114,7 @@ export const rewardFold = async (
     (nodeCommitment * oldRewardFoldDatum.totalProjectTokens) /
     oldRewardFoldDatum.totalCommitted;
   console.log("owedProjectTokenAmount", owedProjectTokenAmount);
+
   const [nodeAsset] = Object.entries(nodeInput.assets).filter(
     ([key, value]) => {
       return key != "lovelace";
@@ -135,7 +136,7 @@ export const rewardFold = async (
   console.log("config.projectCS", config.projectCS);
   console.log("config.projectTN", fromText(config.projectTN));
   console.log('rewardUTxO.assets["lovelace"]', rewardUTxO.assets["lovelace"]);
-  //TODO: 
+  //TODO:
   //- we shuold make sure all nodes including headnode locks 3 ADA as minimum, i think this is not happening with head node
   //- we need to test the remove node logic once all users receive their project token
   //- rewarFold function shuold work with a list of utxos receives from the upstream logic, the  list of utxos should be query only once to minimize api calls
@@ -152,8 +153,8 @@ export const rewardFold = async (
         { inline: newFoldDatum },
         {
           ["lovelace"]: rewardUTxO.assets["lovelace"],
-          [toUnit(config.projectCS, fromText(config.projectTN))]:
-            remainingProjectTokenAmount,
+          [toUnit( lucid.utils.mintingPolicyToId(rewardFoldPolicy), fromText("RFold"))]: 1n,
+          [toUnit(config.projectCS, fromText(config.projectTN))]: remainingProjectTokenAmount,
         }
       )
       .payToContract(
