@@ -7,4 +7,5 @@ export * from "./initFold.js"
 export * from "./multiFold.js"
 export * from "./initTokenHolder.js"
 export * from "./initRewardFold.js"
+export * from "./rewardFold.js"
 

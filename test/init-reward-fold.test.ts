@@ -22,6 +22,8 @@ import {
   ONE_HOUR_MS,
   parseUTxOsAtScript,
   replacer,
+  rewardFold,
+  RewardFoldConfig,
   sortByOutRefWithIndex,
   toUnit,
   TWENTY_FOUR_HOURS_MS,
@@ -605,4 +607,42 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   const initRewardFoldHash = await initRewardFoldSigned.submit();
 
   emulator.awaitBlock(4);
+  console.log((await parseUTxOsAtScript(lucid,newScripts.data.discoveryValidator)))
+
+  const nodeUTxOs = await utxosAtScript(
+    lucid,
+    newScripts.data.discoveryValidator
+  );
+
+  const rewardFoldConfig: RewardFoldConfig = {
+    nodeInputs: nodeUTxOs,
+    projectCS: "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
+    projectTN: "LOBSTER",
+    projectAddress: treasuryAddress,
+    scripts: {
+      nodeValidator: newScripts.data.discoveryValidator,
+      rewardFoldPolicy: newScripts.data.rewardPolicy,
+      rewardFoldValidator: newScripts.data.rewardValidator,
+    },
+    refScripts: {
+      nodeValidator: nodeValidatorUTxO,
+      rewardFoldPolicy: rewardPolicyUTxO,
+      rewardFoldValidator: rewardValidatorUTxO,
+    },
+    userAddress: users.treasury1.address,
+  };
+
+  const rewardFoldUnsigned = await rewardFold(lucid, rewardFoldConfig);
+  console.log(rewardFoldUnsigned);
+
+  expect(rewardFoldUnsigned.type).toBe("ok");
+  if (rewardFoldUnsigned.type == "error") return;
+  // console.log(insertNodeUnsigned.data.txComplete.to_json())
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
+  const rewardFoldSigned = await rewardFoldUnsigned.data.sign().complete();
+  const rewardFoldHash = await rewardFoldSigned.submit();
+
+  emulator.awaitBlock(4)
+  console.log("users.treasury1.address", await lucid.utxosAt(users.treasury1.address))
+  console.log("utxos at discovery validator", await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator))
 });

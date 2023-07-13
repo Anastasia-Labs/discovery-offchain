@@ -153,6 +153,24 @@ export type InitRewardFoldConfig = {
   userAddress: Address;
 };
 
+export type RewardFoldConfig = {
+  nodeInputs: UTxO[];
+  scripts: {
+    nodeValidator: CborHex
+    rewardFoldPolicy: CborHex;
+    rewardFoldValidator: CborHex;
+  };
+  refScripts?: {
+    nodeValidator?: UTxO;
+    rewardFoldPolicy?: UTxO;
+    rewardFoldValidator?: UTxO;
+  };
+  userAddress: Address;
+  projectAddress: Address;
+  projectCS: PolicyId;
+  projectTN: string; 
+};
+
 export type BuildScriptsConfig = {
   discoveryPolicy: {
     initUTXO: UTxO;

@@ -103,11 +103,12 @@ export const DiscoveryConfig =
 export const NodeValidatorActionSchema = Data.Enum([
   Data.Literal("LinkedListAct"),
   Data.Literal("ModifyCommitment"),
-  Data.Object({
-    RewardFoldAct: Data.Object({
-      rewardsIdx: Data.Integer(),
-    }),
-  }),
+  Data.Literal("RewardFoldAct"),
+  // Data.Object({
+  //   RewardFoldAct: Data.Object({
+  //     rewardsIdx: Data.Integer(),
+  //   }),
+  // }),
 ]);
 export type NodeValidatorAction = Data.Static<typeof NodeValidatorActionSchema>;
 export const NodeValidatorAction =

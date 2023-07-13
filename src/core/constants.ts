@@ -11,3 +11,5 @@ export const MINIMUM_LOVELACE = 3_000_000n
 export const originNodeTokenName = fromText(SETNODE_PREFIX);
 export const corrNodeTokenName = fromText(CORRNODE_PREFIX);
 export const cFold = fromText(CFOLD);
+
+export const NODE_ADA = 3_000_000n
