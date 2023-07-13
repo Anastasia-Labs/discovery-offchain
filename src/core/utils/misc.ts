@@ -22,6 +22,7 @@ export const utxosAtScript = async (
   return lucid.utxosAt(scriptValidatorAddr);
 };
 
+//TODO: makes this generic
 export const parseDatum = (
   lucid: Lucid,
   utxo: UTxO
@@ -41,6 +42,7 @@ export const parseDatum = (
   }
 };
 
+//TODO: make this generic
 export const parseUTxOsAtScript = async (
   lucid: Lucid,
   script: string,
@@ -64,20 +66,78 @@ export const parseUTxOsAtScript = async (
   });
 };
 
-// export const sortUTxOs = (utxos: ReadableUTxO[]) => {
-//   utxos.sort((a, b) => {
-//     if (a.datum.next == b.datum.key){
-//       return -1
-//     }
-//     else return 1
-//   });
-// };
-//
-// //NOTE: use mod to make groups of 10
-// export const groupUTxOs = (utxos: ReadableUTxO[]) => {
-//   const test = utxos.console.log(test);
-// };
-//
+export type ResultSorted = {
+  index: number;
+  value: ReadableUTxO;
+};
+
+export const sortByDatumKeys = (
+  utxos: ResultSorted[],
+  startKey: string | null
+) => {
+  const firstItem = utxos.find((readableUTxO) => {
+    return readableUTxO.value.datum.key == startKey;
+  });
+  if (!firstItem) throw new Error("firstItem error");
+  if (!startKey) throw new Error("startKey error")
+
+  return utxos.reduce(
+    (result, current) => {
+      if (current.value.datum.next == null) return result;
+      const item = utxos.find((readableUTxO) => {
+        return (
+          readableUTxO.value.datum.key ==
+          result[result.length - 1].value.datum.next
+        );
+      });
+      if (!item) throw new Error("item error");
+      result.push(item);
+      return result;
+    },
+    [firstItem] as ResultSorted[]
+  );
+};
+
+//TODO: cleanup function and try to make it generic
+//TODO: test with chunkArray
+export const sortByOutRefWithIndex = (utxos: ReadableUTxO[]) => {
+  const head = utxos.find((utxo) => {
+    return utxo.datum.key == null;
+  });
+  if (!head) throw new Error("head error");
+
+  const sortedByOutRef = utxos
+    .filter((utxo) => {
+      return head != utxo;
+    })
+    .sort((a, b) => {
+      if (a.outRef.txHash < b.outRef.txHash) {
+        return -1;
+      } else if (a.outRef.txHash > b.outRef.txHash) {
+        return 1;
+      } else if (a.outRef.txHash == b.outRef.txHash) {
+        if (a.outRef.outputIndex < b.outRef.outputIndex) {
+          return -1;
+        } else return 1;
+      } else return 0;
+    })
+    .map((value, index) => {
+      return {
+        value,
+        index,
+      };
+    });
+
+  return sortByDatumKeys(sortedByOutRef, head.datum.next)
+};
+
+export const chunkArray = <T>(array: T[], chunkSize: number) => {
+  const numberOfChunks = Math.ceil(array.length / chunkSize);
+
+  return [...Array(numberOfChunks)].map((value, index) => {
+    return array.slice(index * chunkSize, (index + 1) * chunkSize);
+  });
+};
 
 export const replacer = (key: unknown, value: unknown) =>
   typeof value === "bigint" ? value.toString() : value;

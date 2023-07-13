@@ -26,7 +26,7 @@ export const initFold = async (
 
   config.currenTime ??= Date.now();
 
-  lucid.selectWalletFrom({ address: config.userAddres });
+  lucid.selectWalletFrom({ address: config.userAddress });
 
   const walletUtxos = await lucid.wallet.getUtxos();
 
@@ -84,7 +84,7 @@ export const initFold = async (
   const assets = {
     [toUnit(foldPolicyId, cFold)]: 1n,
   };
-  console.log(foldValidatorAddr)
+
   const upperBound = config.currenTime + 100_000;
 
   try {

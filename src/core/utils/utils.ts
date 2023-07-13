@@ -8,6 +8,7 @@ import {
   generateSeedPhrase,
   getAddressDetails,
   Lucid,
+  MintingPolicy,
   SpendingValidator,
 } from "lucid-cardano";
 import { SETNODE_PREFIX } from "../constants.js";
@@ -115,3 +116,28 @@ export const fromAddressToData = (address: Address): Result<Data> => {
 
   return { type: "ok", data: new Constr(0, [paymentCred, stakingCred]) };
 };
+
+type MintingPolicyDetails = {
+  mintingPolicy: MintingPolicy;
+  mintingPolicyId: string;
+};
+type SpendingValidatorDetails = {
+  spendingValidator: SpendingValidator;
+  spendingValidatorAddress: Address;
+};
+
+
+
+// const tokenHolderValidator: SpendingValidator = {
+//   type: "PlutusV2",
+//   script: config.scripts.tokenHolderValidator,
+// };
+//
+// const tokenHolderValidatorAddr =
+//   lucid.utils.validatorToAddress(tokenHolderValidator);
+//
+// const tokenHolderPolicy: MintingPolicy = {
+//   type: "PlutusV2",
+//   script: config.scripts.tokenHolderPolicy,
+// };
+// const tokenHolderPolicyId = lucid.utils.mintingPolicyToId(tokenHolderPolicy);

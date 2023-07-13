@@ -1,4 +1,12 @@
-import { Address, OutRef, PolicyId, UTxO } from "lucid-cardano";
+import {
+  Address,
+  Assets,
+  MintingPolicy,
+  OutRef,
+  PolicyId,
+  SpendingValidator,
+  UTxO,
+} from "lucid-cardano";
 import { SetNode } from "./contract.types.js";
 
 export type CborHex = string;
@@ -23,12 +31,21 @@ export type AssetClass = {
 };
 
 export type DeployRefScriptsConfig = {
-  scripts: {
-    nodePolicy: CborHex;
-    nodeValidator: CborHex;
-  };
+  script: CborHex;
+  name: string;
   alwaysFails: CborHex;
-  currenTime?: POSIXTime;
+};
+
+export type InitTokenHolderConfig = {
+  initUTXO: UTxO;
+  projectCS: string;
+  projectTN: string;
+  projectAmount: number;
+  scripts: {
+    tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
+  };
+  userAddress: Address;
 };
 
 export type InitNodeConfig = {
@@ -40,7 +57,7 @@ export type InitNodeConfig = {
   refScripts?: {
     nodePolicy?: UTxO;
   };
-  userAddres: Address;
+  userAddress: Address;
 };
 
 export type DInitNodeConfig = {
@@ -59,7 +76,7 @@ export type InsertNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  userAddres: Address;
+  userAddress: Address;
   amountLovelace: number;
   currenTime?: POSIXTime;
 };
@@ -73,31 +90,85 @@ export type RemoveNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  userAddres: Address;
+  userAddress: Address;
   deadline: POSIXTime;
   penaltyAddress: Address;
   currenTime?: POSIXTime;
 };
 
 export type InitFoldConfig = {
-  nodeRefInput: OutRef;
   scripts: {
     nodeValidator: CborHex;
     nodePolicy: CborHex;
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
-  userAddres: Address;
+  userAddress: Address;
   currenTime?: POSIXTime;
 };
 
-export type FoldNodesConfig = {
+export type MultiFoldConfig = {
   nodeRefInputs: OutRef[];
+  indices: number[];
+  scripts: {
+    foldPolicy: CborHex;
+    foldValidator: CborHex;
+  };
+  userAddress: Address;
+  currenTime?: POSIXTime;
+};
+
+export type FoldNodeConfig = {
+  nodeRefInput: OutRef;
   foldOutRef: OutRef;
   scripts: {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
+};
+
+export type InitRewardFoldConfig = {
+  projectCS: string;
+  projectTN: string;
+  scripts: {
+    nodeValidator: CborHex;
+    nodePolicy: CborHex;
+    foldPolicy: CborHex;
+    foldValidator: CborHex;
+    rewardFoldPolicy: CborHex;
+    rewardFoldValidator: CborHex;
+    tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
+  };
+  refScripts?: {
+    nodeValidator?: UTxO;
+    nodePolicy?: UTxO;
+    commitFoldPolicy?: UTxO;
+    commitFoldValidator?: UTxO;
+    rewardFoldPolicy?: UTxO;
+    rewardFoldValidator?: UTxO;
+    tokenHolderPolicy?: UTxO;
+    tokenHolderValidator?: UTxO;
+  };
+  userAddress: Address;
+};
+
+export type RewardFoldConfig = {
+  nodeInputs: UTxO[];
+  scripts: {
+    nodeValidator: CborHex
+    rewardFoldPolicy: CborHex;
+    rewardFoldValidator: CborHex;
+  };
+  refScripts?: {
+    nodeValidator?: UTxO;
+    rewardFoldPolicy?: UTxO;
+    rewardFoldValidator?: UTxO;
+  };
+  userAddress: Address;
+  projectAddress: Address;
+  projectCS: PolicyId;
+  projectTN: string; 
 };
 
 export type BuildScriptsConfig = {
@@ -111,6 +182,9 @@ export type BuildScriptsConfig = {
     projectTN: string;
     projectAddr: Address;
   };
+  projectTokenHolder: {
+    initUTXO: UTxO;
+  };
   unapplied: {
     discoveryPolicy: RawHex;
     discoveryValidator: RawHex;
@@ -118,10 +192,13 @@ export type BuildScriptsConfig = {
     foldValidator: RawHex;
     rewardPolicy: RawHex;
     rewardValidator: RawHex;
+    tokenHolderValidator: RawHex;
+    tokenHolderPolicy: RawHex;
   };
 };
 
 export type ReadableUTxO = {
   outRef: OutRef;
   datum: SetNode;
+  assets: Assets;
 };

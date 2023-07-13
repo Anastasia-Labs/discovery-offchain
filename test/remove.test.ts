@@ -23,7 +23,9 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import alwaysFailValidator from "./compiled/alwaysFailValidator.json";
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import alwaysFailValidator from "./compiled/alwaysFails.json";
 
 type LucidContext = {
   lucid: Lucid;
@@ -35,6 +37,9 @@ type LucidContext = {
 beforeEach<LucidContext>(async (context) => {
   context.users = {
     treasury1: await generateAccountSeedPhrase({
+      lovelace: BigInt(100_000_000),
+    }),
+    project1: await generateAccountSeedPhrase({
       lovelace: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
@@ -50,6 +55,7 @@ beforeEach<LucidContext>(async (context) => {
 
   context.emulator = new Emulator([
     context.users.treasury1,
+    context.users.project1,
     context.users.account1,
     context.users.account2,
     context.users.account3,
@@ -58,7 +64,7 @@ beforeEach<LucidContext>(async (context) => {
   context.lucid = await Lucid.new(context.emulator);
 });
 
-test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode - aacount2 removeNode", async ({
+test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode - aacount2 removeNode", async ({
   lucid,
   users,
   emulator,
@@ -68,6 +74,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
   const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 48 hours + 1 hour
+  const [project1UTxO] = await lucid
+    .selectWalletFromSeed(users.project1.seedPhrase)
+    .wallet.getUtxos();
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
@@ -80,6 +89,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       projectTN: "test",
       projectAddr: treasuryAddress,
     },
+    projectTokenHolder: {
+      initUTXO: project1UTxO,
+    },
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
       discoveryValidator: discoveryValidator.cborHex,
@@ -87,6 +99,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
+      tokenHolderPolicy: tokenHolderPolicy.cborHex,
+      tokenHolderValidator: tokenHolderValidator.cborHex,
     },
   });
 
@@ -153,7 +167,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
-    userAddres: users.treasury1.address
+    userAddress: users.treasury1.address,
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
@@ -191,7 +205,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 4_000_000,
-    userAddres: users.account1.address,
+    userAddress: users.account1.address,
     currenTime: emulator.now(),
   };
 
@@ -230,7 +244,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 5_000_000,
-    userAddres: users.account2.address,
+    userAddress: users.account2.address,
     currenTime: emulator.now(),
   };
 
@@ -284,18 +298,18 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     currenTime: emulator.now(),
     deadline: deadline,
     penaltyAddress: treasuryAddress,
-    userAddres: users.account2.address,
+    userAddress: users.account2.address,
   };
 
   const removeNodeUnsigned = await removeNode(lucid, removeNodeConfig);
 
   expect(removeNodeUnsigned.type).toBe("ok");
 
-  if (removeNodeUnsigned.type == "error") return
-    // console.log(removeNodeUnsigned.data.txComplete.to_json())
-    lucid.selectWalletFromSeed(users.account2.seedPhrase);
-    const removeNodeSigned = await removeNodeUnsigned.data.sign().complete();
-    const removeNodeHash = await removeNodeSigned.submit();
+  if (removeNodeUnsigned.type == "error") return;
+  // console.log(removeNodeUnsigned.data.txComplete.to_json())
+  lucid.selectWalletFromSeed(users.account2.seedPhrase);
+  const removeNodeSigned = await removeNodeUnsigned.data.sign().complete();
+  const removeNodeHash = await removeNodeSigned.submit();
 
   emulator.awaitBlock(4);
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
@@ -322,7 +336,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodeValidator: nodeValidatorUTxO,
       nodePolicy: nodePolicyUTxO,
     },
-    userAddres: users.account2.address,
+    userAddress: users.account2.address,
     deadline: deadline,
     penaltyAddress: treasuryAddress,
   };

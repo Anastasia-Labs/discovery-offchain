@@ -47,7 +47,7 @@ export const AddressSchema = Data.Object({
 export type AddressD = Data.Static<typeof AddressSchema>;
 export const AddressD = AddressSchema as unknown as AddressD;
 
-export const NodeKeySchema = Data.Nullable(Data.Bytes())
+export const NodeKeySchema = Data.Nullable(Data.Bytes());
 // export const NodeKeySchema = Data.Enum([
 //   Data.Object({ Key: Data.Tuple([Data.Bytes()]) }),
 //   Data.Literal("Empty"),
@@ -103,24 +103,24 @@ export const DiscoveryConfig =
 export const NodeValidatorActionSchema = Data.Enum([
   Data.Literal("LinkedListAct"),
   Data.Literal("ModifyCommitment"),
-  Data.Object({
-    RewardFoldAct: Data.Object({
-      rewardsIdx: Data.Integer(),
-    }),
-  }),
-])
-export type NodeValidatorAction = Data.Static<typeof NodeValidatorActionSchema>
-export const NodeValidatorAction = NodeValidatorActionSchema as unknown as NodeValidatorAction
-
+  Data.Literal("RewardFoldAct"),
+  // Data.Object({
+  //   RewardFoldAct: Data.Object({
+  //     rewardsIdx: Data.Integer(),
+  //   }),
+  // }),
+]);
+export type NodeValidatorAction = Data.Static<typeof NodeValidatorActionSchema>;
+export const NodeValidatorAction =
+  NodeValidatorActionSchema as unknown as NodeValidatorAction;
 
 export const FoldDatumSchema = Data.Object({
   currNode: SetNodeSchema,
   committed: Data.Integer(),
-  owner: AddressSchema
-})
-export type FoldDatum = Data.Static<typeof FoldDatumSchema>
-export const FoldDatum = FoldDatumSchema as unknown as FoldDatum
-
+  owner: AddressSchema,
+});
+export type FoldDatum = Data.Static<typeof FoldDatumSchema>;
+export const FoldDatum = FoldDatumSchema as unknown as FoldDatum;
 
 export const FoldActSchema = Data.Enum([
   Data.Object({
@@ -128,16 +128,24 @@ export const FoldActSchema = Data.Enum([
       nodeIdxs: Data.Array(Data.Integer()),
     }),
   }),
-  Data.Literal("FoldNode"),
   Data.Literal("Reclaim"),
 ]);
-export type FoldAct = Data.Static<typeof FoldActSchema>
-export const FoldAct = FoldActSchema as unknown as FoldAct
+export type FoldAct = Data.Static<typeof FoldActSchema>;
+export const FoldAct = FoldActSchema as unknown as FoldAct;
 
 export const FoldMintActSchema = Data.Enum([
   Data.Literal("MintFold"),
-  Data.Literal("BurnFold")
-])
-export type FoldMintAct = Data.Static<typeof FoldMintActSchema>
-export const FoldMintAct = FoldMintActSchema as unknown as FoldMintAct
+  Data.Literal("BurnFold"),
+]);
+export type FoldMintAct = Data.Static<typeof FoldMintActSchema>;
+export const FoldMintAct = FoldMintActSchema as unknown as FoldMintAct;
 
+export const RewardFoldDatumSchema = Data.Object({
+  currNode: SetNodeSchema,
+  totalProjectTokens: Data.Integer(),
+  totalCommitted: Data.Integer(),
+  owner: AddressSchema,
+});
+export type RewardFoldDatum = Data.Static<typeof RewardFoldDatumSchema>;
+export const RewardFoldDatum =
+  RewardFoldDatumSchema as unknown as RewardFoldDatum;
