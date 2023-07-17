@@ -30,6 +30,7 @@ import {
 import { test, expect, beforeEach } from "vitest";
 import discoveryValidator from "./compiled/discoveryValidator.json";
 import discoveryPolicy from "./compiled/discoveryMinting.json";
+import discoveryStake from "./compiled/discoveryStakeValidator.json"
 import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
@@ -111,6 +112,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
       discoveryValidator: discoveryValidator.cborHex,
+      discoveryStake: discoveryStake.cborHex,
       foldPolicy: foldPolicy.cborHex,
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,

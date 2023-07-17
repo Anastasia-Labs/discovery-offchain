@@ -12,3 +12,7 @@ export const corrNodeTokenName = fromText(CORRNODE_PREFIX);
 export const cFold = fromText(CFOLD);
 
 export const NODE_ADA = 3_000_000n
+
+// export const TIME_TOLERANCE_MS = 100_000
+//WARNING: Enable this when using emulator, need a temp fix
+export const TIME_TOLERANCE_MS = 0

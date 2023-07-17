@@ -6,6 +6,7 @@ import {
   MintingPolicy,
   fromText,
   toUnit,
+  WithdrawalValidator,
 } from "lucid-cardano";
 import {
   AddressSchema,
@@ -68,6 +69,11 @@ export const rewardFold = async (
     script: config.scripts.rewardFoldPolicy,
   };
   const rewardFoldPolicyId = lucid.utils.mintingPolicyToId(rewardFoldPolicy);
+
+  const discoveryStakeValidator: WithdrawalValidator = {
+    type: "PlutusV2",
+    script: config.scripts.discoveryStake,
+  };
 
   const [rewardUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress(rewardFoldValidator),
@@ -142,19 +148,32 @@ export const rewardFold = async (
   //- rewarFold function shuold work with a list of utxos receives from the upstream logic, the  list of utxos should be query only once to minimize api calls
   //- rewardFold function should iterate over all node utxos
   //- currently redeemer RewardFoldAct logic is disable with "pconstant ()"
+  console.log(
+    "stakeCredential address",
+    lucid.utils.validatorToRewardAddress(discoveryStakeValidator)
+  );
 
   try {
     const tx = await lucid
       .newTx()
       .collectFrom([nodeInput], rewardFoldAct)
       .collectFrom([rewardUTxO], rewardFoldNodesAct)
+      // .withdraw(
+      //   lucid.utils.validatorToRewardAddress(discoveryStakeValidator),
+      //   0n,
+      //   Data.void()
+      // )
       .payToContract(
         rewardFoldValidatorAddr,
         { inline: newFoldDatum },
         {
           ["lovelace"]: rewardUTxO.assets["lovelace"],
-          [toUnit( lucid.utils.mintingPolicyToId(rewardFoldPolicy), fromText("RFold"))]: 1n,
-          [toUnit(config.projectCS, fromText(config.projectTN))]: remainingProjectTokenAmount,
+          [toUnit(
+            lucid.utils.mintingPolicyToId(rewardFoldPolicy),
+            fromText("RFold")
+          )]: 1n,
+          [toUnit(config.projectCS, fromText(config.projectTN))]:
+            remainingProjectTokenAmount,
         }
       )
       .payToContract(
@@ -178,6 +197,7 @@ export const rewardFold = async (
           ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
           : lucid.newTx().attachSpendingValidator(nodeValidator)
       )
+      // .attachWithdrawalValidator(discoveryStakeValidator)
       .complete();
 
     return { type: "ok", data: tx };
