@@ -226,6 +226,18 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     emulator.awaitBlock(4);
   }
 
+  const deploy9 = await deployRefScripts(lucid, {
+    script: newScripts.data.discoveryStake,
+    name: "DiscoveryStakeValidator",
+    alwaysFails: alwaysFailValidator.cborHex,
+  });
+
+  expect(deploy9.type).toBe("ok");
+  if (deploy9.type == "ok") {
+    (await deploy9.data.tx.sign().complete()).submit();
+    emulator.awaitBlock(4);
+  }
+
   //Find node refs script
   const deployPolicyId =
     deploy1.type == "ok" ? deploy1.data.deployPolicyId : "";
@@ -292,6 +304,14 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       script: alwaysFailValidator.cborHex,
     }),
     toUnit(deployPolicyId, fromText("TokenHolderValidator"))
+  );
+
+  const [discoveryStakeValidatorUTxO] = await lucid.utxosAtWithUnit(
+    lucid.utils.validatorToAddress({
+      type: "PlutusV2",
+      script: alwaysFailValidator.cborHex,
+    }),
+    toUnit(deployPolicyId, fromText("DiscoveryStakeValidator"))
   );
 
   //NOTE: INIT PROJECT TOKEN HOLDER
@@ -615,6 +635,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     lucid,
     newScripts.data.discoveryValidator
   );
+  console.log("discoveryStake", discoveryStakeValidatorUTxO)
 
   const rewardFoldConfig: RewardFoldConfig = {
     nodeInputs: nodeUTxOs,
@@ -623,11 +644,13 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     projectAddress: treasuryAddress,
     scripts: {
       nodeValidator: newScripts.data.discoveryValidator,
+      discoveryStake: newScripts.data.discoveryStake,
       rewardFoldPolicy: newScripts.data.rewardPolicy,
       rewardFoldValidator: newScripts.data.rewardValidator,
     },
     refScripts: {
       nodeValidator: nodeValidatorUTxO,
+      discoveryStake: discoveryStakeValidatorUTxO,
       rewardFoldPolicy: rewardPolicyUTxO,
       rewardFoldValidator: rewardValidatorUTxO,
     },
@@ -655,11 +678,13 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     projectAddress: treasuryAddress,
     scripts: {
       nodeValidator: newScripts.data.discoveryValidator,
+      discoveryStake: newScripts.data.discoveryStake,
       rewardFoldPolicy: newScripts.data.rewardPolicy,
       rewardFoldValidator: newScripts.data.rewardValidator,
     },
     refScripts: {
       nodeValidator: nodeValidatorUTxO,
+      discoveryStake: discoveryStakeValidatorUTxO,
       rewardFoldPolicy: rewardPolicyUTxO,
       rewardFoldValidator: rewardValidatorUTxO,
     },

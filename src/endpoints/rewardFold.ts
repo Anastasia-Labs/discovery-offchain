@@ -158,11 +158,11 @@ export const rewardFold = async (
       .newTx()
       .collectFrom([nodeInput], rewardFoldAct)
       .collectFrom([rewardUTxO], rewardFoldNodesAct)
-      // .withdraw(
-      //   lucid.utils.validatorToRewardAddress(discoveryStakeValidator),
-      //   0n,
-      //   Data.void()
-      // )
+      .withdraw(
+        lucid.utils.validatorToRewardAddress(discoveryStakeValidator),
+        0n,
+        Data.void()
+      )
       .payToContract(
         rewardFoldValidatorAddr,
         { inline: newFoldDatum },
@@ -197,7 +197,11 @@ export const rewardFold = async (
           ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
           : lucid.newTx().attachSpendingValidator(nodeValidator)
       )
-      // .attachWithdrawalValidator(discoveryStakeValidator)
+      .compose(
+        config.refScripts?.discoveryStake
+          ? lucid.newTx().readFrom([config.refScripts.discoveryStake])
+          : lucid.newTx().attachSpendingValidator(discoveryStakeValidator)
+      )
       .complete();
 
     return { type: "ok", data: tx };

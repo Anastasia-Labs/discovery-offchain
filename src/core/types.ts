@@ -163,6 +163,7 @@ export type RewardFoldConfig = {
   };
   refScripts?: {
     nodeValidator?: UTxO;
+    discoveryStake: UTxO;
     rewardFoldPolicy?: UTxO;
     rewardFoldValidator?: UTxO;
   };
