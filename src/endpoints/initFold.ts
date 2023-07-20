@@ -10,6 +10,7 @@ import {
 import {
   cFold,
   SETNODE_PREFIX,
+  TIME_TOLERANCE_MS,
 } from "../core/constants.js";
 import {
   FoldDatum,
@@ -85,7 +86,8 @@ export const initFold = async (
     [toUnit(foldPolicyId, cFold)]: 1n,
   };
 
-  const upperBound = config.currenTime + 100_000;
+  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
+  const lowerBound = (config.currenTime + TIME_TOLERANCE_MS)
 
   try {
     const tx = await lucid
@@ -94,7 +96,7 @@ export const initFold = async (
       .payToContract(foldValidatorAddr, { inline: datum }, assets)
       .mintAssets(assets, redeemerNodePolicy)
       .attachMintingPolicy(foldPolicy)
-      .validFrom(config.currenTime)
+      .validFrom(lowerBound)
       .validTo(upperBound)
       .complete();
 

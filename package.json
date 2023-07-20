@@ -12,10 +12,10 @@
     "test": "",
     "clean": "rm -rf dist",
     "build": "tsup src/index.ts --format esm,cjs --dts --clean",
-    "buildtsc": "npm run clean && tsc",
+    "build-tsc": "npm run clean && tsc",
     "lint": "eslint",
     "repack": "npm run build  && npm pack",
-    "repacktsc": "npm run buildtsc  && npm pack"
+    "repack-tsc": "npm run build-tsc  && npm pack"
   },
   "keywords": [],
   "author": "",

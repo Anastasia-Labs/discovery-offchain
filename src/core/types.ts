@@ -156,19 +156,21 @@ export type InitRewardFoldConfig = {
 export type RewardFoldConfig = {
   nodeInputs: UTxO[];
   scripts: {
-    nodeValidator: CborHex
+    nodeValidator: CborHex;
+    discoveryStake: CborHex;
     rewardFoldPolicy: CborHex;
     rewardFoldValidator: CborHex;
   };
-  refScripts?: {
-    nodeValidator?: UTxO;
-    rewardFoldPolicy?: UTxO;
-    rewardFoldValidator?: UTxO;
+  refScripts: {
+    nodeValidator: UTxO;
+    discoveryStake: UTxO;
+    rewardFoldPolicy: UTxO;
+    rewardFoldValidator: UTxO;
   };
   userAddress: Address;
   projectAddress: Address;
   projectCS: PolicyId;
-  projectTN: string; 
+  projectTN: string;
 };
 
 export type BuildScriptsConfig = {
@@ -188,6 +190,7 @@ export type BuildScriptsConfig = {
   unapplied: {
     discoveryPolicy: RawHex;
     discoveryValidator: RawHex;
+    discoveryStake: RawHex;
     foldPolicy: RawHex;
     foldValidator: RawHex;
     rewardPolicy: RawHex;

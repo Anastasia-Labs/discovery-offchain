@@ -12,7 +12,7 @@ import {
   SetNode,
 } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
-import { MINIMUM_LOVELACE, mkNodeKeyTN } from "../index.js";
+import { NODE_ADA, mkNodeKeyTN, TIME_TOLERANCE_MS } from "../index.js";
 
 export const insertNode = async (
   lucid: Lucid,
@@ -117,10 +117,10 @@ export const insertNode = async (
     [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
   };
 
-  const correctAmount =
-    BigInt(config.amountLovelace) > MINIMUM_LOVELACE
-      ? BigInt(config.amountLovelace)
-      : MINIMUM_LOVELACE;
+  const correctAmount = (BigInt(config.amountLovelace) + NODE_ADA)
+
+  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
+  const lowerBound = (config.currenTime + TIME_TOLERANCE_MS)
 
   try {
     const tx = await lucid
@@ -150,8 +150,8 @@ export const insertNode = async (
           ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
           : lucid.newTx().attachMintingPolicy(nodePolicy)
       )
-      .validFrom(config.currenTime)
-      .validTo(config.currenTime)
+      .validFrom(lowerBound)
+      .validTo(upperBound)
       .complete();
 
     return { type: "ok", data: tx };

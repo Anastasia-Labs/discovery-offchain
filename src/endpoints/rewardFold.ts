@@ -6,6 +6,7 @@ import {
   MintingPolicy,
   fromText,
   toUnit,
+  WithdrawalValidator,
 } from "lucid-cardano";
 import {
   AddressSchema,
@@ -69,6 +70,11 @@ export const rewardFold = async (
   };
   const rewardFoldPolicyId = lucid.utils.mintingPolicyToId(rewardFoldPolicy);
 
+  const discoveryStakeValidator: WithdrawalValidator = {
+    type: "PlutusV2",
+    script: config.scripts.discoveryStake,
+  };
+
   const [rewardUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress(rewardFoldValidator),
     toUnit(lucid.utils.mintingPolicyToId(rewardFoldPolicy), fromText("RFold"))
@@ -76,10 +82,10 @@ export const rewardFold = async (
   if (!rewardUTxO.datum)
     return { type: "error", error: new Error("missing RewardFoldDatum") };
 
-  console.log("rewardUTxO", rewardUTxO);
+  // console.log("rewardUTxO", rewardUTxO);
 
   const oldRewardFoldDatum = Data.from(rewardUTxO.datum, RewardFoldDatum);
-  console.log("RewardFoldDatum", oldRewardFoldDatum);
+  // console.log("RewardFoldDatum", oldRewardFoldDatum);
 
   const nodeInput = config.nodeInputs.find((utxo) => {
     if (utxo.datum) {
@@ -92,6 +98,7 @@ export const rewardFold = async (
     return { type: "error", error: new Error("missing SetNodeDatum") };
 
   const nodeDatum = Data.from(nodeInput.datum, SetNode);
+  console.log("nodeDatum", nodeDatum);
 
   const newFoldDatum = Data.to(
     {
@@ -109,11 +116,12 @@ export const rewardFold = async (
   const rewardFoldAct = Data.to("RewardFoldAct", NodeValidatorAction);
   const rewardFoldNodesAct = Data.to("RewardsFoldNode", RewardFoldAct);
   const nodeCommitment = nodeInput.assets["lovelace"] - NODE_ADA;
-  console.log("nodeCommitment", nodeCommitment);
+  // console.log("nodeCommitment", nodeCommitment);
   const owedProjectTokenAmount =
     (nodeCommitment * oldRewardFoldDatum.totalProjectTokens) /
     oldRewardFoldDatum.totalCommitted;
-  console.log("owedProjectTokenAmount", owedProjectTokenAmount);
+  // console.log("owedProjectTokenAmount", owedProjectTokenAmount);
+
   const [nodeAsset] = Object.entries(nodeInput.assets).filter(
     ([key, value]) => {
       return key != "lovelace";
@@ -121,65 +129,102 @@ export const rewardFold = async (
   );
   const projetTokenAmount =
     rewardUTxO.assets[toUnit(config.projectCS, fromText(config.projectTN))];
-  console.log("projectTokenAmount", projetTokenAmount);
+  // console.log("projectTokenAmount", projetTokenAmount);
 
   const remainingProjectTokenAmount =
     rewardUTxO.assets[toUnit(config.projectCS, fromText(config.projectTN))] -
     owedProjectTokenAmount;
-  console.log("remainingProjectTokenAmount", remainingProjectTokenAmount);
-  console.log("nodeAsset", nodeAsset);
-  console.log(
-    "rewardUTxO.assets",
-    rewardUTxO.assets[toUnit(config.projectCS, fromText(config.projectTN))]
-  );
-  console.log("config.projectCS", config.projectCS);
-  console.log("config.projectTN", fromText(config.projectTN));
-  console.log('rewardUTxO.assets["lovelace"]', rewardUTxO.assets["lovelace"]);
-  //TODO: 
+  // console.log("remainingProjectTokenAmount", remainingProjectTokenAmount);
+  // console.log("nodeAsset", nodeAsset);
+  // console.log(
+  //   "rewardUTxO.assets",
+  //   rewardUTxO.assets[toUnit(config.projectCS, fromText(config.projectTN))]
+  // );
+  // console.log("config.projectCS", config.projectCS);
+  // console.log("config.projectTN", fromText(config.projectTN));
+  // console.log('rewardUTxO.assets["lovelace"]', rewardUTxO.assets["lovelace"]);
+  //TODO:
   //- we shuold make sure all nodes including headnode locks 3 ADA as minimum, i think this is not happening with head node
   //- we need to test the remove node logic once all users receive their project token
   //- rewarFold function shuold work with a list of utxos receives from the upstream logic, the  list of utxos should be query only once to minimize api calls
   //- rewardFold function should iterate over all node utxos
   //- currently redeemer RewardFoldAct logic is disable with "pconstant ()"
 
-  try {
-    const tx = await lucid
-      .newTx()
-      .collectFrom([nodeInput], rewardFoldAct)
-      .collectFrom([rewardUTxO], rewardFoldNodesAct)
-      .payToContract(
-        rewardFoldValidatorAddr,
-        { inline: newFoldDatum },
-        {
-          ["lovelace"]: rewardUTxO.assets["lovelace"],
-          [toUnit(config.projectCS, fromText(config.projectTN))]:
-            remainingProjectTokenAmount,
-        }
-      )
-      .payToContract(
-        nodeValidatorAddr,
-        { inline: nodeInput.datum },
-        {
-          [nodeAsset[0]]: nodeAsset[1],
-          [toUnit(config.projectCS, fromText(config.projectTN))]:
-            owedProjectTokenAmount,
-          ["lovelace"]: NODE_ADA,
-        }
-      )
-      .payToAddress(config.projectAddress, { lovelace: nodeCommitment })
-      .compose(
-        config.refScripts?.rewardFoldValidator
-          ? lucid.newTx().readFrom([config.refScripts.rewardFoldValidator])
-          : lucid.newTx().attachSpendingValidator(rewardFoldValidator)
-      )
-      .compose(
-        config.refScripts?.nodeValidator
-          ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
-          : lucid.newTx().attachSpendingValidator(nodeValidator)
-      )
-      .complete();
+  // console.log(
+  //   "stakeCredential address",
+  //   lucid.utils.validatorToRewardAddress(discoveryStakeValidator)
+  // );
 
-    return { type: "ok", data: tx };
+  try {
+    if (oldRewardFoldDatum.currNode.next != null) {
+      const tx = await lucid
+        .newTx()
+        .collectFrom([nodeInput], Data.to("RewardFoldAct", NodeValidatorAction))
+        .collectFrom([rewardUTxO], Data.to("RewardsFoldNode", RewardFoldAct))
+        .withdraw(
+          lucid.utils.validatorToRewardAddress(discoveryStakeValidator),
+          0n,
+          Data.void()
+        )
+        .payToContract(
+          rewardFoldValidatorAddr,
+          { inline: newFoldDatum },
+          {
+            ["lovelace"]: rewardUTxO.assets["lovelace"],
+            [toUnit(
+              lucid.utils.mintingPolicyToId(rewardFoldPolicy),
+              fromText("RFold")
+            )]: 1n,
+            [toUnit(config.projectCS, fromText(config.projectTN))]:
+              remainingProjectTokenAmount,
+          }
+        )
+        .payToContract(
+          nodeValidatorAddr,
+          { inline: nodeInput.datum },
+          {
+            [nodeAsset[0]]: nodeAsset[1],
+            [toUnit(config.projectCS, fromText(config.projectTN))]:
+              owedProjectTokenAmount,
+            ["lovelace"]: NODE_ADA,
+          }
+        )
+        .payToAddress(config.projectAddress, { lovelace: nodeCommitment })
+        .readFrom([config.refScripts.rewardFoldValidator])
+        .readFrom([config.refScripts.nodeValidator])
+        .readFrom([config.refScripts.discoveryStake])
+        .complete();
+      return { type: "ok", data: tx };
+    } else {
+      const tx = await lucid
+        .newTx()
+        .collectFrom([nodeInput], Data.to("RewardFoldAct", NodeValidatorAction))
+        .collectFrom([rewardUTxO], Data.to("RewardsReclaim", RewardFoldAct))
+        .withdraw(
+          lucid.utils.validatorToRewardAddress(discoveryStakeValidator),
+          0n,
+          Data.void()
+        )
+        .payToContract(
+          nodeValidatorAddr,
+          { inline: nodeInput.datum },
+          {
+            [nodeAsset[0]]: nodeAsset[1],
+            [toUnit(config.projectCS, fromText(config.projectTN))]:
+              rewardUTxO.assets[
+                toUnit(config.projectCS, fromText(config.projectTN))
+              ],
+            ["lovelace"]: NODE_ADA,
+          }
+        )
+        .payToAddress(config.projectAddress, { lovelace: nodeCommitment })
+        .readFrom([config.refScripts.rewardFoldValidator])
+        .readFrom([config.refScripts.nodeValidator])
+        .readFrom([config.refScripts.discoveryStake])
+        .addSigner(config.userAddress)
+        .complete();
+      return { type: "ok", data: tx };
+    }
   } catch (error) {
     if (error instanceof Error) return { type: "error", error: error };
 

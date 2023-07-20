@@ -5,6 +5,7 @@ import {
   Lucid,
   MintingPolicy,
   SpendingValidator,
+  WithdrawalValidator,
 } from "lucid-cardano";
 import { BuildScriptsConfig, CborHex, Result } from "../types.js";
 import { fromAddressToData } from "./utils.js";
@@ -12,6 +13,7 @@ import { fromAddressToData } from "./utils.js";
 type Scripts = {
   discoveryPolicy: CborHex;
   discoveryValidator: CborHex;
+  discoveryStake: CborHex;
   foldPolicy: CborHex;
   foldValidator: CborHex;
   rewardPolicy: CborHex;
@@ -24,7 +26,6 @@ export const buildScripts = (
   lucid: Lucid,
   config: BuildScriptsConfig
 ): Result<Scripts> => {
-
   const initUTXOprojectTokenHolder = new Constr(0, [
     new Constr(0, [config.projectTokenHolder.initUTXO.txHash]),
     BigInt(config.projectTokenHolder.initUTXO.outputIndex),
@@ -205,6 +206,18 @@ export const buildScripts = (
     script: rewardPolicy,
   };
 
+  //NOTE: DISCOVERY STAKE VALIDATOR
+  // pDiscoverGlobalLogicW :: Term s (PAsData PCurrencySymbol :--> PStakeValidator)
+  // pDiscoverGlobalLogicW = phoistAcyclic $ plam $ \rewardCS' _redeemer ctx -> P.do
+  const discoveryStake = applyParamsToScript(config.unapplied.discoveryStake, [
+    lucid.utils.mintingPolicyToId(rewardMintingPolicy),
+  ]);
+
+  const discoveryStakeValidator: WithdrawalValidator = {
+    type: "PlutusV2",
+    script: discoveryStake,
+  };
+
   // NOTE: DISCOVERY VALIDATOR
   //
   // data PDiscoveryLaunchConfig (s :: S)
@@ -224,7 +237,7 @@ export const buildScripts = (
       new Constr(0, [
         BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
         penaltyAddress.data, // penaltyAddress PAddress
-        lucid.utils.mintingPolicyToId(rewardMintingPolicy), // rewardsCS PCurrencySymbol
+        new Constr(0, [new Constr(1, [lucid.utils.validatorToScriptHash(discoveryStakeValidator)])]), // PStakingCredential
       ]),
     ]
   );
@@ -247,6 +260,7 @@ export const buildScripts = (
     data: {
       discoveryPolicy: discoveryPolicy,
       discoveryValidator: discoveryValidator,
+      discoveryStake: discoveryStake,
       foldPolicy: foldPolicy,
       foldValidator: foldValidator,
       rewardPolicy: rewardPolicy,
