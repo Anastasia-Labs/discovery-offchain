@@ -213,6 +213,11 @@ export const buildScripts = (
     lucid.utils.mintingPolicyToId(rewardMintingPolicy),
   ]);
 
+  const discoveryStakeValidator: WithdrawalValidator = {
+    type: "PlutusV2",
+    script: discoveryStake,
+  };
+
   // NOTE: DISCOVERY VALIDATOR
   //
   // data PDiscoveryLaunchConfig (s :: S)
@@ -232,7 +237,7 @@ export const buildScripts = (
       new Constr(0, [
         BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
         penaltyAddress.data, // penaltyAddress PAddress
-        new Constr(0, [new Constr(0, [new Constr(0, [discoveryStake])])]), // PStakingCredential
+        new Constr(0, [new Constr(1, [lucid.utils.validatorToScriptHash(discoveryStakeValidator)])]), // PStakingCredential
       ]),
     ]
   );

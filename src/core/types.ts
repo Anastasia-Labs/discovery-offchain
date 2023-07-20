@@ -161,11 +161,11 @@ export type RewardFoldConfig = {
     rewardFoldPolicy: CborHex;
     rewardFoldValidator: CborHex;
   };
-  refScripts?: {
-    nodeValidator?: UTxO;
+  refScripts: {
+    nodeValidator: UTxO;
     discoveryStake: UTxO;
-    rewardFoldPolicy?: UTxO;
-    rewardFoldValidator?: UTxO;
+    rewardFoldPolicy: UTxO;
+    rewardFoldValidator: UTxO;
   };
   userAddress: Address;
   projectAddress: Address;
