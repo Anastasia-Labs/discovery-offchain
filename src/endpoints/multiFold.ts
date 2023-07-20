@@ -10,7 +10,7 @@ import {
 } from "lucid-cardano";
 import { FoldAct, FoldDatum, SetNode } from "../core/contract.types.js";
 import { MultiFoldConfig, Result } from "../core/types.js";
-import { CFOLD } from "../index.js";
+import { CFOLD, TIME_TOLERANCE_MS } from "../index.js";
 
 export const multiFold = async (
   lucid: Lucid,
@@ -84,7 +84,8 @@ export const multiFold = async (
     FoldAct
   );
 
-  const upperBound = config.currenTime + 100_000;
+  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
+  const lowerBound = (config.currenTime + TIME_TOLERANCE_MS)
 
   try {
     const tx = await lucid
@@ -97,7 +98,7 @@ export const multiFold = async (
         { inline: newFoldDatum },
         foldUTxO.assets
       )
-      .validFrom(config.currenTime)
+      .validFrom(lowerBound)
       .validTo(upperBound)
       .complete();
 

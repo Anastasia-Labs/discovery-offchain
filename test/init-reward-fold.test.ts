@@ -803,4 +803,6 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   );
   console.log("utxos at reward fold", await utxosAtScript(lucid, newScripts.data.rewardValidator))
 
+  //NOTE: MISSING REMOVE NODE WITH PROJECT TOKEN
+
 });

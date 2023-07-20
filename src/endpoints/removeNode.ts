@@ -12,7 +12,7 @@ import {
   SetNode,
 } from "../core/contract.types.js";
 import { RemoveNodeConfig, Result } from "../core/types.js";
-import { divCeil, mkNodeKeyTN, TWENTY_FOUR_HOURS_MS } from "../index.js";
+import { divCeil, mkNodeKeyTN, TIME_TOLERANCE_MS, TWENTY_FOUR_HOURS_MS } from "../index.js";
 
 export const removeNode = async (
   lucid: Lucid,
@@ -95,8 +95,8 @@ export const removeNode = async (
   );
 
   const redeemerNodeValidator = Data.to("LinkedListAct", NodeValidatorAction);
-  const upperBound = config.currenTime + 100_000;
-  const lowerBound = config.currenTime - 100_000; // NOTE: Test it on preprod
+  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
+  const lowerBound = (config.currenTime + TIME_TOLERANCE_MS)
 
   const beforeDeadline = upperBound < config.deadline;
   const beforeTwentyFourHours =
@@ -146,7 +146,7 @@ export const removeNode = async (
             ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
             : lucid.newTx().attachMintingPolicy(nodePolicy)
         )
-        .validFrom(config.currenTime)
+        .validFrom(lowerBound)
         .validTo(upperBound)
         .complete();
       return { type: "ok", data: tx };
@@ -182,7 +182,7 @@ export const removeNode = async (
             ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
             : lucid.newTx().attachMintingPolicy(nodePolicy)
         )
-        .validFrom(config.currenTime)
+        .validFrom(lowerBound)
         .validTo(upperBound)
         .complete();
 
@@ -211,7 +211,7 @@ export const removeNode = async (
             ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
             : lucid.newTx().attachMintingPolicy(nodePolicy)
         )
-        .validFrom(config.currenTime)
+        .validFrom(lowerBound)
         .validTo(upperBound)
         .complete();
       return { type: "ok", data: tx };
