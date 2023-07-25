@@ -34,6 +34,7 @@ export type DeployRefScriptsConfig = {
   script: CborHex;
   name: string;
   alwaysFails: CborHex;
+  currenTime: POSIXTime;
 };
 
 export type InitTokenHolderConfig = {
