@@ -57,6 +57,9 @@ beforeEach<LucidContext>(async (context) => {
     account3: await generateAccountSeedPhrase({
       lovelace: BigInt(500_000_000),
     }),
+    null: await generateAccountSeedPhrase({
+      lovelace: BigInt(0),
+    }),
   };
 
   context.emulator = new Emulator([
@@ -306,6 +309,8 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
       .complete();
     const initTokenHolderHash = await initTokenHolderSigned.submit();
   }
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
   // console.log(
@@ -333,6 +338,9 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
   const initNodeSigned = await initNodeUnsigned.data.sign().complete();
   const initNodeHash = await initNodeSigned.submit();
   // console.log(initNodeHash)
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
+
   emulator.awaitBlock(4);
   logFlag
     ? console.log(

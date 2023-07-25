@@ -70,6 +70,9 @@ beforeEach<LucidContext>(async (context) => {
     account3: await generateAccountSeedPhrase({
       lovelace: BigInt(500_000_000),
     }),
+    null: await generateAccountSeedPhrase({
+      lovelace: BigInt(0),
+    }),
   };
 
   context.emulator = new Emulator([
@@ -335,6 +338,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
         .complete()
     ).submit()
   );
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
+
 
   //NOTE: INIT PROJECT TOKEN HOLDER
   const initTokenHolderConfig: InitTokenHolderConfig = {
@@ -362,6 +368,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       .complete();
     const initTokenHolderHash = await initTokenHolderSigned.submit();
   }
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
   // console.log(
@@ -390,6 +398,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   const initNodeSigned = await initNodeUnsigned.data.sign().complete();
   const initNodeHash = await initNodeSigned.submit();
   // console.log(initNodeHash)
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
 
@@ -429,6 +439,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
   const insertNodeSigned = await insertNodeUnsigned.data.sign().complete();
   const insertNodeHash = await insertNodeSigned.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
 
@@ -466,6 +478,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
   const insertNodeSigned2 = await insertNodeUnsigned2.data.sign().complete();
   const insertNodeHash2 = await insertNodeSigned2.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(500);
 
@@ -503,6 +517,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
   const insertNodeSigned3 = await insertNodeUnsigned3.data.sign().complete();
   const insertNodeHash3 = await insertNodeSigned3.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(6000);
 
@@ -536,6 +552,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
   const initFoldSigned = await initFoldUnsigned.data.sign().complete();
   const initFoldHash = await initFoldSigned.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
 
@@ -583,19 +601,20 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       foldPolicy: newScripts.data.foldPolicy,
       foldValidator: newScripts.data.foldValidator,
     },
-    userAddress: users.treasury1.address,
     currenTime: emulator.now(),
   };
 
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const multiFoldUnsigned = await multiFold(lucid, multiFoldConfig);
   // console.log(multiFoldUnsigned)
 
   expect(multiFoldUnsigned.type).toBe("ok");
   if (multiFoldUnsigned.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const multiFoldSigned = await multiFoldUnsigned.data.sign().complete();
   const multiFoldHash = await multiFoldSigned.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
 
@@ -626,9 +645,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       tokenHolderPolicy: tokenHolderPolicyUTxO,
       tokenHolderValidator: tokenHolderValidatorUTxO,
     },
-    userAddress: users.treasury1.address,
   };
 
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initRewardFoldUnsigned = await initRewardFold(
     lucid,
     initRewardFoldConfig
@@ -639,11 +658,12 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   expect(initRewardFoldUnsigned.type).toBe("ok");
   if (initRewardFoldUnsigned.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initRewardFoldSigned = await initRewardFoldUnsigned.data
     .sign()
     .complete();
   const initRewardFoldHash = await initRewardFoldSigned.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
 
@@ -687,6 +707,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldSigned = await rewardFoldUnsigned.data.sign().complete();
   const rewardFoldHash = await rewardFoldSigned.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
   // console.log("users.treasury1.address", await lucid.utxosAt(users.treasury1.address))
@@ -723,6 +745,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldSigned2 = await rewardFoldUnsigned2.data.sign().complete();
   const rewardFoldHash2 = await rewardFoldSigned2.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
 
@@ -757,6 +781,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldSigned3 = await rewardFoldUnsigned3.data.sign().complete();
   const rewardFoldHash3 = await rewardFoldSigned3.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
 
@@ -791,6 +817,8 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldSigned4 = await rewardFoldUnsigned4.data.sign().complete();
   const rewardFoldHash4 = await rewardFoldSigned4.submit();
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
 

@@ -109,7 +109,6 @@ export type MultiFoldConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
-  userAddress: Address;
   currenTime?: POSIXTime;
 };
 
@@ -145,7 +144,6 @@ export type InitRewardFoldConfig = {
     tokenHolderPolicy?: UTxO;
     tokenHolderValidator?: UTxO;
   };
-  userAddress: Address;
 };
 
 export type RewardFoldConfig = {
