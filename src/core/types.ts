@@ -57,7 +57,6 @@ export type InitNodeConfig = {
   refScripts?: {
     nodePolicy?: UTxO;
   };
-  userAddress: Address;
 };
 
 export type DInitNodeConfig = {

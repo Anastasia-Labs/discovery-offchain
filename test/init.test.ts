@@ -323,13 +323,12 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
-    userAddress: users.treasury1.address,
   };
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
   expect(initNodeUnsigned.type).toBe("ok");
   if (initNodeUnsigned.type == "error") return;
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   // console.log(tx.data.txComplete.to_json())
   const initNodeSigned = await initNodeUnsigned.data.sign().complete();
   const initNodeHash = await initNodeSigned.submit();
