@@ -315,7 +315,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   );
 
   //NOTE: REGISTER STAKE VALIDATOR
-  emulator.distributeRewards(BigInt(100_000_000))
+  emulator.distributeRewards(BigInt(100_000_000));
 
   const discoveryStakeRewardAddress = lucid.utils.validatorToRewardAddress({
     type: "PlutusV2",
@@ -323,9 +323,17 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   });
 
   // console.log("stakeRewardAddress", discoveryStakeRewardAddress)
-   await lucid.awaitTx(
-    await (await (await lucid.newTx().registerStake(discoveryStakeRewardAddress!).complete())
-      .sign().complete()).submit(),
+  await lucid.awaitTx(
+    await (
+      await (
+        await lucid
+          .newTx()
+          .registerStake(discoveryStakeRewardAddress!)
+          .complete()
+      )
+        .sign()
+        .complete()
+    ).submit()
   );
 
   //NOTE: INIT PROJECT TOKEN HOLDER
@@ -408,10 +416,10 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 4_000_000,
-    userAddress: users.account1.address,
     currenTime: emulator.now(),
   };
 
+  lucid.selectWalletFromSeed(users.account1.seedPhrase);
   const insertNodeUnsigned = await insertNode(lucid, insertNodeConfig);
   // console.log(insertNodeUnsigned);
 
@@ -419,7 +427,6 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
   if (insertNodeUnsigned.type == "error") return;
 
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.account1.seedPhrase);
   const insertNodeSigned = await insertNodeUnsigned.data.sign().complete();
   const insertNodeHash = await insertNodeSigned.submit();
 
@@ -448,16 +455,15 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 5_000_000,
-    userAddress: users.account2.address,
     currenTime: emulator.now(),
   };
 
+  lucid.selectWalletFromSeed(users.account2.seedPhrase);
   const insertNodeUnsigned2 = await insertNode(lucid, insertNodeConfig2);
 
   expect(insertNodeUnsigned2.type).toBe("ok");
   if (insertNodeUnsigned2.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.account2.seedPhrase);
   const insertNodeSigned2 = await insertNodeUnsigned2.data.sign().complete();
   const insertNodeHash2 = await insertNodeSigned2.submit();
 
@@ -486,16 +492,15 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       nodePolicy: nodePolicyUTxO,
     },
     amountLovelace: 5_000_000,
-    userAddress: users.account3.address,
     currenTime: emulator.now(),
   };
 
+  lucid.selectWalletFromSeed(users.account3.seedPhrase);
   const insertNodeUnsigned3 = await insertNode(lucid, insertNodeConfig3);
 
   expect(insertNodeUnsigned3.type).toBe("ok");
   if (insertNodeUnsigned3.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.account3.seedPhrase);
   const insertNodeSigned3 = await insertNodeUnsigned3.data.sign().complete();
   const insertNodeHash3 = await insertNodeSigned3.submit();
 
@@ -640,7 +645,6 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     .sign()
     .complete();
   const initRewardFoldHash = await initRewardFoldSigned.submit();
-
 
   emulator.awaitBlock(4);
 
@@ -799,8 +803,10 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     "utxos at discovery validator",
     await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
   );
-  console.log("utxos at reward fold", await utxosAtScript(lucid, newScripts.data.rewardValidator))
+  console.log(
+    "utxos at reward fold",
+    await utxosAtScript(lucid, newScripts.data.rewardValidator)
+  );
 
   //NOTE: MISSING REMOVE NODE WITH PROJECT TOKEN
-
 });

@@ -74,7 +74,6 @@ export type InsertNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  userAddress: Address;
   amountLovelace: number;
   currenTime?: POSIXTime;
 };

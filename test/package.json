@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "install-packages": "cd .. && npm run repack-tsc && cd test && rm -rf node_modules && rm -f package-lock.json && npm i",
-    "test": "export NODE_ENV='emulator' && npm run install-packages && vitest run",
-    "vitest": "vitest run"
+    "test": "npm run install-packages && vitest run",
+    "vitest": "export NODE_ENV='emulator' && vitest run"
   },
   "author": "",
   "license": "ISC",
