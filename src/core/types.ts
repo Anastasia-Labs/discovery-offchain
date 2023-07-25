@@ -87,7 +87,6 @@ export type RemoveNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  userAddress: Address;
   deadline: POSIXTime;
   penaltyAddress: Address;
   currenTime?: POSIXTime;

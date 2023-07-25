@@ -20,7 +20,6 @@ export const removeNode = async (
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
-  lucid.selectWalletFrom({ address: config.userAddress });
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
