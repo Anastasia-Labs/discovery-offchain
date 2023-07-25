@@ -25,8 +25,6 @@ export const initTokenHolder = async (
   config: InitTokenHolderConfig
 ): Promise<Result<TxComplete>> => {
 
-  lucid.selectWalletFrom({ address: config.userAddress });
-
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)

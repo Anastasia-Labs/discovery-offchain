@@ -45,7 +45,6 @@ export type InitTokenHolderConfig = {
     tokenHolderPolicy: CborHex;
     tokenHolderValidator: CborHex;
   };
-  userAddress: Address;
 };
 
 export type InitNodeConfig = {

@@ -338,9 +338,9 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       tokenHolderPolicy: newScripts.data.tokenHolderPolicy,
       tokenHolderValidator: newScripts.data.tokenHolderValidator,
     },
-    userAddress: users.project1.address,
   };
 
+  lucid.selectWalletFromSeed(users.project1.seedPhrase);
   const initTokenHolderUnsigned = await initTokenHolder(
     lucid,
     initTokenHolderConfig
@@ -349,7 +349,6 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
 
   expect(initTokenHolderUnsigned.type).toBe("ok");
   if (initTokenHolderUnsigned.type == "ok") {
-    lucid.selectWalletFromSeed(users.project1.seedPhrase);
     const initTokenHolderSigned = await initTokenHolderUnsigned.data
       .sign()
       .complete();
