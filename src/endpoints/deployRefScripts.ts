@@ -60,10 +60,10 @@ export const deployRefScripts = async (
     type: "all",
     scripts: [
       { type: "sig", keyHash: deployKey },
-      // {
-      //   type: "before",
-      //   slot: lucid.utils.unixTimeToSlot(config.currenTime + 1000000),
-      // },
+      {
+        type: "before",
+        slot: lucid.utils.unixTimeToSlot(config.currenTime + 900_000), // 15 minutes
+      },
     ],
   });
 
@@ -124,6 +124,7 @@ export const deployRefScripts = async (
         { scriptRef: script },
         { [toUnit(deployPolicyId, fromText(config.name))]: 1n }
       )
+      .validTo(config.currenTime + 800_000)
       .complete();
     // const tx1 = await lucid
     //   .newTx()

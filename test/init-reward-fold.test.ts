@@ -132,11 +132,13 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
 
   //NOTE: DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
+  const deployTime = emulator.now()
 
   const deploy1 = await deployRefScripts(lucid, {
     script: newScripts.data.discoveryPolicy,
     name: "DiscoveryPolicy",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy1.type).toBe("ok");
@@ -149,6 +151,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     script: newScripts.data.discoveryValidator,
     name: "DiscoveryValidator",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy2.type).toBe("ok");
@@ -161,6 +164,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     script: newScripts.data.foldPolicy,
     name: "FoldPolicy",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy3.type).toBe("ok");
@@ -173,6 +177,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     script: newScripts.data.foldValidator,
     name: "FoldValidator",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy4.type).toBe("ok");
@@ -185,6 +190,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     script: newScripts.data.rewardPolicy,
     name: "RewardFoldPolicy",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy5.type).toBe("ok");
@@ -197,6 +203,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     script: newScripts.data.rewardValidator,
     name: "RewardFoldValidator",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy6.type).toBe("ok");
@@ -209,6 +216,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     script: newScripts.data.tokenHolderPolicy,
     name: "TokenHolderPolicy",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy7.type).toBe("ok");
@@ -221,6 +229,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     script: newScripts.data.tokenHolderValidator,
     name: "TokenHolderValidator",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy8.type).toBe("ok");
@@ -233,6 +242,7 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     script: newScripts.data.discoveryStake,
     name: "DiscoveryStakeValidator",
     alwaysFails: alwaysFailValidator.cborHex,
+    currenTime: deployTime
   });
 
   expect(deploy9.type).toBe("ok");
