@@ -160,7 +160,6 @@ export type RewardFoldConfig = {
     rewardFoldPolicy: UTxO;
     rewardFoldValidator: UTxO;
   };
-  userAddress: Address;
   projectAddress: Address;
   projectCS: PolicyId;
   projectTN: string;

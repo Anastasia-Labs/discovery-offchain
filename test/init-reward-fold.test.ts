@@ -696,15 +696,14 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       rewardFoldPolicy: rewardPolicyUTxO,
       rewardFoldValidator: rewardValidatorUTxO,
     },
-    userAddress: users.treasury1.address,
   };
 
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldUnsigned = await rewardFold(lucid, rewardFoldConfig);
   // console.log(rewardFoldUnsigned);
 
   expect(rewardFoldUnsigned.type).toBe("ok");
   if (rewardFoldUnsigned.type == "error") return;
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldSigned = await rewardFoldUnsigned.data.sign().complete();
   const rewardFoldHash = await rewardFoldSigned.submit();
   //NOTE: RESET WALLET
@@ -733,16 +732,15 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       rewardFoldPolicy: rewardPolicyUTxO,
       rewardFoldValidator: rewardValidatorUTxO,
     },
-    userAddress: users.treasury1.address,
   };
 
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldUnsigned2 = await rewardFold(lucid, rewardFoldConfig2);
   // console.log(rewardFoldUnsigned2);
 
   expect(rewardFoldUnsigned2.type).toBe("ok");
   if (rewardFoldUnsigned2.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldSigned2 = await rewardFoldUnsigned2.data.sign().complete();
   const rewardFoldHash2 = await rewardFoldSigned2.submit();
   //NOTE: RESET WALLET
@@ -769,16 +767,15 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       rewardFoldPolicy: rewardPolicyUTxO,
       rewardFoldValidator: rewardValidatorUTxO,
     },
-    userAddress: users.treasury1.address,
   };
 
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldUnsigned3 = await rewardFold(lucid, rewardFoldConfig3);
   // console.log(rewardFoldUnsigned2);
 
   expect(rewardFoldUnsigned3.type).toBe("ok");
   if (rewardFoldUnsigned3.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldSigned3 = await rewardFoldUnsigned3.data.sign().complete();
   const rewardFoldHash3 = await rewardFoldSigned3.submit();
   //NOTE: RESET WALLET
@@ -805,16 +802,15 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
       rewardFoldPolicy: rewardPolicyUTxO,
       rewardFoldValidator: rewardValidatorUTxO,
     },
-    userAddress: users.treasury1.address,
   };
 
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldUnsigned4 = await rewardFold(lucid, rewardFoldConfig4);
   // console.log(rewardFoldUnsigned4);
 
   expect(rewardFoldUnsigned4.type).toBe("ok");
   if (rewardFoldUnsigned4.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const rewardFoldSigned4 = await rewardFoldUnsigned4.data.sign().complete();
   const rewardFoldHash4 = await rewardFoldSigned4.submit();
   //NOTE: RESET WALLET

@@ -44,7 +44,6 @@ export const rewardFold = async (
   lucid: Lucid,
   config: RewardFoldConfig
 ): Promise<Result<TxComplete>> => {
-  lucid.selectWalletFrom({ address: config.userAddress });
 
   const walletUtxos = await lucid.wallet.getUtxos();
 
@@ -221,7 +220,7 @@ export const rewardFold = async (
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake])
-        .addSigner(config.userAddress)
+        .addSigner(await lucid.wallet.address())
         .complete();
       return { type: "ok", data: tx };
     }
