@@ -57,6 +57,9 @@ beforeEach<LucidContext>(async (context) => {
     account3: await generateAccountSeedPhrase({
       lovelace: BigInt(500_000_000),
     }),
+    null: await generateAccountSeedPhrase({
+      lovelace: BigInt(0),
+    }),
   };
 
   context.emulator = new Emulator([
@@ -291,21 +294,23 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
       tokenHolderPolicy: newScripts.data.tokenHolderPolicy,
       tokenHolderValidator: newScripts.data.tokenHolderValidator,
     },
-    userAddress: users.project1.address,
   };
 
+  lucid.selectWalletFromSeed(users.project1.seedPhrase);
   const initTokenHolderUnsigned = await initTokenHolder(
     lucid,
     initTokenHolderConfig
   );
+
   expect(initTokenHolderUnsigned.type).toBe("ok");
   if (initTokenHolderUnsigned.type == "ok") {
-    lucid.selectWalletFromSeed(users.project1.seedPhrase);
     const initTokenHolderSigned = await initTokenHolderUnsigned.data
       .sign()
       .complete();
     const initTokenHolderHash = await initTokenHolderSigned.submit();
   }
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
 
   emulator.awaitBlock(4);
   // console.log(
@@ -323,17 +328,19 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
     refScripts: {
       nodePolicy: nodePolicyUTxO,
     },
-    userAddress: users.treasury1.address,
   };
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
   expect(initNodeUnsigned.type).toBe("ok");
   if (initNodeUnsigned.type == "error") return;
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   // console.log(tx.data.txComplete.to_json())
   const initNodeSigned = await initNodeUnsigned.data.sign().complete();
   const initNodeHash = await initNodeSigned.submit();
   // console.log(initNodeHash)
+  //NOTE: RESET WALLET
+  lucid.selectWalletFromSeed(users.null.seedPhrase)
+
   emulator.awaitBlock(4);
   logFlag
     ? console.log(

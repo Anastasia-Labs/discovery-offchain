@@ -18,8 +18,6 @@ export const initRewardFold = async (
   config: InitRewardFoldConfig
 ): Promise<Result<TxComplete>> => {
 
-  lucid.selectWalletFrom({ address: config.userAddress });
-
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
@@ -119,7 +117,7 @@ export const initRewardFold = async (
       currNode: headNodeDatum,
       totalProjectTokens: tokenHolderUTxO.assets[projectUnit],
       totalCommitted: commitFoldDatum.committed,
-      owner: fromAddress(config.userAddress),
+      owner: fromAddress(await lucid.wallet.address()),
     },
     RewardFoldDatum
   );
@@ -171,7 +169,7 @@ export const initRewardFold = async (
           ? lucid.newTx().readFrom([config.refScripts.tokenHolderPolicy])
           : lucid.newTx().attachMintingPolicy(tokenHolderPolicy)
       )
-      .addSigner(config.userAddress)
+      .addSigner(await lucid.wallet.address())
       .complete();
 
     return { type: "ok", data: tx };

@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "install-packages": "cd .. && npm run repack-tsc && cd test && rm -rf node_modules && rm -f package-lock.json && npm i",
-    "test": "npm run install-packages && vitest run",
-    "vitest": "vitest run"
+    "test": "npm run install-packages && npm run vitest",
+    "vitest": "export NODE_ENV='emulator' && vitest run"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +16,6 @@
     "vitest": "^0.30.1"
   },
   "dependencies": {
-    "price-discovery-offchain": "file:../price-discovery-offchain-0.0.1.tgz"
+    "price-discovery-offchain": "file:../price-discovery-offchain-0.0.2.tgz"
   }
 }

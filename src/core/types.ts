@@ -45,7 +45,6 @@ export type InitTokenHolderConfig = {
     tokenHolderPolicy: CborHex;
     tokenHolderValidator: CborHex;
   };
-  userAddress: Address;
 };
 
 export type InitNodeConfig = {
@@ -57,7 +56,6 @@ export type InitNodeConfig = {
   refScripts?: {
     nodePolicy?: UTxO;
   };
-  userAddress: Address;
 };
 
 export type DInitNodeConfig = {
@@ -76,7 +74,6 @@ export type InsertNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  userAddress: Address;
   amountLovelace: number;
   currenTime?: POSIXTime;
 };
@@ -90,7 +87,6 @@ export type RemoveNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  userAddress: Address;
   deadline: POSIXTime;
   penaltyAddress: Address;
   currenTime?: POSIXTime;
@@ -103,7 +99,6 @@ export type InitFoldConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
-  userAddress: Address;
   currenTime?: POSIXTime;
 };
 
@@ -114,7 +109,6 @@ export type MultiFoldConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
-  userAddress: Address;
   currenTime?: POSIXTime;
 };
 
@@ -150,7 +144,6 @@ export type InitRewardFoldConfig = {
     tokenHolderPolicy?: UTxO;
     tokenHolderValidator?: UTxO;
   };
-  userAddress: Address;
 };
 
 export type RewardFoldConfig = {
@@ -167,7 +160,6 @@ export type RewardFoldConfig = {
     rewardFoldPolicy: UTxO;
     rewardFoldValidator: UTxO;
   };
-  userAddress: Address;
   projectAddress: Address;
   projectCS: PolicyId;
   projectTN: string;
