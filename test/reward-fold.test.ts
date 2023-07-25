@@ -485,12 +485,12 @@ test<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode 
     currenTime: emulator.now(),
   };
 
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initFoldUnsigned = await initFold(lucid, initFoldConfig);
 
   expect(initFoldUnsigned.type).toBe("ok");
   if (initFoldUnsigned.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initFoldSigned = await initFoldUnsigned.data.sign().complete();
   const initFoldHash = await initFoldSigned.submit();
 

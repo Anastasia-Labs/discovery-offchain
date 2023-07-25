@@ -99,7 +99,6 @@ export type InitFoldConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
-  userAddress: Address;
   currenTime?: POSIXTime;
 };
 

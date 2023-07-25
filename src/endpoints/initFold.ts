@@ -27,8 +27,6 @@ export const initFold = async (
 
   config.currenTime ??= Date.now();
 
-  lucid.selectWalletFrom({ address: config.userAddress });
-
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
