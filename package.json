@@ -28,7 +28,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "lucid-cardano": "^0.10.6"
+    "lucid-cardano": "./lucid-cardano-0.10.6.tgz"
   },
   "directories": {
     "test": "test"
