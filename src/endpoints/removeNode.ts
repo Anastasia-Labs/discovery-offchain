@@ -95,7 +95,7 @@ export const removeNode = async (
 
   const redeemerNodeValidator = Data.to("LinkedListAct", NodeValidatorAction);
   const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
-  const lowerBound = (config.currenTime + TIME_TOLERANCE_MS)
+  const lowerBound = (config.currenTime - TIME_TOLERANCE_MS)
 
   const beforeDeadline = upperBound < config.deadline;
   const beforeTwentyFourHours =

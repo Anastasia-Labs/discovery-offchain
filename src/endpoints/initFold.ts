@@ -85,7 +85,7 @@ export const initFold = async (
   };
 
   const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
-  const lowerBound = (config.currenTime + TIME_TOLERANCE_MS)
+  const lowerBound = (config.currenTime - TIME_TOLERANCE_MS)
 
   try {
     const tx = await lucid
