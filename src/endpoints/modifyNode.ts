@@ -6,6 +6,7 @@ import {
   Data,
   toUnit,
   TxComplete,
+  Assets,
 } from "lucid-cardano";
 import { DiscoveryNodeAction, NodeValidatorAction, SetNode } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
@@ -27,13 +28,6 @@ export const modifyNode = async (
 
   const nodeValidatorAddr = lucid.utils.validatorToAddress(nodeValidator);
 
-  const nodePolicy: MintingPolicy = {
-    type: "PlutusV2",
-    script: config.scripts.nodePolicy,
-  };
-
-  const nodePolicyId = lucid.utils.mintingPolicyToId(nodePolicy);
-
   const userKey = lucid.utils.getAddressDetails(await lucid.wallet.address())
     .paymentCredential?.hash;
 
@@ -44,71 +38,37 @@ export const modifyNode = async (
   // console.log(nodeUTXOs)
 
   //TODO: move this to utils
-  const ownNode = nodeUTXOs.find((value) => {
-    if (value.datum) {
-      const datum = Data.from(value.datum, SetNode);
-      return (datum.key == null || datum.key < userKey) &&
-        (datum.next == null || userKey < datum.next);
+  const ownNode = nodeUTXOs.find((utxo) => {
+    if (utxo.datum){
+      const nodeDat = Data.from(utxo.datum, SetNode)
+      return nodeDat.key == userKey 
     }
   });
   // console.log("found covering node ", coveringNode)
 
   if (!ownNode || !ownNode.datum)
-    return { type: "error", error: new Error("missing coveringNode") };
+    return { type: "error", error: new Error("missing ownNode") };
 
-  const coveringNodeDatum = Data.from(ownNode.datum, SetNode);
+  const redeemerNodeValidator = Data.to("ModifyCommitment",NodeValidatorAction)
 
-  const assets = {
-    [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
-  };
-
-  const prevNodeDatum = Data.to(
-    {
-      key: coveringNodeDatum.key,
-      next: userKey,
-    },
-    SetNode
-  );
-
-  const nodeDatum = Data.to(
-    {
-      key:  userKey,
-      next: coveringNodeDatum.next,
-    },
-    SetNode
-  );
-
-  //TODO: Add Node Action
-  const redeemerNodePolicy = Data.to(
-    {
-      PInsert: {
-        keyToInsert: userKey,
-        coveringNode: coveringNodeDatum,
-      },
-    },
-    DiscoveryNodeAction
-  );
-  console.log(JSON.stringify(Data.from(redeemerNodePolicy),undefined,2))
-
-  const redeemerNodeValidator = Data.to("LinkedListAct",NodeValidatorAction)
+  var newNodeAssets : Assets = {}
+  Object.keys(ownNode.assets).forEach((unit) => newNodeAssets[unit] = ownNode.assets[unit]);
+  newNodeAssets['lovelace'] = newNodeAssets['lovelace'] + BigInt(config.amountLovelace)
 
   try {
     const tx = await lucid
       .newTx()
       .collectFrom([ownNode], redeemerNodeValidator)
-      .attachSpendingValidator(nodeValidator)
-      .payToContract(
-        nodeValidatorAddr,
-        { inline: prevNodeDatum },
-        ownNode.assets
+      .compose(
+        config.refScripts?.nodeValidator
+          ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
+          : lucid.newTx().attachSpendingValidator(nodeValidator)
       )
       .payToContract(
         nodeValidatorAddr,
-        { inline: nodeDatum },
-        { ...assets, lovelace: 2_000_000n }
+        { inline: ownNode.datum },
+        newNodeAssets
       )
-      .mintAssets(assets, redeemerNodePolicy)
-      .attachMintingPolicy(nodePolicy)
       .complete();
 
     return { type: "ok", data: tx };
