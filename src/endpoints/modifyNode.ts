@@ -16,10 +16,6 @@ export const modifyNode = async (
   lucid: Lucid,
   config: InsertNodeConfig
 ): Promise<Result<TxComplete>> => {
-  const walletUtxos = await lucid.wallet.getUtxos();
-
-  if (!walletUtxos.length)
-    return { type: "error", error: new Error("No utxos in wallet") };
 
   const nodeValidator: SpendingValidator = {
     type: "PlutusV2",
