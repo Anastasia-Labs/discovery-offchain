@@ -67,6 +67,7 @@ export type DInitNodeConfig = {
 };
 
 export type InsertNodeConfig = {
+  nodeUTxOs: UTxO[];
   scripts: {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
@@ -80,6 +81,7 @@ export type InsertNodeConfig = {
 };
 
 export type RemoveNodeConfig = {
+  nodeUTxOs: UTxO[];
   scripts: {
     nodePolicy: CborHex;
     nodeValidator: CborHex;

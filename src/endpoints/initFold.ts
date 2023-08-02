@@ -7,16 +7,8 @@ import {
   TxComplete,
   fromText,
 } from "lucid-cardano";
-import {
-  cFold,
-  SETNODE_PREFIX,
-  TIME_TOLERANCE_MS,
-} from "../core/constants.js";
-import {
-  FoldDatum,
-  FoldMintAct,
-  SetNode,
-} from "../core/contract.types.js";
+import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
+import { FoldDatum, FoldMintAct, SetNode } from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 
@@ -24,13 +16,7 @@ export const initFold = async (
   lucid: Lucid,
   config: InitFoldConfig
 ): Promise<Result<TxComplete>> => {
-
   config.currenTime ??= Date.now();
-
-  const walletUtxos = await lucid.wallet.getUtxos();
-
-  if (!walletUtxos.length)
-    return { type: "error", error: new Error("No utxos in wallet") };
 
   const foldValidator: SpendingValidator = {
     type: "PlutusV2",
@@ -56,7 +42,7 @@ export const initFold = async (
     script: config.scripts.nodeValidator,
   };
 
-  const [ headNodeUTxO ] = await lucid.utxosAtWithUnit(
+  const [headNodeUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress(discoveryValidator),
     toUnit(
       lucid.utils.mintingPolicyToId(discoveryPolicy),
@@ -78,14 +64,14 @@ export const initFold = async (
     FoldDatum
   );
 
-  const redeemerNodePolicy = Data.to("MintFold",FoldMintAct);
+  const redeemerNodePolicy = Data.to("MintFold", FoldMintAct);
 
   const assets = {
     [toUnit(foldPolicyId, cFold)]: 1n,
   };
 
-  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
-  const lowerBound = (config.currenTime - TIME_TOLERANCE_MS)
+  const upperBound = config.currenTime + TIME_TOLERANCE_MS;
+  const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   try {
     const tx = await lucid
