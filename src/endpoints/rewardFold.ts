@@ -97,7 +97,7 @@ export const rewardFold = async (
     return { type: "error", error: new Error("missing SetNodeDatum") };
 
   const nodeDatum = Data.from(nodeInput.datum, SetNode);
-  console.log("nodeDatum", nodeDatum);
+  // console.log("nodeDatum", nodeDatum);
 
   const newFoldDatum = Data.to(
     {
@@ -112,8 +112,6 @@ export const rewardFold = async (
     RewardFoldDatum
   );
 
-  const rewardFoldAct = Data.to("RewardFoldAct", NodeValidatorAction);
-  const rewardFoldNodesAct = Data.to("RewardsFoldNode", RewardFoldAct);
   const nodeCommitment = nodeInput.assets["lovelace"] - NODE_ADA;
   // console.log("nodeCommitment", nodeCommitment);
   const owedProjectTokenAmount =
@@ -126,9 +124,6 @@ export const rewardFold = async (
       return key != "lovelace";
     }
   );
-  const projetTokenAmount =
-    rewardUTxO.assets[toUnit(config.projectCS, fromText(config.projectTN))];
-  // console.log("projectTokenAmount", projetTokenAmount);
 
   const remainingProjectTokenAmount =
     rewardUTxO.assets[toUnit(config.projectCS, fromText(config.projectTN))] -
@@ -142,13 +137,6 @@ export const rewardFold = async (
   // console.log("config.projectCS", config.projectCS);
   // console.log("config.projectTN", fromText(config.projectTN));
   // console.log('rewardUTxO.assets["lovelace"]', rewardUTxO.assets["lovelace"]);
-  //TODO:
-  //- we shuold make sure all nodes including headnode locks 3 ADA as minimum, i think this is not happening with head node
-  //- we need to test the remove node logic once all users receive their project token
-  //- rewarFold function shuold work with a list of utxos receives from the upstream logic, the  list of utxos should be query only once to minimize api calls
-  //- rewardFold function should iterate over all node utxos
-  //- currently redeemer RewardFoldAct logic is disable with "pconstant ()"
-
   // console.log(
   //   "stakeCredential address",
   //   lucid.utils.validatorToRewardAddress(discoveryStakeValidator)
@@ -192,7 +180,7 @@ export const rewardFold = async (
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake])
-        .complete();
+        .complete({nativeUplc: false});
       return { type: "ok", data: tx };
     } else {
       const tx = await lucid
