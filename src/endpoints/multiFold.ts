@@ -48,7 +48,7 @@ export const multiFold = async (
   //NOTE: node nodeRefUTxOs shuold be already ordered by keys, utxo type is better than outref since outref does not holds datum information, not sure yet if using utxo though
   const nodeRefUTxOs = await lucid.utxosByOutRef(config.nodeRefInputs);
 
-  const lastNodeRef = nodeRefUTxOs[config.indices.length - 1 ].datum;
+  const lastNodeRef = nodeRefUTxOs[config.indices.length - 1].datum;
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
 
   const lastNodeRefDatum = Data.from(lastNodeRef, SetNode);
@@ -82,8 +82,8 @@ export const multiFold = async (
     FoldAct
   );
 
-  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
-  const lowerBound = (config.currenTime - TIME_TOLERANCE_MS)
+  const upperBound = config.currenTime + TIME_TOLERANCE_MS;
+  const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   try {
     const tx = await lucid

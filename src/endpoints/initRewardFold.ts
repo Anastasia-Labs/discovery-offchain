@@ -17,12 +17,6 @@ export const initRewardFold = async (
   lucid: Lucid,
   config: InitRewardFoldConfig
 ): Promise<Result<TxComplete>> => {
-
-  const walletUtxos = await lucid.wallet.getUtxos();
-
-  if (!walletUtxos.length)
-    return { type: "error", error: new Error("No utxos in wallet") };
-
   const tokenHolderValidator: SpendingValidator = {
     type: "PlutusV2",
     script: config.scripts.tokenHolderValidator,
@@ -126,7 +120,6 @@ export const initRewardFold = async (
   const burnCommitFoldAct = Data.to(new Constr(1, []));
   const reclaimCommitFoldAct = Data.to(new Constr(1, []));
 
-
   try {
     const tx = await lucid
       .newTx()
@@ -141,7 +134,10 @@ export const initRewardFold = async (
           [projectUnit]: tokenHolderUTxO.assets[projectUnit],
         }
       )
-      .mintAssets( { [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n }, Data.void())
+      .mintAssets(
+        { [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n },
+        Data.void()
+      )
       .mintAssets({ [commitFoldUnit]: -1n }, burnCommitFoldAct)
       .mintAssets({ [ptHolderUnit]: -1n }, burnPTHolderAct)
       .compose(

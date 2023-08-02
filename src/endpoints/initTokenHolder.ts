@@ -24,12 +24,6 @@ export const initTokenHolder = async (
   lucid: Lucid,
   config: InitTokenHolderConfig
 ): Promise<Result<TxComplete>> => {
-
-  const walletUtxos = await lucid.wallet.getUtxos();
-
-  if (!walletUtxos.length)
-    return { type: "error", error: new Error("No utxos in wallet") };
-
   const tokenHolderValidator: SpendingValidator = {
     type: "PlutusV2",
     script: config.scripts.tokenHolderValidator,
@@ -55,8 +49,11 @@ export const initTokenHolder = async (
       .payToContract(
         tokenHolderValidatorAddr,
         { inline: Data.void() },
-        { [ptHolderAsset]: BigInt(1), 
-          [toUnit(config.projectCS, fromText(config.projectTN))]: BigInt(config.projectAmount)
+        {
+          [ptHolderAsset]: BigInt(1),
+          [toUnit(config.projectCS, fromText(config.projectTN))]: BigInt(
+            config.projectAmount
+          ),
         }
       )
       .mintAssets({ [ptHolderAsset]: BigInt(1) }, mintPTHolderAct)

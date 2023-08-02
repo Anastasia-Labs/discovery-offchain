@@ -44,12 +44,6 @@ export const rewardFold = async (
   lucid: Lucid,
   config: RewardFoldConfig
 ): Promise<Result<TxComplete>> => {
-
-  const walletUtxos = await lucid.wallet.getUtxos();
-
-  if (!walletUtxos.length)
-    return { type: "error", error: new Error("No utxos in wallet") };
-
   const nodeValidator: SpendingValidator = {
     type: "PlutusV2",
     script: config.scripts.nodeValidator,
@@ -180,7 +174,7 @@ export const rewardFold = async (
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake])
-        .complete({nativeUplc: false}); //TODO: make it conditional so it can work with emulator
+        .complete({ nativeUplc: false }); //TODO: make it conditional so it can work with emulator
       return { type: "ok", data: tx };
     } else {
       const tx = await lucid
