@@ -46,7 +46,9 @@ export const removeNode = async (
   if (!userPubKeyHash)
     return { type: "error", error: new Error("missing PubKeyHash") };
 
-  const nodeUTXOs = await lucid.utxosAt(nodeValidatorAddr);
+  const nodeUTXOs = config.nodeUTxOs
+    ? config.nodeUTxOs
+    : await lucid.utxosAt(nodeValidatorAddr);
 
   const node = nodeUTXOs.find((value) => {
     if (value.datum) {

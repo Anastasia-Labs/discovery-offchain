@@ -30,7 +30,9 @@ export const modifyNode = async (
   if (!userKey)
     return { type: "error", error: new Error("missing PubKeyHash") };
 
-  const nodeUTXOs = await lucid.utxosAt(nodeValidatorAddr);
+  const nodeUTXOs = config.nodeUTxOs
+    ? config.nodeUTxOs
+    : await lucid.utxosAt(nodeValidatorAddr);
   // console.log(nodeUTXOs)
 
   //TODO: move this to utils

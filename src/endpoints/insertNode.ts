@@ -45,7 +45,9 @@ export const insertNode = async (
   if (!userKey)
     return { type: "error", error: new Error("missing PubKeyHash") };
 
-  const nodeUTXOs = await lucid.utxosAt(nodeValidatorAddr);
+  const nodeUTXOs = config.nodeUTxOs
+    ? config.nodeUTxOs
+    : await lucid.utxosAt(nodeValidatorAddr);
   // console.log(nodeUTXOs)
 
   //TODO: move this to utils
@@ -115,10 +117,10 @@ export const insertNode = async (
     [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
   };
 
-  const correctAmount = (BigInt(config.amountLovelace) + NODE_ADA)
+  const correctAmount = BigInt(config.amountLovelace) + NODE_ADA;
 
-  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
-  const lowerBound = (config.currenTime - TIME_TOLERANCE_MS)
+  const upperBound = config.currenTime + TIME_TOLERANCE_MS;
+  const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   try {
     const tx = await lucid
