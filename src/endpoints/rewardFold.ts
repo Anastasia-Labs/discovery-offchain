@@ -15,7 +15,12 @@ import {
   SetNodeSchema,
 } from "../core/contract.types.js";
 import { Result, RewardFoldConfig } from "../core/types.js";
-import { NODE_ADA } from "../index.js";
+import {
+  FOLDING_FEE_ADA,
+  NODE_ADA,
+  PROTOCOL_PAYMENT_KEY,
+  PROTOCOL_STAKE_KEY,
+} from "../index.js";
 
 export const RewardFoldDatumSchema = Data.Object({
   currNode: SetNodeSchema,
@@ -167,14 +172,24 @@ export const rewardFold = async (
             [nodeAsset[0]]: nodeAsset[1],
             [toUnit(config.projectCS, fromText(config.projectTN))]:
               owedProjectTokenAmount,
-            ["lovelace"]: NODE_ADA,
+            ["lovelace"]: NODE_ADA - FOLDING_FEE_ADA,
           }
         )
         .payToAddress(config.projectAddress, { lovelace: nodeCommitment })
+        .payToAddress(
+          lucid.utils.credentialToAddress(
+            lucid.utils.keyHashToCredential(PROTOCOL_PAYMENT_KEY),
+            lucid.utils.keyHashToCredential(PROTOCOL_STAKE_KEY)
+          ),
+          {
+            lovelace: FOLDING_FEE_ADA,
+          }
+        )
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake])
-        .complete({ nativeUplc: false }); //TODO: make it conditional so it can work with emulator
+        // .complete({ nativeUplc: false }); //TODO: make it conditional so it can work with emulator
+        .complete(); //TODO: make it conditional so it can work with emulator
       return { type: "ok", data: tx };
     } else {
       const tx = await lucid
@@ -195,10 +210,19 @@ export const rewardFold = async (
               rewardUTxO.assets[
                 toUnit(config.projectCS, fromText(config.projectTN))
               ],
-            ["lovelace"]: NODE_ADA,
+            ["lovelace"]: NODE_ADA - FOLDING_FEE_ADA,
           }
         )
         .payToAddress(config.projectAddress, { lovelace: nodeCommitment })
+        .payToAddress(
+          lucid.utils.credentialToAddress(
+            lucid.utils.keyHashToCredential(PROTOCOL_PAYMENT_KEY),
+            lucid.utils.keyHashToCredential(PROTOCOL_STAKE_KEY)
+          ),
+          {
+            lovelace: FOLDING_FEE_ADA,
+          }
+        )
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake])
