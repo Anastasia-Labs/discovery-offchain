@@ -188,8 +188,8 @@ export const rewardFold = async (
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake])
-        // .complete({ nativeUplc: false }); //TODO: make it conditional so it can work with emulator
-        .complete(); //TODO: make it conditional so it can work with emulator
+        .complete({ nativeUplc: false }); //TODO: make it conditional so it can work with emulator
+        // .complete(); //TODO: make it conditional so it can work with emulator
       return { type: "ok", data: tx };
     } else {
       const tx = await lucid
