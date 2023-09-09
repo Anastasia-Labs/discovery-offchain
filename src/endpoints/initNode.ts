@@ -6,7 +6,7 @@ import {
   toUnit,
   TxComplete,
 } from "lucid-cardano";
-import { originNodeTokenName } from "../core/constants.js";
+import { MIN_COMMITMENT_ADA, originNodeTokenName } from "../core/constants.js";
 import { DiscoveryNodeAction, SetNode } from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";
 import { NODE_ADA } from "../core/constants.js";
@@ -49,10 +49,10 @@ export const initNode = async (
     const tx = await lucid
       .newTx()
       .collectFrom([config.initUTXO])
-      .payToAddressWithData(
+      .payToContract(
         nodeValidatorAddr,
-        { inline: datum, scriptRef: nodeValidator },
-        { ...assets, lovelace: NODE_ADA }
+        { inline: datum },
+        { ...assets, lovelace: MIN_COMMITMENT_ADA }
       )
       .mintAssets(assets, redeemerNodePolicy)
       // .attachMintingPolicy(nodePolicy)
