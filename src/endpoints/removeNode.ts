@@ -12,7 +12,12 @@ import {
   SetNode,
 } from "../core/contract.types.js";
 import { RemoveNodeConfig, Result } from "../core/types.js";
-import { divCeil, mkNodeKeyTN, TIME_TOLERANCE_MS, TWENTY_FOUR_HOURS_MS } from "../index.js";
+import {
+  divCeil,
+  mkNodeKeyTN,
+  TIME_TOLERANCE_MS,
+  TWENTY_FOUR_HOURS_MS,
+} from "../index.js";
 
 export const removeNode = async (
   lucid: Lucid,
@@ -50,54 +55,9 @@ export const removeNode = async (
     ? config.nodeUTxOs
     : await lucid.utxosAt(nodeValidatorAddr);
 
-  const node = nodeUTXOs.find((value) => {
-    if (value.datum) {
-      const datum = Data.from(value.datum, SetNode);
-      return datum.key !== null && datum.key == userPubKeyHash;
-    }
-  });
-
-  if (!node || !node.datum)
-    return { type: "error", error: new Error("missing node") };
-
-  const nodeDatum = Data.from(node.datum, SetNode);
-
-  const prevNode = nodeUTXOs.find((value) => {
-    if (value.datum) {
-      const datum = Data.from(value.datum, SetNode);
-      return datum.next !== null && datum.next == userPubKeyHash;
-    }
-  });
-
-  if (!prevNode || !prevNode.datum)
-    return { type: "error", error: new Error("missing prevNode") };
-
-  const prevNodeDatum = Data.from(prevNode.datum, SetNode);
-
-  const assets = {
-    [toUnit(nodePolicyId, mkNodeKeyTN(userPubKeyHash))]: -1n,
-  };
-
-  const newPrevNode: SetNode = {
-    key: prevNodeDatum.key,
-    next: nodeDatum.next,
-  };
-
-  const newPrevNodeDatum = Data.to(newPrevNode, SetNode);
-
-  const redeemerNodePolicy = Data.to(
-    {
-      PRemove: {
-        keyToRemove: userPubKeyHash,
-        coveringNode: newPrevNode,
-      },
-    },
-    DiscoveryNodeAction
-  );
-
   const redeemerNodeValidator = Data.to("LinkedListAct", NodeValidatorAction);
-  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
-  const lowerBound = (config.currenTime - TIME_TOLERANCE_MS)
+  const upperBound = config.currenTime + TIME_TOLERANCE_MS;
+  const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   const beforeDeadline = upperBound < config.deadline;
   const beforeTwentyFourHours =
@@ -124,6 +84,50 @@ export const removeNode = async (
 
   try {
     if (beforeDeadline && beforeTwentyFourHours) {
+      const node = nodeUTXOs.find((value) => {
+        if (value.datum) {
+          const datum = Data.from(value.datum, SetNode);
+          return datum.key !== null && datum.key == userPubKeyHash;
+        }
+      });
+
+      if (!node || !node.datum)
+        return { type: "error", error: new Error("missing node") };
+
+      const nodeDatum = Data.from(node.datum, SetNode);
+
+      const prevNode = nodeUTXOs.find((value) => {
+        if (value.datum) {
+          const datum = Data.from(value.datum, SetNode);
+          return datum.next !== null && datum.next == userPubKeyHash;
+        }
+      });
+
+      if (!prevNode || !prevNode.datum)
+        return { type: "error", error: new Error("missing prevNode") };
+
+      const prevNodeDatum = Data.from(prevNode.datum, SetNode);
+
+      const assets = {
+        [toUnit(nodePolicyId, mkNodeKeyTN(userPubKeyHash))]: -1n,
+      };
+
+      const newPrevNode: SetNode = {
+        key: prevNodeDatum.key,
+        next: nodeDatum.next,
+      };
+
+      const newPrevNodeDatum = Data.to(newPrevNode, SetNode);
+
+      const redeemerNodePolicy = Data.to(
+        {
+          PRemove: {
+            keyToRemove: userPubKeyHash,
+            coveringNode: newPrevNode,
+          },
+        },
+        DiscoveryNodeAction
+      );
       // console.log("beforeDeadline && beforeTwentyFourHours");
       const tx = await lucid
         .newTx()
@@ -155,6 +159,50 @@ export const removeNode = async (
       // console.log("beforeDeadline && !beforeTwentyFourHours");
       // console.log("node value", node.assets);
       // console.log("penaly ", divCeil(node.assets["lovelace"], 4n));
+      const node = nodeUTXOs.find((value) => {
+        if (value.datum) {
+          const datum = Data.from(value.datum, SetNode);
+          return datum.key !== null && datum.key == userPubKeyHash;
+        }
+      });
+
+      if (!node || !node.datum)
+        return { type: "error", error: new Error("missing node") };
+
+      const nodeDatum = Data.from(node.datum, SetNode);
+
+      const prevNode = nodeUTXOs.find((value) => {
+        if (value.datum) {
+          const datum = Data.from(value.datum, SetNode);
+          return datum.next !== null && datum.next == userPubKeyHash;
+        }
+      });
+
+      if (!prevNode || !prevNode.datum)
+        return { type: "error", error: new Error("missing prevNode") };
+
+      const prevNodeDatum = Data.from(prevNode.datum, SetNode);
+
+      const assets = {
+        [toUnit(nodePolicyId, mkNodeKeyTN(userPubKeyHash))]: -1n,
+      };
+
+      const newPrevNode: SetNode = {
+        key: prevNodeDatum.key,
+        next: nodeDatum.next,
+      };
+
+      const newPrevNodeDatum = Data.to(newPrevNode, SetNode);
+
+      const redeemerNodePolicy = Data.to(
+        {
+          PRemove: {
+            keyToRemove: userPubKeyHash,
+            coveringNode: newPrevNode,
+          },
+        },
+        DiscoveryNodeAction
+      );
 
       const penaltyAmount = divCeil(node.assets["lovelace"], 4n);
 
@@ -190,20 +238,50 @@ export const removeNode = async (
       return { type: "ok", data: tx };
     } else {
       //TODO: tests removing the node once project token is in user's wallet
+      const node = nodeUTXOs.find((value) => {
+        if (value.datum) {
+          const datum = Data.from(value.datum, SetNode);
+          return datum.key !== null && datum.key == userPubKeyHash;
+        }
+      });
+
+      if (!node || !node.datum)
+        return { type: "error", error: new Error("missing node") };
+
+      const assets = {
+        [toUnit(nodePolicyId, mkNodeKeyTN(userPubKeyHash))]: -1n,
+      };
+
+      const newPrevNode: SetNode = {
+        key: null,
+        next: null,
+      };
+
+      const redeemerNodePolicy = Data.to(
+        {
+          PRemove: {
+            keyToRemove: userPubKeyHash,
+            coveringNode: newPrevNode,
+          },
+        },
+        DiscoveryNodeAction
+      );
+
       const tx = await lucid
         .newTx()
-        .collectFrom([node, prevNode], redeemerNodeValidator)
+        // .collectFrom([node, prevNode], redeemerNodeValidator)
+        .collectFrom([node], redeemerNodeValidator)
         // .attachSpendingValidator(nodeValidator)
         .compose(
           config.refScripts?.nodeValidator
             ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
             : lucid.newTx().attachSpendingValidator(nodeValidator)
         )
-        .payToContract(
-          nodeValidatorAddr,
-          { inline: newPrevNodeDatum },
-          prevNode.assets
-        )
+        // .payToContract(
+        //   nodeValidatorAddr,
+        //   { inline: newPrevNodeDatum },
+        //   prevNode.assets
+        // )
         .addSignerKey(userPubKeyHash)
         .mintAssets(assets, redeemerNodePolicy)
         // .attachMintingPolicy(nodePolicy)
