@@ -112,6 +112,40 @@ export type DiscoveryNodeAction = Data.Static<typeof DiscoveryNodeActionSchema>;
 export const DiscoveryNodeAction =
   DiscoveryNodeActionSchema as unknown as DiscoveryNodeAction;
 
+export const StakingCredentialSchema =
+  Data.Enum([
+    Data.Object({ Inline: Data.Tuple([CredentialSchema]) }),
+    Data.Object({
+      Pointer: Data.Tuple([
+        Data.Object({
+          slotNumber: Data.Integer(),
+          transactionIndex: Data.Integer(),
+          certificateIndex: Data.Integer(),
+        }),
+      ]),
+    }),
+  ])
+
+
+export const LBELockConfigSchema = Data.Object({
+  discoveryDeadLine: Data.Integer(),
+  penaltyAddress: AddressSchema,
+  commitCredential: StakingCredentialSchema,
+  rewardCredential: StakingCredentialSchema,
+});
+export type LBELockConfig = Data.Static<typeof LBELockConfigSchema>;
+export const LBELockConfig =
+LBELockConfigSchema as unknown as LBELockConfig;
+
+export const LiquidityConfigSchema = Data.Object({
+  initUTXO: OutputReferenceSchema,
+  discoveryDeadLine: Data.Integer(),
+  penaltyAddress: AddressSchema,
+});
+export type LiquidityConfig = Data.Static<typeof LiquidityConfigSchema>;
+export const LiquidityConfig =
+LiquidityConfigSchema as unknown as LiquidityConfig;
+
 export const DiscoveryConfigSchema = Data.Object({
   initUTXO: OutputReferenceSchema,
   maxRaise: Data.Integer(),
