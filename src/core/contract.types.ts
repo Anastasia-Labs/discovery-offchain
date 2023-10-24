@@ -65,6 +65,33 @@ export const SetNodeSchema = Data.Object({
 export type SetNode = Data.Static<typeof SetNodeSchema>;
 export const SetNode = SetNodeSchema as unknown as SetNode;
 
+export const LiquiditySetNodeSchema = Data.Object({
+  key: NodeKeySchema,
+  next: NodeKeySchema,
+  commitment: Data.Integer(),
+});
+export type LiquiditySetNode = Data.Static<typeof LiquiditySetNodeSchema>;
+export const LiquiditySetNode = LiquiditySetNodeSchema as unknown as LiquiditySetNode;
+
+export const LiquidityNodeActionSchema = Data.Enum([
+  Data.Literal("PLInit"),
+  Data.Literal("PLDInit"),
+  Data.Object({
+    PInsert: Data.Object({
+      keyToInsert: PubKeyHashSchema,
+      coveringNode: LiquiditySetNodeSchema,
+    }),
+  }),
+  Data.Object({
+    PRemove: Data.Object({
+      keyToRemove: PubKeyHashSchema,
+      coveringNode: LiquiditySetNodeSchema,
+    }),
+  }),
+]);
+export type LiquidityNodeAction = Data.Static<typeof LiquidityNodeActionSchema>;
+export const LiquidityNodeAction = LiquidityNodeActionSchema as unknown as LiquidityNodeAction;
+
 export const DiscoveryNodeActionSchema = Data.Enum([
   Data.Literal("PInit"),
   Data.Literal("PDInit"),
