@@ -149,3 +149,49 @@ export const RewardFoldDatumSchema = Data.Object({
 export type RewardFoldDatum = Data.Static<typeof RewardFoldDatumSchema>;
 export const RewardFoldDatum =
   RewardFoldDatumSchema as unknown as RewardFoldDatum;
+
+export const LiquiditySetNodeSchema = Data.Object({
+  key: NodeKeySchema,
+  next: NodeKeySchema,
+  commitment: Data.Integer(),
+});
+export type LiquiditySetNode = Data.Static<typeof LiquiditySetNodeSchema>;
+export const LiquiditySetNode = LiquiditySetNodeSchema as unknown as LiquiditySetNode;
+
+export const LiquidityNodeActionSchema = Data.Enum([
+  Data.Literal("PLInit"),
+  Data.Literal("PLDInit"),
+  Data.Object({
+    PInsert: Data.Object({
+      keyToInsert: PubKeyHashSchema,
+      coveringNode: LiquiditySetNodeSchema,
+    }),
+  }),
+  Data.Object({
+    PRemove: Data.Object({
+      keyToRemove: PubKeyHashSchema,
+      coveringNode: LiquiditySetNodeSchema,
+    }),
+  }),
+]);
+export type LiquidityNodeAction = Data.Static<typeof LiquidityNodeActionSchema>;
+export const LiquidityNodeAction = LiquidityNodeActionSchema as unknown as LiquidityNodeAction;  
+
+export const LBELockConfigSchema = Data.Object({
+  discoveryDeadLine: Data.Integer(),
+  penaltyAddress: AddressSchema,
+  commitCredential: StakingCredentialSchema,
+  rewardCredential: StakingCredentialSchema,
+});
+export type LBELockConfig = Data.Static<typeof LBELockConfigSchema>;
+export const LBELockConfig =
+LBELockConfigSchema as unknown as LBELockConfig;
+
+export const LiquidityConfigSchema = Data.Object({
+  initUTXO: OutputReferenceSchema,
+  discoveryDeadLine: Data.Integer(),
+  penaltyAddress: AddressSchema,
+});
+export type LiquidityConfig = Data.Static<typeof LiquidityConfigSchema>;
+export const LiquidityConfig =
+LiquidityConfigSchema as unknown as LiquidityConfig;

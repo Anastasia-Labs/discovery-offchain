@@ -195,6 +195,33 @@ export type BuildScriptsConfig = {
   };
 };
 
+export type BuildLiquidityScriptsConfig = {
+  liquidityPolicy: {
+    initUTXO: UTxO;
+    deadline: POSIXTime;
+    penaltyAddress: Address;
+  };
+  rewardFoldValidator: {
+    projectCS: PolicyId;
+    projectTN: string;
+    projectAddr: Address;
+  };
+  projectTokenHolder: {
+    initUTXO: UTxO;
+  };
+  unapplied: {
+    liquidityPolicy: RawHex;
+    liquidityValidator: RawHex;
+    liquidityStake: RawHex;
+    collectFoldPolicy: RawHex;
+    collectFoldValidator: RawHex;
+    distributionFoldPolicy: RawHex;
+    distributionFoldValidator: RawHex;
+    tokenHolderValidator: RawHex;
+    tokenHolderPolicy: RawHex;
+  };
+};
+
 export type ReadableUTxO = {
   outRef: OutRef;
   datum: SetNode;
