@@ -211,8 +211,8 @@ import {
     //NOTE: DISCOVERY STAKE VALIDATOR
     // pDiscoverGlobalLogicW :: Term s (PAsData PCurrencySymbol :--> PStakeValidator)
     // pDiscoverGlobalLogicW = phoistAcyclic $ plam $ \rewardCS' _redeemer ctx -> P.do
-    const collectStake = applyParamsToScript(config.unapplied.collectStake, [
-      lucid.utils.mintingPolicyToId(rewardMintingPolicy),
+    const collectStake = applyParamsToScript(config.unapplied.liquidityStake, [
+      lucid.utils.mintingPolicyToId(foldMintingPolicy),
     ]);
   
     const collectStakeValidator: WithdrawalValidator = {
@@ -220,7 +220,7 @@ import {
       script: collectStake,
     };
     
-    const rewardStake = applyParamsToScript(config.unapplied.rewardStake, [
+    const rewardStake = applyParamsToScript(config.unapplied.liquidityStake, [
         lucid.utils.mintingPolicyToId(rewardMintingPolicy),
     ]);
     

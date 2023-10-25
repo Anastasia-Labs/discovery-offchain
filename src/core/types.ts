@@ -212,8 +212,7 @@ export type BuildLiquidityScriptsConfig = {
   unapplied: {
     liquidityPolicy: RawHex;
     liquidityValidator: RawHex;
-    collectStake: RawHex;
-    rewardStake: RawHex;
+    liquidityStake: RawHex;
     collectFoldPolicy: RawHex;
     collectFoldValidator: RawHex;
     rewardFoldPolicy: RawHex;
