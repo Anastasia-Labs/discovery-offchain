@@ -10,7 +10,7 @@ import {
   import { BuildLiquidityScriptsConfig, CborHex, Result } from "../types.js";
   import { fromAddressToData } from "./utils.js";
   
-  type Scripts = {
+  type LiquidityScripts = {
     liquidityPolicy: CborHex;
     liquidityValidator: CborHex;
     collectStake: CborHex;
@@ -23,10 +23,10 @@ import {
     tokenHolderValidator: CborHex;
   };
   
-  export const buildScripts = (
+  export const buildLiquidityScripts = (
     lucid: Lucid,
     config: BuildLiquidityScriptsConfig
-  ): Result<Scripts> => {
+  ): Result<LiquidityScripts> => {
     const initUTXOprojectTokenHolder = new Constr(0, [
       new Constr(0, [config.projectTokenHolder.initUTXO.txHash]),
       BigInt(config.projectTokenHolder.initUTXO.outputIndex),
@@ -119,6 +119,7 @@ import {
     //       )
     //   deriving stock (Generic)
     //   deriving anyclass (PlutusType, PIsData, PDataFields)
+    // TODO: Fix applied parameters 
     const collectFoldPolicy = applyParamsToScript(config.unapplied.collectFoldPolicy, [
       new Constr(0, [
         lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
