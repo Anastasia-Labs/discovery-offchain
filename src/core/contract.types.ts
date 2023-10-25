@@ -177,21 +177,36 @@ export const LiquidityNodeActionSchema = Data.Enum([
 export type LiquidityNodeAction = Data.Static<typeof LiquidityNodeActionSchema>;
 export const LiquidityNodeAction = LiquidityNodeActionSchema as unknown as LiquidityNodeAction;  
 
-export const LBELockConfigSchema = Data.Object({
+export const StakingCredentialSchema =
+  Data.Enum([
+    Data.Object({ Inline: Data.Tuple([CredentialSchema]) }),
+    Data.Object({
+      Pointer: Data.Tuple([
+        Data.Object({
+          slotNumber: Data.Integer(),
+          transactionIndex: Data.Integer(),
+          certificateIndex: Data.Integer(),
+        }),
+      ]),
+    }),
+  ])
+
+
+export const LiquidityValidatorConfigSchema = Data.Object({
   discoveryDeadLine: Data.Integer(),
   penaltyAddress: AddressSchema,
   commitCredential: StakingCredentialSchema,
   rewardCredential: StakingCredentialSchema,
 });
-export type LBELockConfig = Data.Static<typeof LBELockConfigSchema>;
+export type LiquidityValidatorConfig = Data.Static<typeof LiquidityValidatorConfigSchema>;
 export const LBELockConfig =
-LBELockConfigSchema as unknown as LBELockConfig;
+LiquidityValidatorConfigSchema as unknown as LiquidityValidatorConfig;
 
-export const LiquidityConfigSchema = Data.Object({
+export const LiquidityPolicyConfigSchema = Data.Object({
   initUTXO: OutputReferenceSchema,
   discoveryDeadLine: Data.Integer(),
   penaltyAddress: AddressSchema,
 });
-export type LiquidityConfig = Data.Static<typeof LiquidityConfigSchema>;
-export const LiquidityConfig =
-LiquidityConfigSchema as unknown as LiquidityConfig;
+export type LiquidityPolicyConfig = Data.Static<typeof LiquidityPolicyConfigSchema>;
+export const LiquidityPolicyConfig =
+LiquidityPolicyConfigSchema as unknown as LiquidityPolicyConfig;
