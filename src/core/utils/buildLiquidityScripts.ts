@@ -154,7 +154,7 @@ import {
     //   deriving stock (Generic)
     //   deriving anyclass (PlutusType, PIsData, PDataFields)
     const rewardFoldValidator = applyParamsToScript(
-      config.unapplied.rewardFoldValidator,
+      config.unapplied.distributionFoldValidator,
       [
         new Constr(0, [
           lucid.utils.mintingPolicyToId(discoveryMintingPolicy), //nodeCS
@@ -193,7 +193,7 @@ import {
     //                ]
     //           )
     //       )
-    const rewardFoldPolicy = applyParamsToScript(config.unapplied.rewardFoldPolicy, [
+    const rewardFoldPolicy = applyParamsToScript(config.unapplied.distributionFoldValidator, [
       new Constr(0, [
         lucid.utils.mintingPolicyToId(discoveryMintingPolicy), // nodeCS
         lucid.utils.mintingPolicyToId(tokenHolderMintingPolicy), //tokenHolderCS
