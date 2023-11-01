@@ -193,7 +193,7 @@ import {
     //                ]
     //           )
     //       )
-    const rewardFoldPolicy = applyParamsToScript(config.unapplied.distributionFoldValidator, [
+    const rewardFoldPolicy = applyParamsToScript(config.unapplied.distributionFoldPolicy, [
       new Constr(0, [
         lucid.utils.mintingPolicyToId(discoveryMintingPolicy), // nodeCS
         lucid.utils.mintingPolicyToId(tokenHolderMintingPolicy), //tokenHolderCS
