@@ -10,7 +10,7 @@ import {
 import { BuildScriptsConfig, CborHex, Result } from "../types.js";
 import { fromAddressToData } from "./utils.js";
 
-type Scripts = {
+export type Scripts = {
   discoveryPolicy: CborHex;
   discoveryValidator: CborHex;
   discoveryStake: CborHex;

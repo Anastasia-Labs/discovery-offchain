@@ -149,6 +149,19 @@ export const RewardFoldDatumSchema = Data.Object({
 export type RewardFoldDatum = Data.Static<typeof RewardFoldDatumSchema>;
 export const RewardFoldDatum =
   RewardFoldDatumSchema as unknown as RewardFoldDatum;
+  
+export const RewardFoldActSchema = Data.Enum([
+  Data.Object({
+    RewardsFoldNodes: Data.Object({
+      nodeIdxs: Data.Array(Data.Integer()),
+      nodeOutIdxs: Data.Array(Data.Integer()),
+    }),
+  }),
+  Data.Literal("RewardsFoldNode"),
+  Data.Literal("RewardsReclaim"),
+]);
+export type RewardFoldAct = Data.Static<typeof RewardFoldActSchema>;
+export const RewardFoldAct = RewardFoldActSchema as unknown as RewardFoldAct;
 
 export const LiquiditySetNodeSchema = Data.Object({
   key: NodeKeySchema,

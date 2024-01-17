@@ -7,12 +7,12 @@ import {
   fromText,
   toUnit,
   WithdrawalValidator,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import {
-  AddressSchema,
   NodeValidatorAction,
   SetNode,
-  SetNodeSchema,
+  RewardFoldDatum,
+  RewardFoldAct
 } from "../core/contract.types.js";
 import { Result, RewardFoldConfig } from "../core/types.js";
 import {
@@ -21,29 +21,6 @@ import {
   PROTOCOL_PAYMENT_KEY,
   PROTOCOL_STAKE_KEY,
 } from "../index.js";
-
-export const RewardFoldDatumSchema = Data.Object({
-  currNode: SetNodeSchema,
-  totalProjectTokens: Data.Integer(),
-  totalCommitted: Data.Integer(),
-  owner: AddressSchema,
-});
-export type RewardFoldDatum = Data.Static<typeof RewardFoldDatumSchema>;
-export const RewardFoldDatum =
-  RewardFoldDatumSchema as unknown as RewardFoldDatum;
-
-export const RewardFoldActSchema = Data.Enum([
-  Data.Object({
-    RewardsFoldNodes: Data.Object({
-      nodeIdxs: Data.Array(Data.Integer()),
-      nodeOutIdxs: Data.Array(Data.Integer()),
-    }),
-  }),
-  Data.Literal("RewardsFoldNode"),
-  Data.Literal("RewardsReclaim"),
-]);
-export type RewardFoldAct = Data.Static<typeof RewardFoldActSchema>;
-export const RewardFoldAct = RewardFoldActSchema as unknown as RewardFoldAct;
 
 export const rewardFold = async (
   lucid: Lucid,
@@ -227,7 +204,7 @@ export const rewardFold = async (
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake])
         .addSigner(await lucid.wallet.address())
-        .complete();
+        .complete(); //TODO add burning of reward fold token
       return { type: "ok", data: tx };
     }
   } catch (error) {
