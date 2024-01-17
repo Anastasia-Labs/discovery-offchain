@@ -1,4 +1,4 @@
-import { Data, Lucid, SpendingValidator, UTxO } from "lucid-cardano";
+import { Data, Lucid, SpendingValidator, UTxO } from "@anastasia-labs/lucid-cardano-fork";
 import { SetNode } from "../contract.types.js";
 import { Either, ReadableUTxO } from "../types.js";
 

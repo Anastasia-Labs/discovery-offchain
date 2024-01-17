@@ -5,7 +5,7 @@ import {
     Data,
     toUnit,
     TxComplete,
-  } from "lucid-cardano";
+  } from "@anastasia-labs/lucid-cardano-fork";
   import {
     LiquidityNodeAction,
     LiquiditySetNode,

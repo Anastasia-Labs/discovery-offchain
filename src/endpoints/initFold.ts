@@ -6,7 +6,7 @@ import {
   toUnit,
   TxComplete,
   fromText,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
 import { FoldDatum, FoldMintAct, SetNode } from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
@@ -64,7 +64,7 @@ export const initFold = async (
     FoldDatum
   );
 
-  const redeemerNodePolicy = Data.to("MintFold", FoldMintAct);
+  const redeemerFoldPolicy = Data.to("MintFold", FoldMintAct);
 
   const assets = {
     [toUnit(foldPolicyId, cFold)]: 1n,
@@ -78,7 +78,7 @@ export const initFold = async (
       .newTx()
       .readFrom([headNodeUTxO])
       .payToContract(foldValidatorAddr, { inline: datum }, assets)
-      .mintAssets(assets, redeemerNodePolicy)
+      .mintAssets(assets, redeemerFoldPolicy)
       .attachMintingPolicy(foldPolicy)
       .validFrom(lowerBound)
       .validTo(upperBound)

@@ -6,7 +6,7 @@ import {
   PolicyId,
   SpendingValidator,
   UTxO,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { SetNode } from "./contract.types.js";
 
 export type CborHex = string;

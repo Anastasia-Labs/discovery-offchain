@@ -7,7 +7,7 @@ import {
   toUnit,
   TxComplete,
   Assets,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { DiscoveryNodeAction, NodeValidatorAction, SetNode } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
 import { mkNodeKeyTN } from "../index.js";
@@ -49,7 +49,7 @@ export const modifyNode = async (
 
   const redeemerNodeValidator = Data.to("ModifyCommitment",NodeValidatorAction)
 
-  var newNodeAssets : Assets = {}
+  const newNodeAssets : Assets = {}
   Object.keys(ownNode.assets).forEach((unit) => newNodeAssets[unit] = ownNode.assets[unit]);
   newNodeAssets['lovelace'] = newNodeAssets['lovelace'] + BigInt(config.amountLovelace)
 

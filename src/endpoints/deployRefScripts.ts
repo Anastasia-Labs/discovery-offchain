@@ -7,7 +7,7 @@ import {
   fromText,
   Data,
   Script,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { DeployRefScriptsConfig, Result } from "../core/types.js";
 
 // type RefScripts = {
