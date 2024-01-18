@@ -57,10 +57,7 @@ export const rewardFold = async (
   if (!rewardUTxO.datum)
     return { type: "error", error: new Error("missing RewardFoldDatum") };
 
-  // console.log("rewardUTxO", rewardUTxO);
-
   const oldRewardFoldDatum = Data.from(rewardUTxO.datum, RewardFoldDatum);
-  // console.log("RewardFoldDatum", oldRewardFoldDatum);
 
   const nodeInput = config.nodeInputs.find((utxo) => {
     if (utxo.datum) {
@@ -73,8 +70,6 @@ export const rewardFold = async (
     return { type: "error", error: new Error("missing SetNodeDatum") };
 
   const nodeDatum = Data.from(nodeInput.datum, SetNode);
-  // console.log("nodeDatum", nodeDatum);
-
   const newFoldDatum = Data.to(
     {
       currNode: {
@@ -104,19 +99,6 @@ export const rewardFold = async (
   const remainingProjectTokenAmount =
     rewardUTxO.assets[toUnit(config.projectCS, fromText(config.projectTN))] -
     owedProjectTokenAmount;
-  // console.log("remainingProjectTokenAmount", remainingProjectTokenAmount);
-  // console.log("nodeAsset", nodeAsset);
-  // console.log(
-  //   "rewardUTxO.assets",
-  //   rewardUTxO.assets[toUnit(config.projectCS, fromText(config.projectTN))]
-  // );
-  // console.log("config.projectCS", config.projectCS);
-  // console.log("config.projectTN", fromText(config.projectTN));
-  // console.log('rewardUTxO.assets["lovelace"]', rewardUTxO.assets["lovelace"]);
-  // console.log(
-  //   "stakeCredential address",
-  //   lucid.utils.validatorToRewardAddress(discoveryStakeValidator)
-  // );
 
   try {
     if (oldRewardFoldDatum.currNode.next != null) {
@@ -164,10 +146,17 @@ export const rewardFold = async (
         )
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])
-        .readFrom([config.refScripts.discoveryStake])
-        .complete({ nativeUplc: false }); //TODO: make it conditional so it can work with emulator
-        // .complete(); //TODO: make it conditional so it can work with emulator
-      return { type: "ok", data: tx };
+        .readFrom([config.refScripts.discoveryStake]);
+
+      return { 
+        type: "ok", 
+        data: await 
+              (
+                process.env.NODE_ENV == "emulator" 
+                  ? tx.complete() 
+                  : tx.complete({nativeUplc : false})
+              )
+        };
     } else {
       const tx = await lucid
         .newTx()
@@ -204,7 +193,7 @@ export const rewardFold = async (
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake])
         .addSigner(await lucid.wallet.address())
-        .complete(); //TODO add burning of reward fold token
+        .complete();
       return { type: "ok", data: tx };
     }
   } catch (error) {
