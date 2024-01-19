@@ -221,16 +221,16 @@ export const buildScripts = (
   // NOTE: DISCOVERY VALIDATOR
   //
   // data PDiscoveryLaunchConfig (s :: S)
-  //   = PDiscoveryLaunchConfig
-  //       ( Term
-  //           s
-  //           ( PDataRecord
-  //               '[ "discoveryDeadline" ':= PPOSIXTime
-  //                , "penaltyAddress" ':= PAddress
-  //                , "rewardsCS" ':= PCurrencySymbol
-  //                ]
-  //           )
-  //       )
+  // = PDiscoveryLaunchConfig
+  //     ( Term
+  //         s
+  //         ( PDataRecord
+  //             '[ "discoveryDeadline" ':= PPOSIXTime
+  //              , "penaltyAddress" ':= PAddress
+  //              , "globalCred" ':= PStakingCredential
+  //              ]
+  //         )
+  //     )
   const discoveryValidator = applyParamsToScript(
     config.unapplied.discoveryValidator,
     [
