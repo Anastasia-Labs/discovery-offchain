@@ -6,7 +6,7 @@ import {
   PolicyId,
   SpendingValidator,
   UTxO,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { SetNode } from "./contract.types.js";
 
 export type CborHex = string;
@@ -67,7 +67,7 @@ export type DInitNodeConfig = {
 };
 
 export type InsertNodeConfig = {
-  nodeUTxOs: UTxO[];
+  nodeUTxOs?: UTxO[];
   scripts: {
     nodePolicy: CborHex;
     nodeValidator: CborHex;
@@ -81,7 +81,7 @@ export type InsertNodeConfig = {
 };
 
 export type RemoveNodeConfig = {
-  nodeUTxOs: UTxO[];
+  nodeUTxOs?: UTxO[];
   scripts: {
     nodePolicy: CborHex;
     nodeValidator: CborHex;

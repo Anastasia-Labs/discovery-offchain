@@ -10,7 +10,7 @@ import {
   Lucid,
   MintingPolicy,
   SpendingValidator,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { SETNODE_PREFIX } from "../constants.js";
 import { AddressD } from "../contract.types.js";
 import { Result } from "../types.js";

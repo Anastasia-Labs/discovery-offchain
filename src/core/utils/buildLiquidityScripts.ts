@@ -6,7 +6,7 @@ import {
     MintingPolicy,
     SpendingValidator,
     WithdrawalValidator,
-  } from "lucid-cardano";
+  } from "@anastasia-labs/lucid-cardano-fork";
   import { BuildLiquidityScriptsConfig, CborHex, Result } from "../types.js";
   import { fromAddressToData } from "./utils.js";
   

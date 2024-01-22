@@ -6,11 +6,11 @@ import {
   MintingPolicy,
   SpendingValidator,
   WithdrawalValidator,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { BuildScriptsConfig, CborHex, Result } from "../types.js";
 import { fromAddressToData } from "./utils.js";
 
-type Scripts = {
+export type Scripts = {
   discoveryPolicy: CborHex;
   discoveryValidator: CborHex;
   discoveryStake: CborHex;
@@ -221,16 +221,16 @@ export const buildScripts = (
   // NOTE: DISCOVERY VALIDATOR
   //
   // data PDiscoveryLaunchConfig (s :: S)
-  //   = PDiscoveryLaunchConfig
-  //       ( Term
-  //           s
-  //           ( PDataRecord
-  //               '[ "discoveryDeadline" ':= PPOSIXTime
-  //                , "penaltyAddress" ':= PAddress
-  //                , "rewardsCS" ':= PCurrencySymbol
-  //                ]
-  //           )
-  //       )
+  // = PDiscoveryLaunchConfig
+  //     ( Term
+  //         s
+  //         ( PDataRecord
+  //             '[ "discoveryDeadline" ':= PPOSIXTime
+  //              , "penaltyAddress" ':= PAddress
+  //              , "globalCred" ':= PStakingCredential
+  //              ]
+  //         )
+  //     )
   const discoveryValidator = applyParamsToScript(
     config.unapplied.discoveryValidator,
     [

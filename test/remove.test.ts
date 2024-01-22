@@ -11,11 +11,13 @@ import {
   Lucid,
   ONE_HOUR_MS,
   parseUTxOsAtScript,
+  PROTOCOL_PAYMENT_KEY,
+  PROTOCOL_STAKE_KEY,
   removeNode,
   RemoveNodeConfig,
   replacer,
   TWENTY_FOUR_HOURS_MS,
-} from "price-discovery-offchain";
+} from "../src/index.js";
 import { test, expect, beforeEach } from "vitest";
 import discoveryValidator from "./compiled/discoveryValidator.json";
 import discoveryPolicy from "./compiled/discoveryMinting.json";
@@ -26,6 +28,8 @@ import rewardValidator from "./compiled/rewardFoldValidator.json";
 import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
 import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
 import alwaysFailValidator from "./compiled/alwaysFails.json";
+import discoveryStakeValidator from "./compiled/discoveryStakeValidator.json";
+import { deploy, getRefUTxOs, insertThreeNodes } from "./setup.js";
 
 type LucidContext = {
   lucid: Lucid;
@@ -33,7 +37,7 @@ type LucidContext = {
   emulator: Emulator;
 };
 
-//NOTE: INITIALIZE EMULATOR + ACCOUNTS
+// INITIALIZE EMULATOR + ACCOUNTS
 beforeEach<LucidContext>(async (context) => {
   context.users = {
     treasury1: await generateAccountSeedPhrase({
@@ -49,7 +53,7 @@ beforeEach<LucidContext>(async (context) => {
       lovelace: BigInt(100_000_000),
     }),
     account3: await generateAccountSeedPhrase({
-      lovelace: BigInt(100_000_000),
+      lovelace: BigInt(500_000_000),
     }),
   };
 
@@ -64,7 +68,7 @@ beforeEach<LucidContext>(async (context) => {
   context.lucid = await Lucid.new(context.emulator);
 });
 
-test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insertNode - aacount2 removeNode", async ({
+test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode - account3 insertNode - account2 removeNode", async ({
   lucid,
   users,
   emulator,
@@ -73,7 +77,7 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
-  const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 48 hours + 1 hour
+  const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 24 hours + 1 hour
   const [project1UTxO] = await lucid
     .selectWalletFromSeed(users.project1.seedPhrase)
     .wallet.getUtxos();
@@ -95,6 +99,7 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
       discoveryValidator: discoveryValidator.cborHex,
+      discoveryStake: discoveryStakeValidator.cborHex,
       foldPolicy: foldPolicy.cborHex,
       foldValidator: foldValidator.cborHex,
       rewardPolicy: rewardPolicy.cborHex,
@@ -106,58 +111,21 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
 
   expect(newScripts.type).toBe("ok");
   if (newScripts.type == "error") return;
-  //
-  // writeFile("scripts.json", JSON.stringify(newScripts.data), (error) => {
-  //   error ? console.log(error) : console.log("ok");
-  // });
-  // const appliedScripts = JSON.parse(readFileSync("./scripts.json", "utf8"));
 
-  //NOTE: DEPLOY
+  // DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
-  const deployRefScriptsConfig: DeployRefScriptsConfig = {
-    scripts: {
-      nodePolicy: newScripts.data.discoveryPolicy,
-      nodeValidator: newScripts.data.discoveryValidator,
-    },
-    alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: emulator.now(),
-  };
+  const deployTime = emulator.now();
+  
+  // Total blocks elapsed in step - 36
+  const deployRefScripts = await deploy(lucid, emulator, newScripts.data, emulator.now());
+  
+  // Find node refs script
+  const deployPolicyId =
+  deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
 
-  const deployRefScriptsUnsigned = await deployRefScripts(
-    lucid,
-    deployRefScriptsConfig
-  );
+  const refUTxOs = await getRefUTxOs(lucid, deployPolicyId);
 
-  expect(deployRefScriptsUnsigned.type).toBe("ok");
-  if (deployRefScriptsUnsigned.type == "error") return;
-  // console.log(tx.data.txComplete.to_json())
-  const deployRefScrtipsSigned = await deployRefScriptsUnsigned.data.tx
-    .sign()
-    .complete();
-  const deployRefScriptsHash = await deployRefScrtipsSigned.submit();
-
-  emulator.awaitBlock(4);
-
-  //Find node refs script
-  const [nodeValidatorUTxO] = await lucid.utxosAtWithUnit(
-    lucid.utils.validatorToAddress({
-      type: "PlutusV2",
-      script: alwaysFailValidator.cborHex,
-    }),
-    deployRefScriptsUnsigned.data.unit.nodeValidator
-  );
-
-  const [nodePolicyUTxO] = await lucid.utxosAtWithUnit(
-    lucid.utils.validatorToAddress({
-      type: "PlutusV2",
-      script: alwaysFailValidator.cborHex,
-    }),
-    deployRefScriptsUnsigned.data.unit.nodePolicy
-  );
-
-  // console.log(await utxosAtScript(lucid,alwaysFailValidator.cborHex))
-
-  //NOTE: INIT NODE
+  // INIT NODE
   const initNodeConfig: InitNodeConfig = {
     initUTXO: treasuryUTxO,
     scripts: {
@@ -165,20 +133,18 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
       nodeValidator: newScripts.data.discoveryValidator,
     },
     refScripts: {
-      nodePolicy: nodePolicyUTxO,
+      nodePolicy: refUTxOs.nodePolicyUTxO,
     },
-    userAddress: users.treasury1.address,
   };
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
 
   expect(initNodeUnsigned.type).toBe("ok");
   if (initNodeUnsigned.type == "error") return;
 
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
-  // console.log(tx.data.txComplete.to_json())
   const initNodeSigned = await initNodeUnsigned.data.sign().complete();
   const initNodeHash = await initNodeSigned.submit();
-  // console.log(initNodeHash)
+
   emulator.awaitBlock(4);
 
   logFlag
@@ -191,88 +157,29 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
         )
       )
     : null;
-  // console.log("treasury1 before", await lucid.wallet.getUtxos());
 
-  //NOTE: INSERT NODE
-
-  const insertNodeConfig: InsertNodeConfig = {
-    scripts: {
-      nodePolicy: newScripts.data.discoveryPolicy,
-      nodeValidator: newScripts.data.discoveryValidator,
-    },
-    refScripts: {
-      nodeValidator: nodeValidatorUTxO,
-      nodePolicy: nodePolicyUTxO,
-    },
-    amountLovelace: 4_000_000,
-    userAddress: users.account1.address,
-    currenTime: emulator.now(),
-  };
-
-  const insertNodeUnsigned = await insertNode(lucid, insertNodeConfig);
-
-  expect(insertNodeUnsigned.type).toBe("ok");
-
-  if (insertNodeUnsigned.type == "error") return;
-  // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.account1.seedPhrase);
-  const insertNodeSigned = await insertNodeUnsigned.data.sign().complete();
-  const insertNodeHash = await insertNodeSigned.submit();
-
-  emulator.awaitBlock(4);
-
-  logFlag
-    ? console.log(
-        "insertNode result",
-        JSON.stringify(
-          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
-          replacer,
-          2
-        )
-      )
-    : null;
-
-  //NOTE: INSERT NODE
-
-  const insertNodeConfig2: InsertNodeConfig = {
-    scripts: {
-      nodePolicy: newScripts.data.discoveryPolicy,
-      nodeValidator: newScripts.data.discoveryValidator,
-    },
-    refScripts: {
-      nodeValidator: nodeValidatorUTxO,
-      nodePolicy: nodePolicyUTxO,
-    },
-    amountLovelace: 5_000_000,
-    userAddress: users.account2.address,
-    currenTime: emulator.now(),
-  };
-
-  const insertNodeUnsigned2 = await insertNode(lucid, insertNodeConfig2);
-
-  expect(insertNodeUnsigned2.type).toBe("ok");
-  if (insertNodeUnsigned2.type == "error") return;
-  // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.account2.seedPhrase);
-  const insertNodeSigned2 = await insertNodeUnsigned2.data.sign().complete();
-  const insertNodeHash2 = await insertNodeSigned2.submit();
+  // INSERT NODES, ACCOUNT 1 -> ACCOUNT 2 -> ACCOUNT 3
+  // Total blocks elapsed in step - 12
+  await insertThreeNodes(lucid, emulator, users, newScripts.data, refUTxOs, logFlag);
 
   //1 block = 20 secs
   //1 hour = 180 blocks
   //24 hours = 4320 blocks
+  
+  // Total blocks eplased till now = 36 + 12 = 48
 
-  //NOTE: before 24 hours - up to 166 blocks
-  // emulator.awaitBlock(100); //Pass
+  // before 24 hours - up to 148 blocks
+  // emulator.awaitBlock(100); // Remove without penalty
 
-  //NOTE: within 24 hours of deadline
-  // emulator.awaitBlock(167);
+  // within 24 hours of deadline
+  // emulator.awaitBlock(200); // Remove with penalty
 
-  //NOTE: after deadline 24 hours + 1 hour = 4500 - 12 blocks from previous = 4488
-  //4486 is before deadline
-  // emulator.awaitBlock(4486); //Pass
+  // after deadline 24 hours + 1 hour = 4500 - 48 blocks from previous = 4452
+  // 4445 is before deadline
+  // emulator.awaitBlock(4445); // Remove with penalty
 
-  //within 24 hours
-  emulator.awaitBlock(200);
+  // within 24 hours of deadline
+  emulator.awaitBlock(200); // Remove with penalty
 
   logFlag
     ? console.log(
@@ -285,35 +192,31 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
       )
     : null;
 
-  //NOTE: REMOVE NODE
+  // REMOVE NODE
   const removeNodeConfig: RemoveNodeConfig = {
     scripts: {
       nodePolicy: newScripts.data.discoveryPolicy,
       nodeValidator: newScripts.data.discoveryValidator,
     },
     refScripts: {
-      nodeValidator: nodeValidatorUTxO,
-      nodePolicy: nodePolicyUTxO,
+      nodeValidator: refUTxOs.nodeValidatorUTxO,
+      nodePolicy: refUTxOs.nodePolicyUTxO,
     },
     currenTime: emulator.now(),
     deadline: deadline,
     penaltyAddress: treasuryAddress,
-    userAddress: users.account2.address,
   };
 
+  lucid.selectWalletFromSeed(users.account2.seedPhrase);
   const removeNodeUnsigned = await removeNode(lucid, removeNodeConfig);
 
   expect(removeNodeUnsigned.type).toBe("ok");
-
   if (removeNodeUnsigned.type == "error") return;
   // console.log(removeNodeUnsigned.data.txComplete.to_json())
-  lucid.selectWalletFromSeed(users.account2.seedPhrase);
   const removeNodeSigned = await removeNodeUnsigned.data.sign().complete();
   const removeNodeHash = await removeNodeSigned.submit();
 
   emulator.awaitBlock(4);
-  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
-  // console.log("treasury1 address after", await lucid.wallet.getUtxos());
 
   logFlag
     ? console.log(
@@ -325,22 +228,27 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
         )
       )
     : null;
+  logFlag
+    ? console.log(
+    "treasury address with penalty",
+    await lucid.utxosAt(users.treasury1.address)
+  ): null;
 
-  //NOTE: FAIL REMOVE NODE
+  // FAIL REMOVE NODE
   const removeNodeConfig2: RemoveNodeConfig = {
     scripts: {
       nodePolicy: newScripts.data.discoveryPolicy,
       nodeValidator: newScripts.data.discoveryValidator,
     },
     refScripts: {
-      nodeValidator: nodeValidatorUTxO,
-      nodePolicy: nodePolicyUTxO,
+      nodeValidator: refUTxOs.nodeValidatorUTxO,
+      nodePolicy: refUTxOs.nodePolicyUTxO,
     },
-    userAddress: users.account2.address,
     deadline: deadline,
     penaltyAddress: treasuryAddress,
   };
 
+  lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const removeNodeUnsigned2 = await removeNode(lucid, removeNodeConfig2);
 
   expect(removeNodeUnsigned2.type).toBe("error");
@@ -356,7 +264,7 @@ test.skip<LucidContext>("Test - initNode - aacount1 insertNode - aacount2 insert
 
   logFlag
     ? console.log(
-        "removeNode result",
+        "failed removeNode result",
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,

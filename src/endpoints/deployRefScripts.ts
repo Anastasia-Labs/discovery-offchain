@@ -7,7 +7,7 @@ import {
   fromText,
   Data,
   Script,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { DeployRefScriptsConfig, Result } from "../core/types.js";
 
 // type RefScripts = {
@@ -22,7 +22,7 @@ import { DeployRefScriptsConfig, Result } from "../core/types.js";
 // };
 type RefScripts = Record<string, { unit: string; script: Script }>;
 
-type Deploy = {
+export type Deploy = {
   tx: TxComplete;
   deployPolicyId: string;
 };

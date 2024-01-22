@@ -5,7 +5,7 @@ import {
   Data,
   toUnit,
   TxComplete,
-} from "lucid-cardano";
+} from "@anastasia-labs/lucid-cardano-fork";
 import { MIN_COMMITMENT_ADA, originNodeTokenName } from "../core/constants.js";
 import { DiscoveryNodeAction, LiquidityNodeAction, LiquiditySetNode } from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";
