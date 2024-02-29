@@ -14,6 +14,7 @@ import {
   import { RemoveNodeConfig, Result } from "../core/types.js";
   import {
     divCeil,
+    MIN_COMMITMENT_ADA,
     mkNodeKeyTN,
     TIME_TOLERANCE_MS,
     TWENTY_FOUR_HOURS_MS,
@@ -204,7 +205,7 @@ import {
           LiquidityNodeAction
         );
   
-        const penaltyAmount = divCeil(node.assets["lovelace"], 4n);
+        const penaltyAmount = divCeil(node.assets["lovelace"] - MIN_COMMITMENT_ADA, 4n);
   
         const tx = await lucid
           .newTx()
