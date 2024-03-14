@@ -114,6 +114,20 @@ export type NodeValidatorAction = Data.Static<typeof NodeValidatorActionSchema>;
 export const NodeValidatorAction =
   NodeValidatorActionSchema as unknown as NodeValidatorAction;
 
+export const LiquidityNodeValidatorActionSchema = Data.Enum([
+  Data.Literal("LinkedListAct"),
+  Data.Literal("ModifyCommitment"),
+  Data.Object({
+    CommitFoldAct: Data.Object({
+      commitIndex: Data.Integer()
+    })
+  }),
+  Data.Literal("RewardFoldAct"),
+]);
+export type LiquidityNodeValidatorAction = Data.Static<typeof LiquidityNodeValidatorActionSchema>;
+export const LiquidityNodeValidatorAction =
+  LiquidityNodeValidatorActionSchema as unknown as LiquidityNodeValidatorAction;
+
 export const FoldDatumSchema = Data.Object({
   currNode: SetNodeSchema,
   committed: Data.Integer(),
@@ -126,6 +140,7 @@ export const FoldActSchema = Data.Enum([
   Data.Object({
     FoldNodes: Data.Object({
       nodeIdxs: Data.Array(Data.Integer()),
+      outputIdxs: Data.Array(Data.Integer())
     }),
   }),
   Data.Literal("Reclaim"),

@@ -107,8 +107,12 @@ export type InitFoldConfig = {
 
 export type MultiFoldConfig = {
   nodeRefInputs: OutRef[];
+  feeInput: UTxO;
+  changeAddress: string;
   indices: number[];
   scripts: {
+    liquidityValidator: CborHex;
+    collectStake: CborHex;
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
