@@ -187,7 +187,7 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
   };
 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
-  const initFoldUnsigned = await initFold(lucid, initFoldConfig);
+  const initFoldUnsigned = await initFold(lucid, initFoldConfig, "Direct");
 
   expect(initFoldUnsigned.type).toBe("ok");
   if (initFoldUnsigned.type == "error") return;
@@ -228,12 +228,12 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
 
   const multiFoldConfig: MultiFoldConfig = {
     nodeRefInputs: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
     ).map((data) => {
       return data.value.outRef;
     }),
     indices: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
     ).map((data) => {
       return data.index;
     }),

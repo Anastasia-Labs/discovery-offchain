@@ -54,14 +54,12 @@ export const initFold = async (
   if (!headNodeUTxO || !headNodeUTxO.datum)
     return { type: "error", error: new Error("missing nodeRefInputUTxO") };
 
-  const currentNode = Data.from(headNodeUTxO.datum, type === "Liquidity" ? LiquiditySetNode : SetNode);
-
   const owner: AddressD = fromAddress(await lucid.wallet.address());
   let datum: string;
   if (type === "Liquidity") {
     datum = Data.to(
       {
-        currNode: currentNode as LiquiditySetNode,
+        currNode: Data.from(headNodeUTxO.datum, LiquiditySetNode),
         committed: 0n,
         owner
       },
@@ -70,7 +68,7 @@ export const initFold = async (
   } else {
     datum = Data.to(
       {
-        currNode: currentNode,
+        currNode: Data.from(headNodeUTxO.datum, SetNode),
         committed: 0n,
         owner
       },
