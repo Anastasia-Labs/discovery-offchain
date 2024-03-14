@@ -19,7 +19,7 @@ import {
     TWENTY_FOUR_HOURS_MS,
   } from "../index.js";
   
-  export const removeNode = async (
+  export const removeLqNode = async (
     lucid: Lucid,
     config: RemoveNodeConfig
   ): Promise<Result<TxComplete>> => {

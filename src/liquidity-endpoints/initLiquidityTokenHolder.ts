@@ -20,7 +20,7 @@ export type TokenHolderMintAction = Data.Static<
 export const TokenHolderMintAction =
   TokenHolderMintActionSchema as unknown as TokenHolderMintAction;
 
-export const initTokenHolder = async (
+export const initLqTokenHolder = async (
   lucid: Lucid,
   config: InitTokenHolderConfig
 ): Promise<Result<TxComplete>> => {
