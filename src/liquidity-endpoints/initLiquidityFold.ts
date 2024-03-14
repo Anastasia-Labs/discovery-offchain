@@ -8,14 +8,13 @@ import {
   fromText,
 } from "@anastasia-labs/lucid-cardano-fork";
 import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
-import { AddressD, FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquidityFoldDatumSchema, LiquiditySetNode, SetNode } from "../core/contract.types.js";
+import { FoldDatum, FoldMintAct, LiquiditySetNode, SetNode } from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 
-export const initFold = async (
+export const initLqFold = async (
   lucid: Lucid,
-  config: InitFoldConfig,
-  type: "Direct" | "Liquidity" = "Liquidity"
+  config: InitFoldConfig
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
@@ -54,27 +53,16 @@ export const initFold = async (
   if (!headNodeUTxO || !headNodeUTxO.datum)
     return { type: "error", error: new Error("missing nodeRefInputUTxO") };
 
-  const owner: AddressD = fromAddress(await lucid.wallet.address());
-  let datum: string;
-  if (type === "Liquidity") {
-    datum = Data.to(
-      {
-        currNode: Data.from(headNodeUTxO.datum, LiquiditySetNode),
-        committed: 0n,
-        owner
-      },
-      LiquidityFoldDatum
-    )
-  } else {
-    datum = Data.to(
-      {
-        currNode: Data.from(headNodeUTxO.datum, SetNode),
-        committed: 0n,
-        owner
-      },
-      FoldDatum
-    );
-  }
+  const currentNode = Data.from(headNodeUTxO.datum, LiquiditySetNode);
+
+  const datum = Data.to(
+    {
+      currNode: currentNode,
+      committed: 0n,
+      owner: fromAddress(await lucid.wallet.address()), //NOTE: owner is not being used in fold minting or validator
+    },
+    FoldDatum
+  );
 
   const redeemerFoldPolicy = Data.to("MintFold", FoldMintAct);
 

@@ -8,11 +8,11 @@ import {
   toUnit,
   UTxO,
 } from "@anastasia-labs/lucid-cardano-fork";
-import { FoldAct, FoldDatum, SetNode } from "../core/contract.types.js";
+import { FoldAct, FoldDatum, LiquiditySetNode, SetNode } from "../core/contract.types.js";
 import { MultiFoldConfig, Result } from "../core/types.js";
 import { CFOLD, NODE_ADA, TIME_TOLERANCE_MS } from "../index.js";
 
-export const multiFold = async (
+export const multiLqFold = async (
   lucid: Lucid,
   config: MultiFoldConfig
 ): Promise<Result<TxComplete>> => {
@@ -40,6 +40,8 @@ export const multiFold = async (
     toUnit(lucid.utils.mintingPolicyToId(foldPolicy), fromText(CFOLD))
   );
 
+  console.log(lucid.utils.validatorToAddress(foldValidator), toUnit(lucid.utils.mintingPolicyToId(foldPolicy), fromText(CFOLD)))
+
   if (!foldUTxO || !foldUTxO.datum)
     return { type: "error", error: new Error("missing foldUTxO") };
 
@@ -51,12 +53,10 @@ export const multiFold = async (
   const lastNodeRef = nodeRefUTxOs[config.indices.length - 1].datum;
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
 
-  const lastNodeRefDatum = Data.from(lastNodeRef, SetNode);
-  // console.log("lastNodeRefDatum", lastNodeRefDatum )
+  const lastNodeRefDatum = Data.from(lastNodeRef, LiquiditySetNode);
   const committed = nodeRefUTxOs.reduce((result: bigint, utxo: UTxO) => {
     return result + utxo.assets.lovelace - NODE_ADA;
   }, 0n);
-  // console.log("committed", committed);
 
   const newFoldDatum = Data.to(
     {
@@ -69,7 +69,6 @@ export const multiFold = async (
     },
     FoldDatum
   );
-  // console.log("indices", config.indices);
 
   const redeemerValidator = Data.to(
     {

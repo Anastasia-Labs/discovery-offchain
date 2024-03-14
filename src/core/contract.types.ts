@@ -223,3 +223,12 @@ export const LiquidityPolicyConfigSchema = Data.Object({
 export type LiquidityPolicyConfig = Data.Static<typeof LiquidityPolicyConfigSchema>;
 export const LiquidityPolicyConfig =
 LiquidityPolicyConfigSchema as unknown as LiquidityPolicyConfig;
+
+
+export const LiquidityFoldDatumSchema = Data.Object({
+  currNode: LiquiditySetNodeSchema,
+  committed: Data.Integer(),
+  owner: AddressSchema,
+});
+export type LiquidityFoldDatum = Data.Static<typeof LiquidityFoldDatumSchema>;
+export const LiquidityFoldDatum = LiquidityFoldDatumSchema as unknown as LiquidityFoldDatum;

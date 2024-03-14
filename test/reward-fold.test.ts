@@ -225,7 +225,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
     ? console.log(
         "initNode result ",
         JSON.stringify(
-          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
+          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct"),
           replacer,
           2
         )
@@ -250,7 +250,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
   };
 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
-  const initFoldUnsigned = await initFold(lucid, initFoldConfig);
+  const initFoldUnsigned = await initFold(lucid, initFoldConfig, "Direct");
 
   expect(initFoldUnsigned.type).toBe("ok");
   if (initFoldUnsigned.type == "error") return;
@@ -264,12 +264,12 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
 
   const multiFoldConfig: MultiFoldConfig = {
     nodeRefInputs: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
     ).map((data) => {
       return data.value.outRef;
     }),
     indices: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
     ).map((data) => {
       return data.index;
     }),
@@ -487,7 +487,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
   logFlag ?
     console.log(
       "utxos at discovery validator",
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator)
+      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
     ) : null;
 
   // console.log(

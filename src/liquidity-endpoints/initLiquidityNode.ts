@@ -11,7 +11,7 @@ import { DiscoveryNodeAction, LiquidityNodeAction, LiquiditySetNode } from "../c
 import { InitNodeConfig, Result } from "../core/types.js";
 import { NODE_ADA } from "../core/constants.js";
 
-export const initNode = async (
+export const initLqNode = async (
   lucid: Lucid,
   config: InitNodeConfig
 ): Promise<Result<TxComplete>> => {

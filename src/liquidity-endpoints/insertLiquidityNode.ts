@@ -14,7 +14,7 @@ import {
   import { InsertNodeConfig, Result } from "../core/types.js";
   import { NODE_ADA, mkNodeKeyTN, TIME_TOLERANCE_MS, MIN_COMMITMENT_ADA } from "../index.js";
   
-  export const insertNode = async (
+  export const insertLqNode = async (
     lucid: Lucid,
     config: InsertNodeConfig
   ): Promise<Result<TxComplete>> => {

@@ -1,5 +1,5 @@
 import { Data, Lucid, SpendingValidator, UTxO } from "@anastasia-labs/lucid-cardano-fork";
-import { SetNode } from "../contract.types.js";
+import { LiquiditySetNode, SetNode } from "../contract.types.js";
 import { Either, ReadableUTxO } from "../types.js";
 
 export const utxosAtScript = async (
@@ -25,11 +25,12 @@ export const utxosAtScript = async (
 //TODO: makes this generic
 export const parseDatum = (
   lucid: Lucid,
-  utxo: UTxO
+  utxo: UTxO,
+  type: "Direct" | "Liquidity" = "Liquidity"
 ): Either<string, SetNode> => {
   if (utxo.datum) {
     try {
-      const parsedDatum = Data.from(utxo.datum, SetNode);
+      const parsedDatum = Data.from(utxo.datum, type === "Liquidity" ? LiquiditySetNode : SetNode);
       return {
         type: "right",
         value: parsedDatum,
@@ -46,11 +47,12 @@ export const parseDatum = (
 export const parseUTxOsAtScript = async (
   lucid: Lucid,
   script: string,
+  type: "Direct" | "Liquidity" = "Liquidity",
   stakeCredentialHash?: string
 ): Promise<ReadableUTxO[]> => {
   const utxos = await utxosAtScript(lucid, script, stakeCredentialHash);
   return utxos.flatMap((utxo) => {
-    const result = parseDatum(lucid, utxo);
+    const result = parseDatum(lucid, utxo, type);
     if (result.type == "right") {
       return {
         outRef: {
