@@ -8,7 +8,7 @@ import {
   fromText,
 } from "@anastasia-labs/lucid-cardano-fork";
 import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
-import { FoldDatum, FoldMintAct, LiquiditySetNode, SetNode } from "../core/contract.types.js";
+import { FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquiditySetNode, SetNode } from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 
@@ -61,7 +61,7 @@ export const initLqFold = async (
       committed: 0n,
       owner: fromAddress(await lucid.wallet.address()), //NOTE: owner is not being used in fold minting or validator
     },
-    FoldDatum
+    LiquidityFoldDatum
   );
 
   const redeemerFoldPolicy = Data.to("MintFold", FoldMintAct);

@@ -31,6 +31,7 @@ import {
     };
   
     const nodeValidatorAddr = lucid.utils.validatorToAddress(nodeValidator);
+    console.log(nodeValidatorAddr)
   
     const nodePolicy: MintingPolicy = {
       type: "PlutusV2",
@@ -46,8 +47,8 @@ import {
       return { type: "error", error: new Error("missing PubKeyHash") };
   
     const nodeUTXOs = config.nodeUTxOs
-    ? config.nodeUTxOs
-    : await lucid.utxosAt(nodeValidatorAddr);
+      ? config.nodeUTxOs
+      : await lucid.utxosAt(nodeValidatorAddr);
     // console.log(nodeUTXOs)
   
     //TODO: move this to utils
@@ -87,9 +88,6 @@ import {
       },
       LiquiditySetNode
     );
-    // const nodeDatum = Data.to(
-    //   new Constr(0, [new Constr(0, [userKey]), new Constr(1, [])])
-    // );
   
     //TODO: Add Node Action
     const redeemerNodePolicy = Data.to(
@@ -156,8 +154,6 @@ import {
             ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
             : lucid.newTx().attachMintingPolicy(nodePolicy)
         )
-        .validFrom(lowerBound)
-        .validTo(upperBound)
         .complete();
   
       return { type: "ok", data: tx };

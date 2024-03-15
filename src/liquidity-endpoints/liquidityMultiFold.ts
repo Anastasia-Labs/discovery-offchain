@@ -100,17 +100,11 @@ export const multiLqFold = async (
       outputIdxs: [...new Array(nodeUtxos.length).keys()].map(BigInt)
     };
 
-    // const foldRedeemer = Data.to(
-    //   {
-    //     FoldNodes: foldNodes,
-    //   },
-    //   FoldAct
-    // );
     const foldRedeemer = Data.to(
-      new Constr(0, [
-        foldNodes.nodeIdxs,
-        foldNodes.outputIdxs
-      ])
+      {
+        FoldNodes: foldNodes,
+      },
+      FoldAct
     );
 
     const tx = lucid.newTx()

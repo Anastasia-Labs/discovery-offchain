@@ -281,8 +281,6 @@ import {
               ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
               : lucid.newTx().attachMintingPolicy(nodePolicy)
           )
-          .validFrom(lowerBound)
-          .validTo(upperBound)
           .complete();
         return { type: "ok", data: tx };
       }
