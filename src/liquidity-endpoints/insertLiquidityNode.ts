@@ -12,7 +12,7 @@ import {
     NodeValidatorAction,
   } from "../core/contract.types.js";
   import { InsertNodeConfig, Result } from "../core/types.js";
-  import { NODE_ADA, mkNodeKeyTN, TIME_TOLERANCE_MS, MIN_COMMITMENT_ADA } from "../index.js";
+  import { NODE_ADA, mkNodeKeyTN, TIME_TOLERANCE_MS, MIN_COMMITMENT_ADA, TT_UTXO_ADDITIONAL_ADA } from "../index.js";
   
   export const insertLqNode = async (
     lucid: Lucid,
@@ -46,8 +46,8 @@ import {
       return { type: "error", error: new Error("missing PubKeyHash") };
   
     const nodeUTXOs = config.nodeUTxOs
-      ? config.nodeUTxOs
-      : await lucid.utxosAt(nodeValidatorAddr);
+    ? config.nodeUTxOs
+    : await lucid.utxosAt(nodeValidatorAddr);
     // console.log(nodeUTXOs)
   
     //TODO: move this to utils
@@ -119,7 +119,11 @@ import {
       [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
     };
   
-    const correctAmount = BigInt(config.amountLovelace) + MIN_COMMITMENT_ADA;
+    if (BigInt(config.amountLovelace) < MIN_COMMITMENT_ADA) {
+      throw new Error("Amount deposited is less than the minimum amount.");
+    }
+
+    const correctAmount = BigInt(config.amountLovelace) + TT_UTXO_ADDITIONAL_ADA;
   
     const upperBound = config.currenTime + TIME_TOLERANCE_MS;
     const lowerBound = config.currenTime - TIME_TOLERANCE_MS;

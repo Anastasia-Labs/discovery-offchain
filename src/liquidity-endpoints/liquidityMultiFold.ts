@@ -8,10 +8,11 @@ import {
   toUnit,
   UTxO,
   Constr,
+  WithdrawalValidator,
 } from "@anastasia-labs/lucid-cardano-fork";
 import { FoldAct, FoldDatum, LiquidityFoldDatum, LiquidityNodeValidatorAction, LiquiditySetNode, NodeValidatorAction, SetNode } from "../core/contract.types.js";
 import { MultiFoldConfig, Result } from "../core/types.js";
-import { CFOLD, FOLDING_FEE_ADA, NODE_ADA, TIME_TOLERANCE_MS } from "../index.js";
+import { CFOLD, FOLDING_FEE_ADA, NODE_ADA, TIME_TOLERANCE_MS, TT_UTXO_ADDITIONAL_ADA } from "../index.js";
 
 export const multiLqFold = async (
   lucid: Lucid,
@@ -19,17 +20,12 @@ export const multiLqFold = async (
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
-  const walletUtxos = await lucid.wallet.getUtxos();
-
-  if (!walletUtxos.length)
-    return { type: "error", error: new Error("No utxos in wallet") };
-
   const foldValidator: SpendingValidator = {
     type: "PlutusV2",
     script: config.scripts.foldValidator,
   };
 
-  const stakeValidator: SpendingValidator = {
+  const collectStakeValidator: WithdrawalValidator = {
     type: "PlutusV2",
     script: config.scripts.collectStake
   }
@@ -63,11 +59,8 @@ export const multiLqFold = async (
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
 
   const lastNodeRefDatum = Data.from(lastNodeRef, LiquiditySetNode);
-  const committed = nodeUtxos.reduce((result: bigint, utxo: UTxO) => {
-    return result + utxo.assets.lovelace - NODE_ADA;
-  }, 0n);
   const totalAda = nodeUtxos.reduce((result: bigint, utxo: UTxO) => {
-    return result + utxo.assets.lovelace - NODE_ADA - FOLDING_FEE_ADA;
+    return result + utxo.assets.lovelace - TT_UTXO_ADDITIONAL_ADA;
   }, 0n);
 
   const newFoldDatum = Data.to(
@@ -75,11 +68,12 @@ export const multiLqFold = async (
       currNode: {
         key: oldFoldDatum.currNode.key,
         next: lastNodeRefDatum.next,
+        commitment: 0n
       },
-      committed: oldFoldDatum.committed + committed,
+      committed: oldFoldDatum.committed + totalAda,
       owner: oldFoldDatum.owner,
     },
-    FoldDatum
+    LiquidityFoldDatum
   );
 
   const upperBound = config.currenTime + TIME_TOLERANCE_MS;
@@ -106,32 +100,35 @@ export const multiLqFold = async (
       outputIdxs: [...new Array(nodeUtxos.length).keys()].map(BigInt)
     };
 
+    // const foldRedeemer = Data.to(
+    //   {
+    //     FoldNodes: foldNodes,
+    //   },
+    //   FoldAct
+    // );
     const foldRedeemer = Data.to(
-      {
-        FoldNodes: foldNodes,
-      },
-      FoldAct
+      new Constr(0, [
+        foldNodes.nodeIdxs,
+        foldNodes.outputIdxs
+      ])
     );
 
     const tx = lucid.newTx()
+      .collectFrom([config.feeInput])
       .collectFrom([foldUTxO], foldRedeemer)
       .attachSpendingValidator(foldValidator)
       .attachSpendingValidator(liquidityValidator)
-      .attachWithdrawalValidator(stakeValidator)
+      .attachWithdrawalValidator(collectStakeValidator)
 
     nodeUtxos.forEach((utxo, index) => {
-      const redeemer = Data.to({
-        CommitFoldAct: {
-          commitIndex: 0n
-        }
-      }, LiquidityNodeValidatorAction);
+      const redeemer = Data.to("CommitFoldAct", LiquidityNodeValidatorAction);
       
       console.log(`Attaching: ${utxo.txHash}#${index} from ${utxo.address}`)
       tx.collectFrom([utxo], redeemer)
     });
 
     nodeUtxos.forEach(utxo => {
-      const datumCommitment = utxo.assets.lovelace - NODE_ADA;
+      const datumCommitment = utxo.assets.lovelace - TT_UTXO_ADDITIONAL_ADA;
       const oldDatum = Data.from(utxo.datum as string, LiquiditySetNode);
       const newDatum = Data.to({
         ...oldDatum,
@@ -140,10 +137,8 @@ export const multiLqFold = async (
 
       const newAssets = {
         ...utxo.assets,
-        lovelace: NODE_ADA
+        lovelace: utxo.assets.lovelace - datumCommitment - FOLDING_FEE_ADA
       };
-
-      console.log(newAssets, datumCommitment)
 
       tx.payToContract(
         lucid.utils.validatorToAddress(liquidityValidator),
@@ -151,20 +146,18 @@ export const multiLqFold = async (
         newAssets
       )
     })
-
-    const assets = {
-      ...foldUTxO.assets,
-      lovelace: foldUTxO.assets.lovelace + totalAda
-    };
     
     const txComplete = await tx
       .payToContract(
         foldValidatorAddr,
         { inline: newFoldDatum },
-        assets
+        {
+          ...foldUTxO.assets,
+          lovelace: foldUTxO.assets.lovelace + totalAda
+        }
       )
       .withdraw(
-        lucid.utils.validatorToRewardAddress(stakeValidator),
+        lucid.utils.validatorToRewardAddress(collectStakeValidator),
         0n,
         Data.void()
       )
@@ -175,7 +168,7 @@ export const multiLqFold = async (
         change: {
           address: config.changeAddress,
         }
-      });
+      })
 
     return { type: "ok", data: txComplete };
   } catch (error) {

@@ -75,6 +75,7 @@ export const multiFold = async (
     {
       FoldNodes: {
         nodeIdxs: config.indices.map(BigInt),
+        outputIdxs: []
       },
     },
     FoldAct

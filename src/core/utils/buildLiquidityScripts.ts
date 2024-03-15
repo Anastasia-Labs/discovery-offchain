@@ -1,6 +1,7 @@
 import {
     applyParamsToScript,
     Constr,
+    Data,
     fromText,
     Lucid,
     MintingPolicy,
@@ -32,14 +33,14 @@ import {
       BigInt(config.projectTokenHolder.initUTXO.outputIndex),
     ]);
   
-    const tokenHolderPolicy = applyParamsToScript(
+    const liquidityTokenHolderPolicy = applyParamsToScript(
       config.unapplied.tokenHolderPolicy,
       [initUTXOprojectTokenHolder]
     );
   
-    const tokenHolderMintingPolicy: MintingPolicy = {
+    const liquidityTokenHolderMintingPolicy: MintingPolicy = {
       type: "PlutusV2",
-      script: tokenHolderPolicy,
+      script: liquidityTokenHolderPolicy,
     };
   
     const initUTxO = new Constr(0, [
@@ -54,19 +55,6 @@ import {
     if (penaltyAddress.type == "error")
       return { type: "error", error: penaltyAddress.error };
   
-    //NOTE: DISCOVERY POLICY
-    //
-    // data PDiscoveryConfig (s :: S)
-    // = PDiscoveryConfig
-    //     ( Term
-    //         s
-    //         ( PDataRecord
-    //             '[ "initUTxO" ':= PTxOutRef
-    //              , "discoveryDeadline" ':= PPOSIXTime
-    //              , "penaltyAddress" ':= PAddress
-    //              ]
-    //         )
-    //     )
     const liquidityPolicy = applyParamsToScript(
       config.unapplied.liquidityPolicy,
       [
@@ -78,57 +66,36 @@ import {
       ]
     );
   
-    const discoveryMintingPolicy: MintingPolicy = {
+    const liquidityMintingPolicy: MintingPolicy = {
       type: "PlutusV2",
       script: liquidityPolicy,
     };
   
-    //NOTE: FOLD VALIDATOR
-    //
-    // pfoldValidatorW :: Term s (PAsData PCurrencySymbol :--> PAsData PPOSIXTime :--> PValidator)
-    // pfoldValidatorW = phoistAcyclic $
-    //   plam $ \nodeCS discoveryDeadline datum redeemer ctx ->
-    const foldValidator = applyParamsToScript(config.unapplied.collectFoldValidator, [
-      lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
-      BigInt(config.liquidityPolicy.deadline),
+    const collectFoldValidator = applyParamsToScript(config.unapplied.collectFoldValidator, [
+      lucid.utils.mintingPolicyToId(liquidityMintingPolicy),
+      lucid.utils.mintingPolicyToId(liquidityTokenHolderMintingPolicy)
     ]);
-    const foldSpendingValidator: SpendingValidator = {
+    const collectFoldSpendingValidator: SpendingValidator = {
       type: "PlutusV2",
-      script: foldValidator,
+      script: collectFoldValidator,
     };
   
     const foldValidatorAddress = fromAddressToData(
-      lucid.utils.validatorToAddress(foldSpendingValidator)
+      lucid.utils.validatorToAddress(collectFoldSpendingValidator)
     );
   
     if (foldValidatorAddress.type == "error")
       return { type: "error", error: foldValidatorAddress.error };
   
-    //NOTE: FOLD POLICY
-    //
-    // data PFoldMintConfig (s :: S)
-    //   = PFoldMintConfig
-    //       ( Term
-    //           s
-    //           ( PDataRecord
-    //               '[ "nodeCS" ':= PCurrencySymbol
-    //                , "foldAddr" ':= PAddress
-    //                , "discoveryDeadline" ':= PPOSIXTime
-    //                ]
-    //           )
-    //       )
-    //   deriving stock (Generic)
-    //   deriving anyclass (PlutusType, PIsData, PDataFields)
-    // TODO: Fix applied parameters 
     const collectFoldPolicy = applyParamsToScript(config.unapplied.collectFoldPolicy, [
       new Constr(0, [
-        lucid.utils.mintingPolicyToId(discoveryMintingPolicy),
+        lucid.utils.mintingPolicyToId(liquidityMintingPolicy),
         foldValidatorAddress.data,
         BigInt(config.liquidityPolicy.deadline), // discoveryDeadline PInteger
       ]),
     ]);
   
-    const foldMintingPolicy: MintingPolicy = {
+    const collectFoldMintingPolicy: MintingPolicy = {
       type: "PlutusV2",
       script: collectFoldPolicy,
     };
@@ -137,29 +104,12 @@ import {
     if (projectAddress.type == "error")
       return { type: "error", error: projectAddress.error };
   
-    //NOTE: REWARD VALIDATOR
-    //
-    // data PRewardFoldConfig (s :: S)
-    //   = PRewardFoldConfig
-    //       ( Term
-    //           s
-    //           ( PDataRecord
-    //               '[ "nodeCS" ':= PCurrencySymbol
-    //                , "projectCS" ':= PCurrencySymbol
-    //                , "projectTN" ':= PTokenName
-    //                , "projectAddr" ':= PAddress
-    //                ]
-    //           )
-    //       )
-    //   deriving stock (Generic)
-    //   deriving anyclass (PlutusType, PIsData, PDataFields)
     const rewardFoldValidator = applyParamsToScript(
       config.unapplied.distributionFoldValidator,
       [
         new Constr(0, [
-          lucid.utils.mintingPolicyToId(discoveryMintingPolicy), //nodeCS
-          config.rewardFoldValidator.projectCS, // projectCS
-          fromText(config.rewardFoldValidator.projectTN), // projectTN
+          lucid.utils.mintingPolicyToId(liquidityMintingPolicy), //nodeCS
+          fromText(config.rewardFoldValidator.projectLpPolicyId), // pool LP cs
           projectAddress.data, // projectAddr
         ]),
       ]
@@ -176,43 +126,23 @@ import {
   
     if (rewardValidatorAddress.type == "error")
       return { type: "error", error: rewardValidatorAddress.error };
-  
-    //NOTE: REWARD POLICY
-    //
-    // data PRewardMintFoldConfig (s :: S)
-    //   = PRewardMintFoldConfig
-    //       ( Term
-    //           s
-    //           ( PDataRecord
-    //               '[ "nodeCS" ':= PCurrencySymbol,
-    //                  "tokenHolderCS" ':= PCurrencySymbol,
-    //                  "rewardScriptAddr" ':= PAddress,
-    //                  "projectTN" ':= PTokenName,
-    //                  "projectCS" ':= PCurrencySymbol,
-    //                  "commitFoldCS" ':= PCurrencySymbol
-    //                ]
-    //           )
-    //       )
+
     const rewardFoldPolicy = applyParamsToScript(config.unapplied.distributionFoldPolicy, [
       new Constr(0, [
-        lucid.utils.mintingPolicyToId(discoveryMintingPolicy), // nodeCS
-        lucid.utils.mintingPolicyToId(tokenHolderMintingPolicy), //tokenHolderCS
+        lucid.utils.mintingPolicyToId(liquidityMintingPolicy), // nodeCS
+        lucid.utils.mintingPolicyToId(liquidityTokenHolderMintingPolicy), //tokenHolderCS
         rewardValidatorAddress.data, // rewardScriptAddr
-        fromText(config.rewardFoldValidator.projectTN), // projectTN
-        config.rewardFoldValidator.projectCS, // projectCS
-        lucid.utils.mintingPolicyToId(foldMintingPolicy), // commitFoldCS
+        config.rewardFoldValidator.projectLpPolicyId, // pool lp cs
+        lucid.utils.mintingPolicyToId(collectFoldMintingPolicy), // commitFoldCS
       ]),
     ]);
-    const rewardMintingPolicy: MintingPolicy = {
+    const rewardFoldMintingPolicy: MintingPolicy = {
       type: "PlutusV2",
       script: rewardFoldPolicy,
     };
   
-    //NOTE: DISCOVERY STAKE VALIDATOR
-    // pDiscoverGlobalLogicW :: Term s (PAsData PCurrencySymbol :--> PStakeValidator)
-    // pDiscoverGlobalLogicW = phoistAcyclic $ plam $ \rewardCS' _redeemer ctx -> P.do
     const collectStake = applyParamsToScript(config.unapplied.liquidityStake, [
-      lucid.utils.mintingPolicyToId(foldMintingPolicy),
+      lucid.utils.mintingPolicyToId(collectFoldMintingPolicy),
     ]);
   
     const collectStakeValidator: WithdrawalValidator = {
@@ -221,7 +151,7 @@ import {
     };
     
     const rewardStake = applyParamsToScript(config.unapplied.liquidityStake, [
-        lucid.utils.mintingPolicyToId(rewardMintingPolicy),
+        lucid.utils.mintingPolicyToId(rewardFoldMintingPolicy),
     ]);
     
     const rewardStakeValidator: WithdrawalValidator = {
@@ -229,24 +159,11 @@ import {
         script: rewardStake,
     };
 
-    // NOTE: DISCOVERY VALIDATOR
-    //
-    // data PDiscoveryLaunchConfig (s :: S)
-    //   = PDiscoveryLaunchConfig
-    //       ( Term
-    //           s
-    //           ( PDataRecord
-    //               '[ "discoveryDeadline" ':= PPOSIXTime
-    //                , "penaltyAddress" ':= PAddress
-    //                , "rewardsCS" ':= PCurrencySymbol
-    //                ]
-    //           )
-    //       )
     const liquidityValidator = applyParamsToScript(
       config.unapplied.liquidityValidator,
       [
         new Constr(0, [
-          BigInt(config.liquidityPolicy.deadline), // discoveryDeadline PInteger
+          BigInt(config.liquidityPolicy.deadline), // liquidityDeadline PInteger
           penaltyAddress.data, // penaltyAddress PAddress
           new Constr(0, [new Constr(1, [lucid.utils.validatorToScriptHash(collectStakeValidator)])]), // PStakingCredential
           new Constr(0, [new Constr(1, [lucid.utils.validatorToScriptHash(rewardStakeValidator)])])
@@ -254,17 +171,15 @@ import {
       ]
     );
   
-    const discoverySpendingValidator: SpendingValidator = {
-      type: "PlutusV2",
-      script: liquidityValidator,
-    };
-  
     //NOTE: PROJECT TOKEN HOLDER VALIDATOR
     // pprojectTokenHolder :: Term s (PAsData PCurrencySymbol :--> PValidator)
     // pprojectTokenHolder = phoistAcyclic $ plam $ \rewardsCS _dat _redeemer ctx -> unTermCont $ do
-    const tokenHolderValidator = applyParamsToScript(
+    const liquidityTokenHolderValidator = applyParamsToScript(
       config.unapplied.tokenHolderValidator,
-      [lucid.utils.mintingPolicyToId(rewardMintingPolicy)]
+      [
+        lucid.utils.mintingPolicyToId(rewardFoldMintingPolicy),
+        lucid.utils.mintingPolicyToId(collectFoldMintingPolicy)
+      ]
     );
   
     return {
@@ -275,11 +190,11 @@ import {
         collectStake: collectStake,
         rewardStake: rewardStake,
         collectFoldPolicy: collectFoldPolicy,
-        collectFoldValidator: foldValidator,
+        collectFoldValidator: collectFoldValidator,
         rewardFoldPolicy: rewardFoldPolicy,
         rewardFoldValidator: rewardFoldValidator,
-        tokenHolderPolicy: tokenHolderPolicy,
-        tokenHolderValidator: tokenHolderValidator,
+        tokenHolderPolicy: liquidityTokenHolderPolicy,
+        tokenHolderValidator: liquidityTokenHolderValidator,
       },
     };
   };

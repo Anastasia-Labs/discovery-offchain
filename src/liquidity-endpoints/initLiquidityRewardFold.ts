@@ -9,7 +9,7 @@ import {
   fromText,
 } from "@anastasia-labs/lucid-cardano-fork";
 import { cFold, SETNODE_PREFIX } from "../core/constants.js";
-import { SetNode, FoldDatum, RewardFoldDatum, LiquiditySetNode } from "../core/contract.types.js";
+import { SetNode, FoldDatum, RewardFoldDatum, LiquiditySetNode, LiquidityRewardFoldDatum } from "../core/contract.types.js";
 import { InitRewardFoldConfig, Result } from "../core/types.js";
 import { fromAddress, toAddress } from "../index.js";
 
@@ -105,7 +105,7 @@ export const initLqRewardFold = async (
       totalCommitted: commitFoldDatum.committed,
       owner: fromAddress(await lucid.wallet.address()),
     },
-    RewardFoldDatum
+    LiquidityRewardFoldDatum
   );
 
   const burnPTHolderAct = Data.to(new Constr(1, []));

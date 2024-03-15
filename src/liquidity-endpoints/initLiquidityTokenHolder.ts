@@ -6,6 +6,7 @@ import {
   toUnit,
   TxComplete,
   fromText,
+  Constr,
 } from "@anastasia-labs/lucid-cardano-fork";
 import { PTHOLDER } from "../core/constants.js";
 import { InitTokenHolderConfig, Result } from "../core/types.js";
@@ -48,7 +49,9 @@ export const initLqTokenHolder = async (
       .collectFrom([config.initUTXO])
       .payToContract(
         tokenHolderValidatorAddr,
-        { inline: Data.void() },
+        { inline: Data.to(
+          new Constr(0, ["", 0n, 0n])
+        ) },
         {
           [ptHolderAsset]: BigInt(1),
           [toUnit(config.projectCS, fromText(config.projectTN))]: BigInt(

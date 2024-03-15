@@ -13,7 +13,8 @@ export const cFold = fromText(CFOLD);
 
 export const NODE_ADA = 3_000_000n
 export const FOLDING_FEE_ADA = 1_000_000n
-export const MIN_COMMITMENT_ADA = NODE_ADA + FOLDING_FEE_ADA
+export const MIN_COMMITMENT_ADA = 1_000_000n
+export const TT_UTXO_ADDITIONAL_ADA = NODE_ADA + (FOLDING_FEE_ADA * 2n);
 
 export const TIME_TOLERANCE_MS = process.env.NODE_ENV == "emulator" ? 0 : 100_000
 

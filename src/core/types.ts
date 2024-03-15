@@ -207,7 +207,7 @@ export type BuildLiquidityScriptsConfig = {
   };
   rewardFoldValidator: {
     projectCS: PolicyId;
-    projectTN: string;
+    projectLpPolicyId: PolicyId;
     projectAddr: Address;
   };
   projectTokenHolder: {

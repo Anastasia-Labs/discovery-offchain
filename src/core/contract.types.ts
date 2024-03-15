@@ -104,11 +104,6 @@ export const NodeValidatorActionSchema = Data.Enum([
   Data.Literal("LinkedListAct"),
   Data.Literal("ModifyCommitment"),
   Data.Literal("RewardFoldAct"),
-  // Data.Object({
-  //   RewardFoldAct: Data.Object({
-  //     rewardsIdx: Data.Integer(),
-  //   }),
-  // }),
 ]);
 export type NodeValidatorAction = Data.Static<typeof NodeValidatorActionSchema>;
 export const NodeValidatorAction =
@@ -117,11 +112,7 @@ export const NodeValidatorAction =
 export const LiquidityNodeValidatorActionSchema = Data.Enum([
   Data.Literal("LinkedListAct"),
   Data.Literal("ModifyCommitment"),
-  Data.Object({
-    CommitFoldAct: Data.Object({
-      commitIndex: Data.Integer()
-    })
-  }),
+  Data.Literal("CommitFoldAct"),
   Data.Literal("RewardFoldAct"),
 ]);
 export type LiquidityNodeValidatorAction = Data.Static<typeof LiquidityNodeValidatorActionSchema>;
@@ -247,3 +238,19 @@ export const LiquidityFoldDatumSchema = Data.Object({
 });
 export type LiquidityFoldDatum = Data.Static<typeof LiquidityFoldDatumSchema>;
 export const LiquidityFoldDatum = LiquidityFoldDatumSchema as unknown as LiquidityFoldDatum;
+
+export const LiquidityHolderDatumSchema = Data.Enum([
+
+]);
+export type LiquidityHolderDatum = Data.Static<typeof LiquidityHolderDatumSchema>;
+export const LiquidityHolderDatum = LiquidityHolderDatumSchema as unknown as LiquidityHolderDatum;
+
+export const LiquidityRewardFoldDatumSchema = Data.Object({
+  currNode: LiquiditySetNodeSchema,
+  totalProjectTokens: Data.Integer(),
+  totalCommitted: Data.Integer(),
+  owner: AddressSchema,
+});
+export type LiquidityRewardFoldDatum = Data.Static<typeof LiquidityRewardFoldDatumSchema>;
+export const LiquidityRewardFoldDatum =
+  LiquidityRewardFoldDatumSchema as unknown as LiquidityRewardFoldDatum;
