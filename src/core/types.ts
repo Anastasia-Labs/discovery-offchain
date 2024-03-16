@@ -48,6 +48,16 @@ export type InitTokenHolderConfig = {
   };
 };
 
+export type AddCollectedConfig = {
+  currenTime?: POSIXTime;
+  scripts: {
+    collectFoldPolicy: CborHex;
+    collectFoldValidator: CborHex;
+    tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
+  };
+};
+
 export type InitNodeConfig = {
   initUTXO: UTxO;
   scripts: {

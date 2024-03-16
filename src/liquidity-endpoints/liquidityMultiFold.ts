@@ -55,7 +55,16 @@ export const multiLqFold = async (
   //NOTE: node nodeRefUTxOs shuold be already ordered by keys, utxo type is better than outref since outref does not holds datum information, not sure yet if using utxo though
   const nodeUtxos = await lucid.utxosByOutRef(config.nodeRefInputs);
 
-  const lastNodeRef = nodeUtxos[config.indices.length - 1].datum;
+  const sortedNodes = nodeUtxos.sort((a, b) => {
+    // First, compare by txHash
+    if (a.txHash < b.txHash) return -1;
+    if (a.txHash > b.txHash) return 1;
+
+    // If txHash is equal, then compare by index
+    return a.outputIndex - b.outputIndex;
+  });
+
+  const lastNodeRef = sortedNodes[config.indices.length - 1].datum;
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
 
   const lastNodeRefDatum = Data.from(lastNodeRef, LiquiditySetNode);
@@ -84,12 +93,11 @@ export const multiLqFold = async (
       // First, compare by txHash
       if (a.txHash < b.txHash) return -1;
       if (a.txHash > b.txHash) return 1;
-
+  
       // If txHash is equal, then compare by index
       return a.outputIndex - b.outputIndex;
     });
 
-    console.log(JSON.stringify(sortedUtxos, (_, v) => typeof v === 'bigint' ? v.toString() : v))
     const indexingPairs = sortedUtxos.map((item, index) => {
       return {
         item,
@@ -98,7 +106,6 @@ export const multiLqFold = async (
     }).filter(({ item }) => nodeUtxos.find(({ txHash, outputIndex }) => `${txHash}#${outputIndex}` === `${item.txHash}#${item.outputIndex}`))
 
     const indexingSet = indexingPairs.sort((a, b) => {
-      console.log(a.item.datum, b.item.datum)
       const aKey = Data.from(a.item.datum as string, LiquiditySetNode);
       const bKey = Data.from(b.item.datum as string, LiquiditySetNode);
 
@@ -132,7 +139,8 @@ export const multiLqFold = async (
     nodeUtxos.forEach((utxo) => {
       const redeemer = Data.to("CommitFoldAct", LiquidityNodeValidatorAction);
       
-      console.log(`Attaching: ${utxo.txHash}#${utxo.outputIndex} from ${utxo.address}`)
+      const datum = Data.from(utxo.datum as string, LiquiditySetNode)
+      console.log(`Folding: ${utxo.txHash}#${utxo.outputIndex} with key: ${datum.key}`)
       tx.collectFrom([utxo], redeemer)
     });
 

@@ -10,7 +10,7 @@ import {
 } from "@anastasia-labs/lucid-cardano-fork";
 import { DiscoveryNodeAction, LiquidityNodeValidatorAction, LiquiditySetNode, NodeValidatorAction, SetNode } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
-import { mkNodeKeyTN } from "../index.js";
+import { TIME_TOLERANCE_MS, mkNodeKeyTN } from "../index.js";
 
 export const modifyLqNode = async (
   lucid: Lucid,
@@ -53,7 +53,9 @@ export const modifyLqNode = async (
   Object.keys(ownNode.assets).forEach((unit) => newNodeAssets[unit] = ownNode.assets[unit]);
   newNodeAssets['lovelace'] = newNodeAssets['lovelace'] + BigInt(config.amountLovelace)
 
-  const validToUnix = Math.floor(Date.now() / 1000) + 60;
+  config.currenTime ??= Date.now();
+  const upperBound = config.currenTime + TIME_TOLERANCE_MS;
+  const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   try {
     const tx = await lucid
@@ -69,6 +71,8 @@ export const modifyLqNode = async (
         { inline: ownNode.datum },
         newNodeAssets
       )
+      .validFrom(lowerBound)
+      .validTo(upperBound)
       .complete();
 
     return { type: "ok", data: tx };

@@ -63,25 +63,6 @@ import {
     const beforeTwentyFourHours =
       upperBound < config.deadline - TWENTY_FOUR_HOURS_MS;
   
-    // console.log("beforeDeadline", beforeDeadline);
-    // console.log("beforeTwentyFourHours", beforeTwentyFourHours);
-    // console.log(
-    //   "time delta deadline - upperBound ms",
-    //   config.deadline - upperBound
-    // );
-    // console.log(
-    //   "time delta deadline - upperBound secs",
-    //   (config.deadline - upperBound) / 1_000
-    // );
-    // console.log(
-    //   "time delta deadline - upperBound min",
-    //   (config.deadline - upperBound) / 60_000
-    // );
-    // console.log(
-    //   "time delta deadline - upperBound hours",
-    //   (config.deadline - upperBound) / 3_600_000
-    // );
-  
     try {
       if (beforeDeadline && beforeTwentyFourHours) {
         const node = nodeUTXOs.find((value) => {
@@ -281,6 +262,8 @@ import {
               ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
               : lucid.newTx().attachMintingPolicy(nodePolicy)
           )
+          .validFrom(lowerBound)
+          .validTo(upperBound)
           .complete();
         return { type: "ok", data: tx };
       }
