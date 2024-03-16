@@ -89,14 +89,29 @@ export const multiLqFold = async (
       return a.outputIndex - b.outputIndex;
     });
 
-    const foldNodes = {
-      nodeIdxs: sortedUtxos.reduce((acc, node, index) => {
-        if (nodeUtxos.map(({ txHash }) => txHash).includes(node.txHash)) {
-          acc.push(BigInt(index))
-        }
+    console.log(JSON.stringify(sortedUtxos, (_, v) => typeof v === 'bigint' ? v.toString() : v))
+    const indexingPairs = sortedUtxos.map((item, index) => {
+      return {
+        item,
+        index
+      }
+    }).filter(({ item }) => nodeUtxos.find(({ txHash, outputIndex }) => `${txHash}#${outputIndex}` === `${item.txHash}#${item.outputIndex}`))
 
-        return acc;
-      }, [] as bigint[]),
+    const indexingSet = indexingPairs.sort((a, b) => {
+      console.log(a.item.datum, b.item.datum)
+      const aKey = Data.from(a.item.datum as string, LiquiditySetNode);
+      const bKey = Data.from(b.item.datum as string, LiquiditySetNode);
+
+      if (aKey.key === null) return -1;
+      if (bKey.key === null) return -1;
+      
+      if (aKey.key < bKey.key) return -1;
+      
+      return 1;
+    }).map(({ index }) => BigInt(index))
+
+    const foldNodes = {
+      nodeIdxs: indexingSet,
       outputIdxs: [...new Array(nodeUtxos.length).keys()].map(BigInt)
     };
 
@@ -114,10 +129,10 @@ export const multiLqFold = async (
       .attachSpendingValidator(liquidityValidator)
       .attachWithdrawalValidator(collectStakeValidator)
 
-    nodeUtxos.forEach((utxo, index) => {
+    nodeUtxos.forEach((utxo) => {
       const redeemer = Data.to("CommitFoldAct", LiquidityNodeValidatorAction);
       
-      console.log(`Attaching: ${utxo.txHash}#${index} from ${utxo.address}`)
+      console.log(`Attaching: ${utxo.txHash}#${utxo.outputIndex} from ${utxo.address}`)
       tx.collectFrom([utxo], redeemer)
     });
 
@@ -141,7 +156,7 @@ export const multiLqFold = async (
       )
     })
     
-    const txComplete = await tx
+    tx
       .payToContract(
         foldValidatorAddr,
         { inline: newFoldDatum },
@@ -157,12 +172,14 @@ export const multiLqFold = async (
       )
       .validFrom(lowerBound)
       .validTo(upperBound)
-      .complete({
-        coinSelection: false,
-        change: {
-          address: config.changeAddress,
-        }
-      })
+      
+    const txComplete = await tx.complete({
+      coinSelection: false,
+      nativeUplc: true,
+      change: {
+        address: config.changeAddress,
+      }
+    })
 
     return { type: "ok", data: txComplete };
   } catch (error) {

@@ -23,17 +23,18 @@ export const utxosAtScript = async (
 };
 
 //TODO: makes this generic
-export const parseDatum = (
+export const parseDatum = <T = SetNode>(
   lucid: Lucid,
   utxo: UTxO,
   type: "Direct" | "Liquidity" = "Liquidity"
-): Either<string, SetNode> => {
+): Either<string, T> => {
   if (utxo.datum) {
     try {
       const parsedDatum = Data.from(utxo.datum, type === "Liquidity" ? LiquiditySetNode : SetNode);
+
       return {
         type: "right",
-        value: parsedDatum,
+        value: parsedDatum as T,
       };
     } catch (error) {
       return { type: "left", value: `invalid datum : ${error}` };
@@ -44,15 +45,15 @@ export const parseDatum = (
 };
 
 //TODO: make this generic
-export const parseUTxOsAtScript = async (
+export const parseUTxOsAtScript = async <T = SetNode>(
   lucid: Lucid,
   script: string,
   type: "Direct" | "Liquidity" = "Liquidity",
   stakeCredentialHash?: string
-): Promise<ReadableUTxO[]> => {
+): Promise<ReadableUTxO<T>[]> => {
   const utxos = await utxosAtScript(lucid, script, stakeCredentialHash);
   return utxos.flatMap((utxo) => {
-    const result = parseDatum(lucid, utxo, type);
+    const result = parseDatum<T>(lucid, utxo, type);
     if (result.type == "right") {
       return {
         outRef: {

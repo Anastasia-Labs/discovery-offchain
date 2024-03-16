@@ -226,8 +226,8 @@ export type BuildLiquidityScriptsConfig = {
   };
 };
 
-export type ReadableUTxO = {
+export type ReadableUTxO<T = SetNode> = {
   outRef: OutRef;
-  datum: SetNode;
+  datum: T;
   assets: Assets;
 };
