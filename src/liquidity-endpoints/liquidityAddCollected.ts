@@ -80,19 +80,19 @@ import {
     try {
       const tx = await lucid
         .newTx()
-        .collectFrom([foldUtxo], foldRedeemer)
         .collectFrom([tokenUtxo], tokenRedeemer)
+        .collectFrom([foldUtxo], foldRedeemer)
+        .attachMintingPolicy(collectFoldPolicy)
+        .attachSpendingValidator(collectFoldValidator)
+        .attachSpendingValidator(liquidityTokenHolderValidator)
         .payToContract(liquidityTokenHolderValidatorAddr, { inline: datum }, assets)
         .mintAssets({
             [foldNFT]: -1n
         }, Data.to(new Constr(1, [])))
-        .attachMintingPolicy(collectFoldPolicy)
-        .attachSpendingValidator(collectFoldValidator)
-        .attachSpendingValidator(liquidityTokenHolderValidator)
         .validFrom(lowerBound)
         .validTo(upperBound)
         .complete({
-          nativeUplc: false
+          nativeUplc: true
         });
   
       return { type: "ok", data: tx };
