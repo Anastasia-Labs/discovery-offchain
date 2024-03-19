@@ -5,14 +5,14 @@ import {
     Data,
     toUnit,
     TxComplete,
-  } from "@anastasia-labs/lucid-cardano-fork";
+  } from "lucid-fork";
   import {
     LiquidityNodeAction,
     LiquiditySetNode,
     NodeValidatorAction,
   } from "../core/contract.types.js";
   import { InsertNodeConfig, Result } from "../core/types.js";
-  import { NODE_ADA, mkNodeKeyTN, TIME_TOLERANCE_MS, MIN_COMMITMENT_ADA, TT_UTXO_ADDITIONAL_ADA } from "../index.js";
+  import { mkNodeKeyTN, TIME_TOLERANCE_MS, MIN_COMMITMENT_ADA, TT_UTXO_ADDITIONAL_ADA } from "../index.js";
   
   export const insertLqNode = async (
     lucid: Lucid,
@@ -91,18 +91,18 @@ import {
       [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
     };
   
-    if (BigInt(config.amountLovelace) < MIN_COMMITMENT_ADA) {
+    if (config.amountLovelace < MIN_COMMITMENT_ADA) {
       throw new Error("Amount deposited is less than the minimum amount.");
     }
 
-    const correctAmount = BigInt(config.amountLovelace) + TT_UTXO_ADDITIONAL_ADA;
+    const correctAmount = config.amountLovelace + TT_UTXO_ADDITIONAL_ADA;
     
     config.currenTime ??= Date.now();
     const upperBound = config.currenTime + TIME_TOLERANCE_MS;
     const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
     try {
-      const tx = await lucid
+      const tx = lucid
         .newTx()
         .collectFrom([coveringNode], redeemerNodeValidator)
         .compose(
@@ -128,10 +128,13 @@ import {
           config.refScripts?.nodePolicy
             ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
             : lucid.newTx().attachMintingPolicy(nodePolicy)
-        )
-        .complete();
+        );
+
+      const txComplete = await tx.complete({
+        nativeUplc: true
+      });
   
-      return { type: "ok", data: tx };
+      return { type: "ok", data: txComplete };
     } catch (error) {
       if (error instanceof Error) return { type: "error", error: error };
   

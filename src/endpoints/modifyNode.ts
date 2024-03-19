@@ -7,7 +7,7 @@ import {
   toUnit,
   TxComplete,
   Assets,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import { DiscoveryNodeAction, NodeValidatorAction, SetNode } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
 import { mkNodeKeyTN } from "../index.js";

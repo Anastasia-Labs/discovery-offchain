@@ -1,13 +1,12 @@
 import {
     applyParamsToScript,
     Constr,
-    Data,
     fromText,
     Lucid,
     MintingPolicy,
     SpendingValidator,
     WithdrawalValidator,
-  } from "@anastasia-labs/lucid-cardano-fork";
+  } from "lucid-fork";
   import { BuildLiquidityScriptsConfig, CborHex, Result } from "../types.js";
   import { fromAddressToData } from "./utils.js";
   

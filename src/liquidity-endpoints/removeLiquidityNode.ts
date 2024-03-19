@@ -5,7 +5,7 @@ import {
     Data,
     toUnit,
     TxComplete,
-  } from "@anastasia-labs/lucid-cardano-fork";
+  } from "lucid-fork";
   import {
     LiquidityNodeAction,
     NodeValidatorAction,
@@ -24,11 +24,6 @@ import {
     config: RemoveNodeConfig
   ): Promise<Result<TxComplete>> => {
     config.currenTime ??= Date.now();
-  
-    const walletUtxos = await lucid.wallet.getUtxos();
-  
-    if (!walletUtxos.length)
-      return { type: "error", error: new Error("No utxos in wallet") };
   
     const nodeValidator: SpendingValidator = {
       type: "PlutusV2",
@@ -110,7 +105,7 @@ import {
           },
           LiquidityNodeAction
         );
-        // console.log("beforeDeadline && beforeTwentyFourHours");
+
         const tx = await lucid
           .newTx()
           .collectFrom([node, prevNode], redeemerNodeValidator)
@@ -136,9 +131,6 @@ import {
           .complete();
         return { type: "ok", data: tx };
       } else if (beforeDeadline && !beforeTwentyFourHours) {
-        // console.log("beforeDeadline && !beforeTwentyFourHours");
-        // console.log("node value", node.assets);
-        // console.log("penaly ", divCeil(node.assets["lovelace"], 4n));
         const node = nodeUTXOs.find((value) => {
           if (value.datum) {
             const datum = Data.from(value.datum, LiquiditySetNode);

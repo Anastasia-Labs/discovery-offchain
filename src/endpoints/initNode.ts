@@ -5,8 +5,8 @@ import {
   Data,
   toUnit,
   TxComplete,
-} from "@anastasia-labs/lucid-cardano-fork";
-import { MIN_COMMITMENT_ADA, originNodeTokenName } from "../core/constants.js";
+} from "lucid-fork";
+import { MIN_COMMITMENT_ADA, TIME_TOLERANCE_MS, originNodeTokenName } from "../core/constants.js";
 import { DiscoveryNodeAction, SetNode } from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";
 import { NODE_ADA } from "../core/constants.js";
@@ -45,6 +45,9 @@ export const initNode = async (
 
   const redeemerNodePolicy = Data.to("PInit", DiscoveryNodeAction);
 
+  const upperBound = Date.now() + TIME_TOLERANCE_MS;
+  const lowerBound = Date.now() - TIME_TOLERANCE_MS;
+
   try {
     const tx = await lucid
       .newTx()
@@ -55,7 +58,8 @@ export const initNode = async (
         { ...assets, lovelace: MIN_COMMITMENT_ADA }
       )
       .mintAssets(assets, redeemerNodePolicy)
-      // .attachMintingPolicy(nodePolicy)
+      .validFrom(lowerBound)
+      .validTo(upperBound)
       .compose(
         config.refScripts?.nodePolicy
           ? lucid.newTx().readFrom([config.refScripts.nodePolicy])

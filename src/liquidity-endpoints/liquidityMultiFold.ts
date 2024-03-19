@@ -9,7 +9,7 @@ import {
   UTxO,
   Constr,
   WithdrawalValidator,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import { FoldAct, FoldDatum, LiquidityFoldDatum, LiquidityNodeValidatorAction, LiquiditySetNode, NodeValidatorAction, SetNode } from "../core/contract.types.js";
 import { MultiFoldConfig, Result } from "../core/types.js";
 import { CFOLD, FOLDING_FEE_ADA, NODE_ADA, TIME_TOLERANCE_MS, TT_UTXO_ADDITIONAL_ADA } from "../index.js";

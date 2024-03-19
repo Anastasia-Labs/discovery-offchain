@@ -7,7 +7,7 @@ import {
   TxComplete,
   Constr,
   fromText,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import { cFold, SETNODE_PREFIX } from "../core/constants.js";
 import { SetNode, FoldDatum, RewardFoldDatum } from "../core/contract.types.js";
 import { InitRewardFoldConfig, Result } from "../core/types.js";

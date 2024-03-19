@@ -5,9 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@anastasia-labs/lucid-cardano-fork':
-    specifier: ^0.10.8-rc.2
-    version: 0.10.8-rc.3
+  lucid-fork:
+    specifier: file:lucid.tgz
+    version: file:lucid.tgz
 
 devDependencies:
   '@sinclair/typebox':
@@ -47,18 +47,6 @@ packages:
     resolution: {integrity: sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==}
     engines: {node: '>=0.10.0'}
     dev: true
-
-  /@anastasia-labs/lucid-cardano-fork@0.10.8-rc.3:
-    resolution: {integrity: sha512-H+iobPIU9XKmfIqVnjrIUaF0INLo8TudEFnNkwUHy+Y7uLHDr1z+LDx9JqzLfADMRgx/hXJJLm59eza4a6TzHA==}
-    engines: {node: '>=14'}
-    dependencies:
-      '@peculiar/webcrypto': 1.4.3
-      node-fetch: 3.3.2
-      ws: 8.16.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
 
   /@cspotcode/source-map-support@0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -2686,3 +2674,17 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
     dev: true
+
+  file:lucid.tgz:
+    resolution: {integrity: sha512-TvxUFHvtLAFOKHNWxbuG1BIP/IHWjj7ZRGwf0B3KzoMcQqsw0ej/0BNZJ0VVHQM8gQu+goA+12+xY97ECgk2hw==, tarball: file:lucid.tgz}
+    name: lucid-cardano
+    version: 0.10.7
+    engines: {node: '>=14'}
+    dependencies:
+      '@peculiar/webcrypto': 1.4.3
+      node-fetch: 3.3.2
+      ws: 8.16.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false

@@ -9,7 +9,7 @@ import {
     Constr,
     Assets,
     OutRef,
-  } from "@anastasia-labs/lucid-cardano-fork";
+  } from "lucid-fork";
   import { cFold, PTHOLDER, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
   import { FoldAct, FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquidityHolderDatum, LiquidityProxyDatum, LiquiditySetNode, SetNode } from "../core/contract.types.js";
   import { SpendToProxyConfig, InitFoldConfig, Result } from "../core/types.js";

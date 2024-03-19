@@ -7,7 +7,7 @@ import {
   fromText,
   toUnit,
   WithdrawalValidator,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import {
   NodeValidatorAction,
   SetNode,

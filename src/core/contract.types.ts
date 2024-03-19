@@ -1,4 +1,4 @@
-import { Data } from "@anastasia-labs/lucid-cardano-fork";
+import { Data } from "lucid-fork";
 
 export const PubKeyHashSchema = Data.Bytes({ minLength: 28, maxLength: 28 });
 export type PubKeyHash = Data.Static<typeof PubKeyHashSchema>;
@@ -48,7 +48,7 @@ export type AddressD = Data.Static<typeof AddressSchema>;
 export const AddressD = AddressSchema as unknown as AddressD;
 
 export const NodeKeySchema = Data.Nullable(Data.Bytes());
-// export const NodeKeySchema = Data.Enum([
+// export constd NodeKeySchema = Data.Enum([
 //   Data.Object({ Key: Data.Tuple([Data.Bytes()]) }),
 //   Data.Literal("Empty"),
 // ]);

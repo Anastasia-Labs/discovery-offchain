@@ -9,7 +9,8 @@ import {
     Constr,
     Assets,
     OutRef,
-  } from "@anastasia-labs/lucid-cardano-fork";
+    Script,
+  } from "lucid-fork";
   import { cFold, PTHOLDER, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
   import { FoldAct, FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquidityHolderDatum, LiquiditySetNode, SetNode } from "../core/contract.types.js";
   import { AddCollectedConfig, InitFoldConfig, Result } from "../core/types.js";
@@ -31,22 +32,16 @@ import {
         script: config.scripts.collectFoldPolicy
     }
 
+    const [tokenHolderPolicy] = await lucid.provider.getUtxosByOutRef([config.refScripts.tokenHolderPolicy])
+    const [tokenHolderValidator] = await lucid.provider.getUtxosByOutRef([config.refScripts.tokenHolderValidator])
+
+    if (!tokenHolderPolicy?.scriptRef || !tokenHolderValidator?.scriptRef) {
+      throw new Error("Could not find the required reference scripts for TokenHolderPolicy and/or TokenHolderValidator.")
+    }
+
     const collectFoldPolicyId = lucid.utils.mintingPolicyToId(collectFoldPolicy);
-  
-    const liquidityTokenHolderValidator: SpendingValidator = {
-        type: "PlutusV2",
-        script: config.scripts.tokenHolderValidator
-    }
-
-    const liquidityTokenHolderValidatorAddr = lucid.utils.validatorToAddress(liquidityTokenHolderValidator)
-
-    const liquidityTokenHolderPolicy: MintingPolicy = {
-        type: "PlutusV2",
-        script: config.scripts.tokenHolderPolicy
-    }
-
-    const liquidityTokenHolderPolicyId = lucid.utils.mintingPolicyToId(liquidityTokenHolderPolicy);
-  
+    const liquidityTokenHolderPolicyId = lucid.utils.mintingPolicyToId(tokenHolderPolicy.scriptRef);
+    const liquidityTokenHolderValidatorAddr = lucid.utils.validatorToAddress(tokenHolderValidator.scriptRef)
     
     const foldNFT = toUnit(collectFoldPolicyId, cFold);
     const foldUtxo = await lucid.provider.getUtxoByUnit(foldNFT)
@@ -67,30 +62,11 @@ import {
         lovelace: tokenUtxo.assets.lovelace + foldDatum.committed,
     }
 
-    // Make this match
-    // const datum = Data.to(
-    //     [],
-    //     LiquidityHolderDatum
-    // )
-    // const datum = Data.to(new Constr(0, [
-    //     "",
-    //     foldDatum.committed,
-    //     0n
-    // ]))
     const datum = Data.to({
       lpAssetName: "",
       totalCommitted: foldDatum.committed,
       totalLpTokens: 0n
     }, LiquidityHolderDatum)
-
-    const tempTokenHolderPolicy = await lucid.provider.getUtxosByOutRef([{
-      outputIndex: 0,
-      txHash: "47ba149ba4298eb20f9142af5b09f4159a0e817ae69a1e7dd2619506d9a28dd9"
-    }])
-    const tempTokenHolderValidator = await lucid.provider.getUtxosByOutRef([{
-      outputIndex: 0,
-      txHash: "c38fcc0f01e663aab149cc8f108668528179b5af432c6ccd20f483003935b2a8"
-    }])
 
     try {
       const tx = await lucid
@@ -99,8 +75,8 @@ import {
         .collectFrom([foldUtxo], foldRedeemer)
         .attachMintingPolicy(collectFoldPolicy)
         .attachSpendingValidator(collectFoldValidator)
-        .readFrom(tempTokenHolderPolicy)
-        .readFrom(tempTokenHolderValidator)
+        .readFrom([tokenHolderPolicy])
+        .readFrom([tokenHolderValidator])
         .payToContract(liquidityTokenHolderValidatorAddr, { inline: datum }, assets)
         .mintAssets({
             [foldNFT]: -1n
