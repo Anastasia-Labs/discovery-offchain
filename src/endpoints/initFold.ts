@@ -8,7 +8,7 @@ import {
   fromText,
 } from "@anastasia-labs/lucid-cardano-fork";
 import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
-import { AddressD, FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquidityFoldDatumSchema, LiquiditySetNode, SetNode } from "../core/contract.types.js";
+import { AddressD, FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquiditySetNode, SetNode } from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 

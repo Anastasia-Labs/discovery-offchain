@@ -8,6 +8,7 @@ import {
     fromText,
     Constr,
     Assets,
+    OutRef,
   } from "@anastasia-labs/lucid-cardano-fork";
   import { cFold, PTHOLDER, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
   import { FoldAct, FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquidityHolderDatum, LiquiditySetNode, SetNode } from "../core/contract.types.js";
@@ -71,11 +72,25 @@ import {
     //     [],
     //     LiquidityHolderDatum
     // )
-    const datum = Data.to(new Constr(0, [
-        "",
-        foldDatum.committed,
-        0n
-    ]))
+    // const datum = Data.to(new Constr(0, [
+    //     "",
+    //     foldDatum.committed,
+    //     0n
+    // ]))
+    const datum = Data.to({
+      lpAssetName: "",
+      totalCommitted: foldDatum.committed,
+      totalLpTokens: 0n
+    }, LiquidityHolderDatum)
+
+    const tempTokenHolderPolicy = await lucid.provider.getUtxosByOutRef([{
+      outputIndex: 0,
+      txHash: "47ba149ba4298eb20f9142af5b09f4159a0e817ae69a1e7dd2619506d9a28dd9"
+    }])
+    const tempTokenHolderValidator = await lucid.provider.getUtxosByOutRef([{
+      outputIndex: 0,
+      txHash: "c38fcc0f01e663aab149cc8f108668528179b5af432c6ccd20f483003935b2a8"
+    }])
 
     try {
       const tx = await lucid
@@ -84,7 +99,8 @@ import {
         .collectFrom([foldUtxo], foldRedeemer)
         .attachMintingPolicy(collectFoldPolicy)
         .attachSpendingValidator(collectFoldValidator)
-        .attachSpendingValidator(liquidityTokenHolderValidator)
+        .readFrom(tempTokenHolderPolicy)
+        .readFrom(tempTokenHolderValidator)
         .payToContract(liquidityTokenHolderValidatorAddr, { inline: datum }, assets)
         .mintAssets({
             [foldNFT]: -1n

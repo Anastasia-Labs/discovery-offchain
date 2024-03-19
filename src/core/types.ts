@@ -56,6 +56,22 @@ export type AddCollectedConfig = {
     tokenHolderPolicy: CborHex;
     tokenHolderValidator: CborHex;
   };
+  refScripts?: {
+    tokenHolderPolicy?: OutRef;
+    tokenHolderValidator?: OutRef;
+  }
+};
+
+export type SpendToProxyConfig = {
+  currenTime?: POSIXTime;
+  scripts: {
+    proxyTokenHolderV1Validator: CborHex;
+  };
+  refScripts: {
+    liquidityTokenHolderPolicy: OutRef;
+    liquidityTokenHolderValidator: OutRef;
+  }
+  liquidityTokenHolderInputs: UTxO[];
 };
 
 export type InitNodeConfig = {

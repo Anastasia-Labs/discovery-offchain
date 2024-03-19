@@ -64,7 +64,35 @@ export const multiLqFold = async (
     return a.outputIndex - b.outputIndex;
   });
 
-  const lastNodeRef = sortedNodes[config.indices.length - 1].datum;
+  const sortedUtxos = [...nodeUtxos, foldUTxO, config.feeInput].sort((a, b) => {
+    // First, compare by txHash
+    if (a.txHash < b.txHash) return -1;
+    if (a.txHash > b.txHash) return 1;
+
+    // If txHash is equal, then compare by index
+    return a.outputIndex - b.outputIndex;
+  });
+
+  const indexingPairs = sortedUtxos.map((item, index) => {
+    return {
+      item,
+      index
+    }
+  }).filter(({ item }) => nodeUtxos.find(({ txHash, outputIndex }) => `${txHash}#${outputIndex}` === `${item.txHash}#${item.outputIndex}`))
+
+  const sortedIndexingPairs = indexingPairs.sort((a, b) => {
+    const aKey = Data.from(a.item.datum as string, LiquiditySetNode);
+    const bKey = Data.from(b.item.datum as string, LiquiditySetNode);
+
+    if (aKey.key === null) return -1;
+    if (bKey.key === null) return -1;
+    
+    if (aKey.key < bKey.key) return -1;
+    
+    return 1;
+  })
+
+  const lastNodeRef = sortedIndexingPairs[config.indices.length - 1].item.datum;
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
 
   const lastNodeRefDatum = Data.from(lastNodeRef, LiquiditySetNode);
@@ -89,33 +117,7 @@ export const multiLqFold = async (
   const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   try {
-    const sortedUtxos = [...nodeUtxos, foldUTxO, config.feeInput].sort((a, b) => {
-      // First, compare by txHash
-      if (a.txHash < b.txHash) return -1;
-      if (a.txHash > b.txHash) return 1;
-  
-      // If txHash is equal, then compare by index
-      return a.outputIndex - b.outputIndex;
-    });
-
-    const indexingPairs = sortedUtxos.map((item, index) => {
-      return {
-        item,
-        index
-      }
-    }).filter(({ item }) => nodeUtxos.find(({ txHash, outputIndex }) => `${txHash}#${outputIndex}` === `${item.txHash}#${item.outputIndex}`))
-
-    const indexingSet = indexingPairs.sort((a, b) => {
-      const aKey = Data.from(a.item.datum as string, LiquiditySetNode);
-      const bKey = Data.from(b.item.datum as string, LiquiditySetNode);
-
-      if (aKey.key === null) return -1;
-      if (bKey.key === null) return -1;
-      
-      if (aKey.key < bKey.key) return -1;
-      
-      return 1;
-    }).map(({ index }) => BigInt(index))
+    const indexingSet = sortedIndexingPairs.map(({ index }) => BigInt(index))
 
     const foldNodes = {
       nodeIdxs: indexingSet,
@@ -144,7 +146,7 @@ export const multiLqFold = async (
       tx.collectFrom([utxo], redeemer)
     });
 
-    nodeUtxos.forEach(utxo => {
+    sortedIndexingPairs.forEach(({ item: utxo }) => {
       const datumCommitment = utxo.assets.lovelace - TT_UTXO_ADDITIONAL_ADA;
       const oldDatum = Data.from(utxo.datum as string, LiquiditySetNode);
       const newDatum = Data.to({

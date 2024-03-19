@@ -239,11 +239,20 @@ export const LiquidityFoldDatumSchema = Data.Object({
 export type LiquidityFoldDatum = Data.Static<typeof LiquidityFoldDatumSchema>;
 export const LiquidityFoldDatum = LiquidityFoldDatumSchema as unknown as LiquidityFoldDatum;
 
-export const LiquidityHolderDatumSchema = Data.Enum([
-
-]);
+export const LiquidityHolderDatumSchema = Data.Object({
+  lpAssetName: Data.Bytes(),
+  totalCommitted: Data.Integer(),
+  totalLpTokens: Data.Integer()
+});
 export type LiquidityHolderDatum = Data.Static<typeof LiquidityHolderDatumSchema>;
 export const LiquidityHolderDatum = LiquidityHolderDatumSchema as unknown as LiquidityHolderDatum;
+
+export const LiquidityProxyDatumSchema = Data.Object({
+  totalCommitted: Data.Integer(),
+  returnAddress: AddressSchema
+});
+export type LiquidityProxyDatum = Data.Static<typeof LiquidityProxyDatumSchema>;
+export const LiquidityProxyDatum = LiquidityProxyDatumSchema as unknown as LiquidityProxyDatum;
 
 export const LiquidityRewardFoldDatumSchema = Data.Object({
   currNode: LiquiditySetNodeSchema,

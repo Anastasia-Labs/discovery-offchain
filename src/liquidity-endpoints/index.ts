@@ -6,3 +6,4 @@ export { initLqTokenHolder } from "./initLiquidityTokenHolder.js"
 export { initLqFold } from "./initLiquidityFold.js";
 export { multiLqFold } from "./liquidityMultiFold.js";
 export { addCollected } from "./liquidityAddCollected.js"
+export { spendToProxy } from "./liquiditySpendToProxy.js";
