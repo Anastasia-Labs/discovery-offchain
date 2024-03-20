@@ -1,6 +1,6 @@
 {
   "name": "price-discovery-offchain",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "https://docs.github.com/en/packages/quickstart",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,7 +13,7 @@
     "build": "tsup src/index.ts --minify --format esm,cjs --dts --clean",
     "watch": "tsup src/index.ts --minify --format esm,cjs --dts --clean --watch",
     "lint": "eslint",
-    "repack": "pnpm run build  && pnpm pack",
+    "repack": "pnpm run build && pnpm pack",
     "ts-node": "ts-node"
   },
   "keywords": [],
@@ -32,7 +32,7 @@
     "vitest": "0.34.6"
   },
   "dependencies": {
-    "@anastasia-labs/lucid-cardano-fork": "^0.10.8-rc.2"
+    "lucid-fork": "file:lucid.tgz"
   },
   "directories": {
     "test": "test"

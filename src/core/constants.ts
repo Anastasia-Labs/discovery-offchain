@@ -1,4 +1,4 @@
-import { fromText } from "@anastasia-labs/lucid-cardano-fork";
+import { fromText } from "lucid-fork";
 
 export const SETNODE_PREFIX = "FSN";
 export const CORRNODE_PREFIX = "FCN";

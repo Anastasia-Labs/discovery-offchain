@@ -7,7 +7,7 @@ import {
   fromText,
   toUnit,
   UTxO,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import { FoldAct, FoldDatum, SetNode } from "../core/contract.types.js";
 import { MultiFoldConfig, Result } from "../core/types.js";
 import { CFOLD, NODE_ADA, TIME_TOLERANCE_MS } from "../index.js";

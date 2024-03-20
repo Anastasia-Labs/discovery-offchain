@@ -5,7 +5,7 @@ import {
   Data,
   toUnit,
   TxComplete,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import {
   DiscoveryNodeAction,
   NodeValidatorAction,

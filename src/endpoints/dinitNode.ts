@@ -5,7 +5,7 @@ import {
   Data,
   toUnit,
   TxComplete,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import { corrNodeTokenName, originNodeTokenName } from "../core/constants.js";
 import { DiscoveryNodeAction, SetNode } from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";

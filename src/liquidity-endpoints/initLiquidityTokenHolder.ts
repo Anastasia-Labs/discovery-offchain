@@ -7,7 +7,7 @@ import {
   TxComplete,
   fromText,
   Constr,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import { PTHOLDER } from "../core/constants.js";
 import { InitTokenHolderConfig, Result } from "../core/types.js";
 

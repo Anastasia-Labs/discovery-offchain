@@ -6,7 +6,7 @@ import {
   PolicyId,
   SpendingValidator,
   UTxO,
-} from "@anastasia-labs/lucid-cardano-fork";
+} from "lucid-fork";
 import { SetNode } from "./contract.types.js";
 
 export type CborHex = string;
@@ -31,6 +31,7 @@ export type AssetClass = {
 };
 
 export type DeployRefScriptsConfig = {
+  spendingInput?: UTxO;
   script: CborHex;
   name: string;
   alwaysFails: CborHex;
@@ -53,12 +54,10 @@ export type AddCollectedConfig = {
   scripts: {
     collectFoldPolicy: CborHex;
     collectFoldValidator: CborHex;
-    tokenHolderPolicy: CborHex;
-    tokenHolderValidator: CborHex;
   };
-  refScripts?: {
-    tokenHolderPolicy?: OutRef;
-    tokenHolderValidator?: OutRef;
+  refScripts: {
+    tokenHolderPolicy: OutRef;
+    tokenHolderValidator: OutRef;
   }
 };
 
@@ -102,7 +101,7 @@ export type InsertNodeConfig = {
     nodeValidator?: UTxO;
     nodePolicy?: UTxO;
   };
-  amountLovelace: number;
+  amountLovelace: bigint;
   currenTime?: POSIXTime;
 };
 
@@ -130,6 +129,27 @@ export type InitFoldConfig = {
   };
   currenTime?: POSIXTime;
 };
+
+export type CreateV1PoolConfig = {
+  currenTime?: POSIXTime;
+  v1PoolScriptAddress: string;
+  v1PoolFactoryToken: {
+    policyId: CborHex;
+    assetName: CborHex;
+  };
+  projectToken: {
+    policyId: CborHex;
+    assetName: CborHex;
+    totalSupply: bigint;
+  },
+  datums: {
+    [hash: CborHex]: CborHex;
+  }
+  scripts: {
+    proxyTokenHolderScript: CborHex;
+    v1PoolPolicyScript: CborHex;
+  }
+}
 
 export type MultiFoldConfig = {
   nodeRefInputs: OutRef[];
