@@ -27,21 +27,6 @@ import {
     lucid: Lucid,
     config: BuildLiquidityScriptsConfig
   ): Result<LiquidityScripts> => {
-    const proxyTokenHolderScriptV1: SpendingValidator = {
-      type: "PlutusV1",
-      script: config.unapplied.proxyTokenHolderValidator
-    }
-
-    const proxyTokenHolderScriptV2: SpendingValidator = {
-      type: "PlutusV2",
-      script: config.unapplied.proxyTokenHolderValidator
-    }
-
-    console.log({
-      proxyTokenHolderScriptV1Hash: lucid.utils.validatorToScriptHash(proxyTokenHolderScriptV1),
-      proxyTokenHolderScriptV2Hash: lucid.utils.validatorToScriptHash(proxyTokenHolderScriptV2)
-    })
-
     const initUTXOprojectTokenHolder = new Constr(0, [
       new Constr(0, [config.projectTokenHolder.initUTXO.txHash]),
       BigInt(config.projectTokenHolder.initUTXO.outputIndex),

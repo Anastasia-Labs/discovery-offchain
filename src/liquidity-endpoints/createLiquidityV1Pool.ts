@@ -162,7 +162,7 @@ export const createLiquidityV1Pool = async (
             .validFrom(lowerBound)
             .validTo(upperBound)
             .complete({
-                nativeUplc: true
+                nativeUplc: false
             });
 
         return { type: "ok", data: tx };
