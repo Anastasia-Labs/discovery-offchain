@@ -1,6 +1,6 @@
 import { Constr, Data, Lucid, MintingPolicy, SpendingValidator, TxComplete, toUnit } from "lucid-fork";
 import { CreateV1PoolConfig, Result } from "../core/types.js";
-import { CreatePoolRedeemer, LiquidityFactoryDatum, LiquidityPoolDatum, LiquidityProxyDatum, LiquidityReturnProxyDatum, TIME_TOLERANCE_MS, sqrt, toAddress, utxosAtScript } from "../core/index.js";
+import { LiquidityFactoryDatum, LiquidityPoolDatum, LiquidityProxyDatum, LiquidityReturnProxyDatum, TIME_TOLERANCE_MS, sqrt, toAddress, utxosAtScript } from "../core/index.js";
 
 export const createLiquidityV1Pool = async (
     lucid: Lucid,
@@ -162,7 +162,7 @@ export const createLiquidityV1Pool = async (
             .validFrom(lowerBound)
             .validTo(upperBound)
             .complete({
-                nativeUplc: false
+                nativeUplc: config.emulator ?? false
             });
 
         return { type: "ok", data: tx };

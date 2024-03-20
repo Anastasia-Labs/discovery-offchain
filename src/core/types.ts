@@ -149,6 +149,7 @@ export type CreateV1PoolConfig = {
     v1PoolPolicyScript: CborHex;
     v1FactoryValidatorScript: CborHex;
   }
+  emulator?: boolean;
 }
 
 export type MultiFoldConfig = {
@@ -162,6 +163,11 @@ export type MultiFoldConfig = {
     foldPolicy: CborHex;
     foldValidator: CborHex;
   };
+  refInputs?: {
+    liquidityValidator: UTxO;
+    collectStake?: UTxO;
+    foldValidator: UTxO;
+  }
   currenTime?: POSIXTime;
 };
 

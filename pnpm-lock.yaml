@@ -2676,7 +2676,7 @@ packages:
     dev: true
 
   file:lucid.tgz:
-    resolution: {integrity: sha512-TvxUFHvtLAFOKHNWxbuG1BIP/IHWjj7ZRGwf0B3KzoMcQqsw0ej/0BNZJ0VVHQM8gQu+goA+12+xY97ECgk2hw==, tarball: file:lucid.tgz}
+    resolution: {integrity: sha512-tYymlggMWJt5AttMVUPOCo4PzVH8AxDtv/ObkpqS1kcpVTOqc+YTJVWbEX93P8XNSZiTWF+MWHrAHc0drZSCpg==, tarball: file:lucid.tgz}
     name: lucid-cardano
     version: 0.10.7
     engines: {node: '>=14'}

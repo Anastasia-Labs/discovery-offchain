@@ -55,15 +55,6 @@ export const multiLqFold = async (
   //NOTE: node nodeRefUTxOs shuold be already ordered by keys, utxo type is better than outref since outref does not holds datum information, not sure yet if using utxo though
   const nodeUtxos = await lucid.utxosByOutRef(config.nodeRefInputs);
 
-  const sortedNodes = nodeUtxos.sort((a, b) => {
-    // First, compare by txHash
-    if (a.txHash < b.txHash) return -1;
-    if (a.txHash > b.txHash) return 1;
-
-    // If txHash is equal, then compare by index
-    return a.outputIndex - b.outputIndex;
-  });
-
   const sortedUtxos = [...nodeUtxos, foldUTxO, config.feeInput].sort((a, b) => {
     // First, compare by txHash
     if (a.txHash < b.txHash) return -1;
@@ -134,9 +125,18 @@ export const multiLqFold = async (
     const tx = lucid.newTx()
       .collectFrom([config.feeInput])
       .collectFrom([foldUTxO], foldRedeemer)
-      .attachSpendingValidator(foldValidator)
-      .attachSpendingValidator(liquidityValidator)
-      .attachWithdrawalValidator(collectStakeValidator)
+
+    if (config.refInputs) {
+      tx
+        .readFrom([config.refInputs.foldValidator])
+        .readFrom([config.refInputs.liquidityValidator])
+        .readFrom([config.refInputs.collectStake])
+    } else {
+      tx
+        .attachSpendingValidator(foldValidator)
+        .attachSpendingValidator(liquidityValidator)
+        .attachWithdrawalValidator(collectStakeValidator)
+    }
 
     nodeUtxos.forEach((utxo) => {
       const redeemer = Data.to("CommitFoldAct", LiquidityNodeValidatorAction);
