@@ -22,7 +22,7 @@ import {
     config.currenTime ??= Date.now();
   
     const proxyTokenHolderV1Validator: SpendingValidator = {
-      type: "PlutusV2",
+      type: "PlutusV1",
       script: config.scripts.proxyTokenHolderV1Validator,
     };
 

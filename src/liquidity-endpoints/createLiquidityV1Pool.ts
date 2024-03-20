@@ -1,25 +1,48 @@
-import { Data, Lucid, MintingPolicy, TxComplete, toUnit } from "lucid-fork";
+import { Constr, Data, Lucid, MintingPolicy, SpendingValidator, TxComplete, toUnit } from "lucid-fork";
 import { CreateV1PoolConfig, Result } from "../core/types.js";
-import { LiquidityFactoryDatum, LiquidityPoolDatum, LiquidityProxyDatum, TIME_TOLERANCE_MS, utxosAtScript } from "../core/index.js";
+import { CreatePoolRedeemer, LiquidityFactoryDatum, LiquidityPoolDatum, LiquidityProxyDatum, LiquidityReturnProxyDatum, TIME_TOLERANCE_MS, sqrt, toAddress, utxosAtScript } from "../core/index.js";
 
 export const createLiquidityV1Pool = async (
     lucid: Lucid,
     config: CreateV1PoolConfig
 ): Promise<Result<TxComplete>> => {
-    const [proxyUtxo] = await utxosAtScript(
-        lucid,
-        config.scripts.proxyTokenHolderScript
-    )
+    const v1FactoryValidatorScript: SpendingValidator = {
+        type: "PlutusV1",
+        script: config.scripts.v1FactoryValidatorScript
+    }
 
-    const proxyDatumHex = config.datums[proxyUtxo.datumHash as string];
+    const v1FactoryValidatorScriptAddr = lucid.utils.validatorToAddress(v1FactoryValidatorScript);
+
+    const proxyValidatorScript: SpendingValidator = {
+        type: "PlutusV1",
+        script: config.scripts.proxyTokenHolderScript
+    }
+
+    const projectTokenUnit = toUnit(config.projectToken.policyId, config.projectToken.assetName);
+    
+    const proxyValidatorScriptAddr = lucid.utils.validatorToAddress(proxyValidatorScript);
+    const [proxyUtxo] = await lucid.provider.getUtxosWithUnit(
+        proxyValidatorScriptAddr,
+        projectTokenUnit
+    )
+    
+    const projectTokenAmount = proxyUtxo.assets[projectTokenUnit]
+    const proxyDatumHex = await lucid.provider.getDatum(proxyUtxo.datumHash as string) ?? config.datums[proxyUtxo.datumHash as string];
     const proxyDatum = Data.from(proxyDatumHex ?? proxyUtxo.datum as string, LiquidityProxyDatum)
 
+    console.log(v1FactoryValidatorScriptAddr, config.v1FactoryToken.policyId, config.v1FactoryToken.assetName)
+
     const [factoryUtxo] = await lucid.provider.getUtxosWithUnit(
-        config.v1PoolScriptAddress,
-        toUnit(config.v1PoolFactoryToken.policyId, config.v1PoolFactoryToken.assetName)
+        v1FactoryValidatorScriptAddr,
+        toUnit(config.v1FactoryToken.policyId, config.v1FactoryToken.assetName)
     );
+
+    if (!factoryUtxo?.datumHash) {
+        throw new Error("Could not find the datum hash of the factory UTXO.")
+    }
     
-    const { nextPoolIdent, ...rest } = Data.from(config.datums[factoryUtxo?.datumHash as string] as string, LiquidityFactoryDatum);
+    const oldFactoryDatum = await lucid.provider.getDatum(factoryUtxo.datumHash as string) ?? config.datums[factoryUtxo?.datumHash as string];
+    const { nextPoolIdent, ...rest } = Data.from(oldFactoryDatum as string, LiquidityFactoryDatum);
     
     const newNextPoolIdent = genNextPoolIdent(nextPoolIdent);
     const newFactoryDatum = Data.to({
@@ -27,7 +50,12 @@ export const createLiquidityV1Pool = async (
         nextPoolIdent: newNextPoolIdent
     }, LiquidityFactoryDatum)
 
-    const circulatingLP = 0n;
+    const circulatingLP = sqrt(proxyDatum.totalCommitted, projectTokenAmount);
+    console.log(`
+        Depositing: ${proxyDatum.totalCommitted} Lovelace,
+        Depositing: ${projectTokenAmount} ${Buffer.from(config.projectToken.assetName, "hex").toString("utf-8")},
+        Generating: ${circulatingLP} LP Tokens
+    `)
 
     const poolDatum = Data.to({
         coins: {
@@ -48,53 +76,95 @@ export const createLiquidityV1Pool = async (
         }
     }, LiquidityPoolDatum)
 
-    const projectTokenUnit = toUnit(config.projectToken.policyId, config.projectToken.assetName);
-    const poolPolicy: MintingPolicy = {
+    const poolMintingPolicy: MintingPolicy = {
         type: "PlutusV1",
         script: config.scripts.v1PoolPolicyScript
     }
-    const poolPolicyId = lucid.utils.mintingPolicyToId(poolPolicy);
+    const poolPolicyId = lucid.utils.mintingPolicyToId(poolMintingPolicy);
+    const poolLpTokenName = "6c7020" + nextPoolIdent;
 
     config.currenTime ??= Date.now();
     const upperBound = config.currenTime + TIME_TOLERANCE_MS;
     const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
+    const proxyRedeemer = Data.to(new Constr(0, []));
+
+    // const createPoolRedeemer = Data.to({
+    //     CreatePool: {
+    //         coinA: {
+    //             policyId: "",
+    //             tokenName: ""
+    //         },
+    //         coinB: {
+    //             policyId: config.projectToken.policyId,
+    //             tokenName: config.projectToken.assetName,
+    //         },
+    //     }
+    // }, CreatePoolRedeemer);
+    const createPoolRedeemer = Data.to(new Constr(0, [
+        new Constr(0, [
+            "",
+            ""
+        ]),
+        new Constr(0, [
+            config.projectToken.policyId,
+            config.projectToken.assetName
+        ])
+    ]))
+
+    const newProxyDatum = Data.to(new Constr(0, [
+        poolLpTokenName,
+        proxyDatum.totalCommitted,
+        circulatingLP
+    ]));
+
+    const collateralUtxo = (await lucid.wallet.getUtxos()).find(({ assets }) => assets.lovelace > 5_000_000n);
+
     try {
         const tx = await lucid.newTx()
-            .collectFrom([proxyUtxo], "")
-            .collectFrom([factoryUtxo], "")
+            .collectFrom([{
+                ...proxyUtxo,
+                datum: proxyDatumHex
+            }], proxyRedeemer)
+            .collectFrom([{
+                ...factoryUtxo,
+                datum: oldFactoryDatum
+            }], createPoolRedeemer)
             .payToContract(
                 factoryUtxo.address,
                 newFactoryDatum,
                 factoryUtxo.assets
             )
             .payToContract(
-                config.v1PoolScriptAddress,
+                config.v1PoolAddress,
                 poolDatum,
                 {
                     lovelace: proxyDatum.totalCommitted + 2_000_000n,
-                    [projectTokenUnit]: proxyUtxo.assets[projectTokenUnit],
+                    [projectTokenUnit]: projectTokenAmount,
                     [toUnit(poolPolicyId, "7020" + nextPoolIdent)]: 1n
                 }
             )
             .payToContract(
-                lucid.utils.credentialToAddress({
-                    type: "Script",
-                    hash: (proxyDatum.returnAddress.paymentCredential as any).ScriptCredential
-                }),
-                "",
+                toAddress(proxyDatum.returnAddress, lucid),
+                newProxyDatum,
                 {
                     lovelace: proxyUtxo.assets.lovelace - proxyDatum.totalCommitted,
-                    [toUnit(poolPolicyId, "6c7020" + nextPoolIdent)]: circulatingLP
+                    [toUnit(poolPolicyId, poolLpTokenName)]: circulatingLP
                 }
             )
             .mintAssets({
                 [toUnit(poolPolicyId, "7020" + nextPoolIdent)]: 1n,
-                [toUnit(poolPolicyId, "6c7020" + nextPoolIdent)]: circulatingLP
-            }, nextPoolIdent)
+                [toUnit(poolPolicyId, poolLpTokenName)]: circulatingLP
+            }, `41${nextPoolIdent}`)
+            .attachSpendingValidator(v1FactoryValidatorScript)
+            .attachMintingPolicy(poolMintingPolicy)
+            .attachSpendingValidator(proxyValidatorScript)
             .validFrom(lowerBound)
             .validTo(upperBound)
-            .complete();
+            .complete({
+                nativeUplc: true
+            });
+
         return { type: "ok", data: tx };
     } catch (error) {
       if (error instanceof Error) return { type: "error", error: error };

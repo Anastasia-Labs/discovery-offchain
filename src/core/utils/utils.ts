@@ -126,6 +126,26 @@ type SpendingValidatorDetails = {
   spendingValidatorAddress: Address;
 };
 
+function rootNth(value: bigint, k = 2n) {
+  if (value < 0n) {
+    throw new Error("negative number is not supported");
+  }
+
+  let o = 0n;
+  let x = value;
+  let limit = 100;
+
+  while (x ** k !== k && x !== o && --limit) {
+    o = x;
+    x = ((k - 1n) * x + value / x ** (k - 1n)) / k;
+  }
+
+  return x;
+}
+
+export function sqrt(a: bigint, b: bigint) {
+  return rootNth(a * b);
+}
 
 
 // const tokenHolderValidator: SpendingValidator = {

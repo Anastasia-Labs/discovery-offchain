@@ -132,15 +132,14 @@ export type InitFoldConfig = {
 
 export type CreateV1PoolConfig = {
   currenTime?: POSIXTime;
-  v1PoolScriptAddress: string;
-  v1PoolFactoryToken: {
+  v1PoolAddress: string;
+  v1FactoryToken: {
     policyId: CborHex;
     assetName: CborHex;
   };
   projectToken: {
     policyId: CborHex;
     assetName: CborHex;
-    totalSupply: bigint;
   },
   datums: {
     [hash: CborHex]: CborHex;
@@ -148,6 +147,7 @@ export type CreateV1PoolConfig = {
   scripts: {
     proxyTokenHolderScript: CborHex;
     v1PoolPolicyScript: CborHex;
+    v1FactoryValidatorScript: CborHex;
   }
 }
 
@@ -269,6 +269,7 @@ export type BuildLiquidityScriptsConfig = {
     distributionFoldValidator: RawHex;
     tokenHolderValidator: RawHex;
     tokenHolderPolicy: RawHex;
+    proxyTokenHolderValidator: RawHex;
   };
 };
 

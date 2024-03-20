@@ -259,6 +259,14 @@ export const LiquidityProxyDatumSchema = Data.Object({
 export type LiquidityProxyDatum = Data.Static<typeof LiquidityProxyDatumSchema>;
 export const LiquidityProxyDatum = LiquidityProxyDatumSchema as unknown as LiquidityProxyDatum;
 
+export const LiquidityReturnProxyDatumSchema = Data.Object({
+  poolLpTokenName: Data.Bytes(),
+  totalCommitted: Data.Integer(),
+  circulatingLP: Data.Integer()
+});
+export type LiquidityReturnProxyDatum = Data.Static<typeof LiquidityReturnProxyDatumSchema>;
+export const LiquidityReturnProxyDatum = LiquidityReturnProxyDatumSchema as unknown as LiquidityReturnProxyDatum;
+
 export const LiquidityRewardFoldDatumSchema = Data.Object({
   currNode: LiquiditySetNodeSchema,
   totalProjectTokens: Data.Integer(),
@@ -297,3 +305,15 @@ export const LiquidityPoolDatumSchema = Data.Object({
 export type LiquidityPoolDatum = Data.Static<typeof LiquidityPoolDatumSchema>;
 export const LiquidityPoolDatum =
   LiquidityPoolDatumSchema as unknown as LiquidityPoolDatum;
+
+export const CreatePoolRedeemerSchema = Data.Enum([
+  Data.Object({
+    CreatePool: Data.Object({
+      coinA: AssetClassSchema,
+      coinB: AssetClassSchema
+    }),
+  })
+])
+export type CreatePoolRedeemer = Data.Static<typeof CreatePoolRedeemerSchema>;
+export const CreatePoolRedeemer =
+  CreatePoolRedeemerSchema as unknown as CreatePoolRedeemer;
