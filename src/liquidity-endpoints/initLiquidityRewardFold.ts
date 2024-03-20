@@ -8,10 +8,10 @@ import {
   Constr,
   fromText,
 } from "lucid-fork";
-import { cFold, SETNODE_PREFIX } from "../core/constants.js";
-import { SetNode, FoldDatum, RewardFoldDatum, LiquiditySetNode, LiquidityRewardFoldDatum } from "../core/contract.types.js";
+import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
+import { FoldDatum, LiquiditySetNode, LiquidityRewardFoldDatum } from "../core/contract.types.js";
 import { InitRewardFoldConfig, Result } from "../core/types.js";
-import { fromAddress, toAddress } from "../index.js";
+import { fromAddress } from "../index.js";
 
 export const initLqRewardFold = async (
   lucid: Lucid,
@@ -112,6 +112,10 @@ export const initLqRewardFold = async (
   const burnCommitFoldAct = Data.to(new Constr(1, []));
   const reclaimCommitFoldAct = Data.to(new Constr(1, []));
 
+  config.currenTime ??= Date.now();
+  const upperBound = config.currenTime + TIME_TOLERANCE_MS;
+  const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
+
   try {
     const tx = await lucid
       .newTx()
@@ -158,6 +162,8 @@ export const initLqRewardFold = async (
           : lucid.newTx().attachMintingPolicy(tokenHolderPolicy)
       )
       .addSigner(await lucid.wallet.address())
+      .validFrom(lowerBound)
+      .validTo(upperBound)
       .complete();
 
     return { type: "ok", data: tx };

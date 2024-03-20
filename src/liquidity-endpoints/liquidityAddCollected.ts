@@ -32,6 +32,7 @@ import {
         script: config.scripts.collectFoldPolicy
     }
 
+    console.log(config.refScripts)
     const [tokenHolderPolicy] = await lucid.provider.getUtxosByOutRef([config.refScripts.tokenHolderPolicy])
     const [tokenHolderValidator] = await lucid.provider.getUtxosByOutRef([config.refScripts.tokenHolderValidator])
 

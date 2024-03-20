@@ -1,6 +1,6 @@
-import { Constr, Data, Lucid, MintingPolicy, SpendingValidator, TxComplete, toUnit } from "lucid-fork";
+import { Constr, Data, Lucid, MintingPolicy, SpendingValidator, TxComplete, applyParamsToScript, fromText, toUnit } from "lucid-fork";
 import { CreateV1PoolConfig, Result } from "../core/types.js";
-import { LiquidityFactoryDatum, LiquidityPoolDatum, LiquidityProxyDatum, LiquidityReturnProxyDatum, TIME_TOLERANCE_MS, sqrt, toAddress, utxosAtScript } from "../core/index.js";
+import { LiquidityFactoryDatum, LiquidityPoolDatum, LiquidityProxyDatum, LiquidityReturnProxyDatum, PTHOLDER, TIME_TOLERANCE_MS, sqrt, toAddress, utxosAtScript } from "../core/index.js";
 
 export const createLiquidityV1Pool = async (
     lucid: Lucid,
@@ -15,10 +15,20 @@ export const createLiquidityV1Pool = async (
 
     const proxyValidatorScript: SpendingValidator = {
         type: "PlutusV1",
-        script: config.scripts.proxyTokenHolderScript
+        script: applyParamsToScript(
+            config.scripts.proxyTokenHolderScript,
+            [config.v1PoolPolicyId]
+        )
     }
 
     const projectTokenUnit = toUnit(config.projectToken.policyId, config.projectToken.assetName);
+
+    const tokenHolderMintingPolicy: MintingPolicy = {
+        type: "PlutusV2",
+        script: config.scripts.tokenHolderPolicy
+    }
+
+    const tokenHolderPolicyId = lucid.utils.mintingPolicyToId(tokenHolderMintingPolicy);
     
     const proxyValidatorScriptAddr = lucid.utils.validatorToAddress(proxyValidatorScript);
     const [proxyUtxo] = await lucid.provider.getUtxosWithUnit(
@@ -118,8 +128,6 @@ export const createLiquidityV1Pool = async (
         circulatingLP
     ]));
 
-    const collateralUtxo = (await lucid.wallet.getUtxos()).find(({ assets }) => assets.lovelace > 5_000_000n);
-
     try {
         const tx = await lucid.newTx()
             .collectFrom([{
@@ -149,7 +157,8 @@ export const createLiquidityV1Pool = async (
                 newProxyDatum,
                 {
                     lovelace: proxyUtxo.assets.lovelace - proxyDatum.totalCommitted,
-                    [toUnit(poolPolicyId, poolLpTokenName)]: circulatingLP
+                    // [toUnit(poolPolicyId, poolLpTokenName)]: circulatingLP,
+                    // [toUnit(tokenHolderPolicyId, fromText(PTHOLDER))]: 1n
                 }
             )
             .mintAssets({

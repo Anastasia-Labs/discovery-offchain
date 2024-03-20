@@ -133,6 +133,7 @@ export type InitFoldConfig = {
 export type CreateV1PoolConfig = {
   currenTime?: POSIXTime;
   v1PoolAddress: string;
+  v1PoolPolicyId: string;
   v1FactoryToken: {
     policyId: CborHex;
     assetName: CborHex;
@@ -148,6 +149,7 @@ export type CreateV1PoolConfig = {
     proxyTokenHolderScript: CborHex;
     v1PoolPolicyScript: CborHex;
     v1FactoryValidatorScript: CborHex;
+    tokenHolderPolicy: CborHex;
   }
   emulator?: boolean;
 }
@@ -165,7 +167,7 @@ export type MultiFoldConfig = {
   };
   refInputs?: {
     liquidityValidator: UTxO;
-    collectStake?: UTxO;
+    collectStake: UTxO;
     foldValidator: UTxO;
   }
   currenTime?: POSIXTime;
@@ -181,6 +183,7 @@ export type FoldNodeConfig = {
 };
 
 export type InitRewardFoldConfig = {
+  currenTime?: POSIXTime;
   projectCS: string;
   projectTN: string;
   scripts: {
