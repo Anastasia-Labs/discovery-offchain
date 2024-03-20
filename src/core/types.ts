@@ -130,6 +130,27 @@ export type InitFoldConfig = {
   currenTime?: POSIXTime;
 };
 
+export type CreateV1PoolConfig = {
+  currenTime?: POSIXTime;
+  v1PoolScriptAddress: string;
+  v1PoolFactoryToken: {
+    policyId: CborHex;
+    assetName: CborHex;
+  };
+  projectToken: {
+    policyId: CborHex;
+    assetName: CborHex;
+    totalSupply: bigint;
+  },
+  datums: {
+    [hash: CborHex]: CborHex;
+  }
+  scripts: {
+    proxyTokenHolderScript: CborHex;
+    v1PoolPolicyScript: CborHex;
+  }
+}
+
 export type MultiFoldConfig = {
   nodeRefInputs: OutRef[];
   feeInput: UTxO;

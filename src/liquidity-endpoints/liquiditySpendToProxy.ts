@@ -18,7 +18,7 @@ import {
   export const spendToProxy = async (
     lucid: Lucid,
     config: SpendToProxyConfig
-  ): Promise<Result<TxComplete>> => {
+  ): Promise<Result<{ txComplete: TxComplete, datum: string }>> => {
     config.currenTime ??= Date.now();
   
     const proxyTokenHolderV1Validator: SpendingValidator = {
@@ -57,7 +57,7 @@ import {
           nativeUplc: true
         });
   
-      return { type: "ok", data: tx };
+      return { type: "ok", data: { txComplete: tx, datum: proxyDatum } };
     } catch (error) {
       if (error instanceof Error) return { type: "error", error: error };
   

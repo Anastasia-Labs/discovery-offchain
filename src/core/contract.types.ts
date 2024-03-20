@@ -4,6 +4,11 @@ export const PubKeyHashSchema = Data.Bytes({ minLength: 28, maxLength: 28 });
 export type PubKeyHash = Data.Static<typeof PubKeyHashSchema>;
 export const PubKeyHash = PubKeyHashSchema as unknown as PubKeyHash;
 
+export const AssetClassSchema = Data.Object({
+  policyId: Data.Bytes(),
+  tokenName: Data.Bytes()
+});
+
 export const OutputReferenceSchema = Data.Object({
   txHash: Data.Object({ hash: Data.Bytes({ minLength: 32, maxLength: 32 }) }),
   outputIndex: Data.Integer(),
@@ -263,3 +268,32 @@ export const LiquidityRewardFoldDatumSchema = Data.Object({
 export type LiquidityRewardFoldDatum = Data.Static<typeof LiquidityRewardFoldDatumSchema>;
 export const LiquidityRewardFoldDatum =
   LiquidityRewardFoldDatumSchema as unknown as LiquidityRewardFoldDatum;
+
+export const LiquidityFactoryDatumSchema = Data.Object({
+  nextPoolIdent: Data.Bytes(),
+  // Ignored
+  proposalState: Data.Any(),
+  scooperIdent: Data.Any(),
+  scooperSet: Data.Any()
+})
+export type LiquidityFactoryDatum = Data.Static<typeof LiquidityFactoryDatumSchema>;
+export const LiquidityFactoryDatum =
+  LiquidityFactoryDatumSchema as unknown as LiquidityFactoryDatum;
+
+
+
+export const LiquidityPoolDatumSchema = Data.Object({
+  coins: Data.Object({
+    coinA: AssetClassSchema,
+    coinB: AssetClassSchema
+  }),
+  poolIdent: Data.Bytes(),
+  circulatingLP: Data.Integer(),
+  swapFees: Data.Object({
+    numerator: Data.Integer(),
+    denominator: Data.Integer()
+  })
+})
+export type LiquidityPoolDatum = Data.Static<typeof LiquidityPoolDatumSchema>;
+export const LiquidityPoolDatum =
+  LiquidityPoolDatumSchema as unknown as LiquidityPoolDatum;
