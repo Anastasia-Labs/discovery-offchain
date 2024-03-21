@@ -119,6 +119,7 @@ export type ClaimNodeConfig = {
   scripts: {
     liquidityPolicy: CborHex;
     liquidityValidator: CborHex;
+    rewardFoldPolicy: CborHex;
   };
   refScripts?: {
     liquidityPolicy: UTxO;
