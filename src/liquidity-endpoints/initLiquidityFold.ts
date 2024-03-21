@@ -8,7 +8,7 @@ import {
   fromText,
 } from "lucid-fork";
 import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
-import { FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquiditySetNode, SetNode } from "../core/contract.types.js";
+import { FoldMintAct, LiquidityFoldDatum, LiquiditySetNode } from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 

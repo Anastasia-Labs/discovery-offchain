@@ -157,8 +157,8 @@ export const createLiquidityV1Pool = async (
                 newProxyDatum,
                 {
                     lovelace: proxyUtxo.assets.lovelace - proxyDatum.totalCommitted,
-                    // [toUnit(poolPolicyId, poolLpTokenName)]: circulatingLP,
-                    // [toUnit(tokenHolderPolicyId, fromText(PTHOLDER))]: 1n
+                    [toUnit(poolPolicyId, poolLpTokenName)]: circulatingLP,
+                    [toUnit(tokenHolderPolicyId, fromText(PTHOLDER))]: 1n
                 }
             )
             .mintAssets({
