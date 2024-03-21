@@ -1,48 +1,39 @@
+import { beforeEach, expect, test } from "vitest";
 import {
-  buildScripts,
-  chunkArray,
-  Data,
-  deployRefScripts,
   Emulator,
+  InitFoldConfig,
+  InitNodeConfig,
+  InitRewardFoldConfig,
+  InitTokenHolderConfig,
+  Lucid,
+  MultiFoldConfig,
+  ONE_HOUR_MS,
+  RewardFoldConfig,
+  TWENTY_FOUR_HOURS_MS,
+  buildScripts,
   fromText,
   generateAccountSeedPhrase,
   initFold,
-  InitFoldConfig,
   initNode,
-  InitNodeConfig,
   initRewardFold,
-  InitRewardFoldConfig,
   initTokenHolder,
-  InitTokenHolderConfig,
-  insertNode,
-  InsertNodeConfig,
-  Lucid,
   multiFold,
-  MultiFoldConfig,
-  ONE_HOUR_MS,
   parseUTxOsAtScript,
-  PROTOCOL_PAYMENT_KEY,
-  PROTOCOL_STAKE_KEY,
   replacer,
   rewardFold,
-  RewardFoldConfig,
   sortByOutRefWithIndex,
   toUnit,
-  TWENTY_FOUR_HOURS_MS,
   utxosAtScript,
-  FoldDatum,
 } from "../src/index.js";
-import { test, expect, beforeEach } from "vitest";
-import discoveryValidator from "./compiled/discoveryValidator.json";
 import discoveryPolicy from "./compiled/discoveryMinting.json";
 import discoveryStake from "./compiled/discoveryStakeValidator.json";
+import discoveryValidator from "./compiled/discoveryValidator.json";
 import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
 import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
 import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
-import alwaysFailValidator from "./compiled/alwaysFails.json";
 import { deploy, getRefUTxOs, insertThreeNodes } from "./setup.js";
 
 type LucidContext = {

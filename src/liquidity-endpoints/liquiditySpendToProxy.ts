@@ -1,33 +1,10 @@
+import { Constr, Data, Lucid, SpendingValidator, TxComplete } from "lucid-fork";
+import { TIME_TOLERANCE_MS } from "../core/constants.js";
 import {
-  Lucid,
-  SpendingValidator,
-  MintingPolicy,
-  Data,
-  toUnit,
-  TxComplete,
-  fromText,
-  Constr,
-  Assets,
-  OutRef,
-  applyParamsToScript,
-} from "lucid-fork";
-import {
-  cFold,
-  PTHOLDER,
-  SETNODE_PREFIX,
-  TIME_TOLERANCE_MS,
-} from "../core/constants.js";
-import {
-  FoldAct,
-  FoldDatum,
-  FoldMintAct,
-  LiquidityFoldDatum,
   LiquidityHolderDatum,
   LiquidityProxyDatum,
-  LiquiditySetNode,
-  SetNode,
 } from "../core/contract.types.js";
-import { SpendToProxyConfig, InitFoldConfig, Result } from "../core/types.js";
+import { Result, SpendToProxyConfig } from "../core/types.js";
 import { fromAddress, utxosAtScript } from "../index.js";
 
 export const spendToProxy = async (
@@ -40,18 +17,19 @@ export const spendToProxy = async (
     lucid,
     config.scripts.tokenHolderValidator,
   );
+
   const tokenHolderDatum = Data.from(
     tokenUtxo.datum as string,
     LiquidityHolderDatum,
   );
 
-  const proxyTokenHolderV1Validator: SpendingValidator = {
+  const proxyTokenHolderValidator: SpendingValidator = {
     type: "PlutusV1",
-    script: config.scripts.proxyTokenHolderV1Validator,
+    script: config.scripts.proxyTokenHolderValidator,
   };
 
-  const proxyTokenHolderV1ValidatorAddr = lucid.utils.validatorToAddress(
-    proxyTokenHolderV1Validator,
+  const proxyTokenHolderValidatorAddr = lucid.utils.validatorToAddress(
+    proxyTokenHolderValidator,
   );
 
   const liquidityTokenRedeemer = Data.to(new Constr(1, []));
@@ -81,7 +59,7 @@ export const spendToProxy = async (
       .readFrom(tokenHolderPolicy)
       .readFrom(tokenHolderValidator)
       .payToContract(
-        proxyTokenHolderV1ValidatorAddr,
+        proxyTokenHolderValidatorAddr,
         proxyDatum,
         tokenUtxo.assets,
       )

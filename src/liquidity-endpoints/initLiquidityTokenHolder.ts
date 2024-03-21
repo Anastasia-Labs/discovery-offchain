@@ -1,12 +1,12 @@
 import {
-  Lucid,
-  SpendingValidator,
-  MintingPolicy,
+  Constr,
   Data,
-  toUnit,
+  Lucid,
+  MintingPolicy,
+  SpendingValidator,
   TxComplete,
   fromText,
-  Constr,
+  toUnit,
 } from "lucid-fork";
 import { PTHOLDER } from "../core/constants.js";
 import { InitTokenHolderConfig, Result } from "../core/types.js";
@@ -51,6 +51,7 @@ export const initLqTokenHolder = async (
         tokenHolderValidatorAddr,
         { inline: Data.to(new Constr(0, ["", 0n, 0n])) },
         {
+          lovelace: 2_000_000n,
           [ptHolderAsset]: BigInt(1),
           [toUnit(config.projectCS, fromText(config.projectTN))]: BigInt(
             config.projectAmount,

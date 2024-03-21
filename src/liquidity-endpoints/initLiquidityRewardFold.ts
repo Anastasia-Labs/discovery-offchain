@@ -1,41 +1,41 @@
 import {
-  Lucid,
-  SpendingValidator,
-  MintingPolicy,
-  Data,
-  toUnit,
-  TxComplete,
+  Assets,
   Constr,
+  Data,
+  Lucid,
+  MintingPolicy,
+  SpendingValidator,
+  TxComplete,
+  UTxO,
   fromText,
+  toUnit,
 } from "lucid-fork";
-import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
 import {
-  FoldDatum,
-  LiquiditySetNode,
+  PTHOLDER,
+  SETNODE_PREFIX,
+  TIME_TOLERANCE_MS,
+  rFold,
+} from "../core/constants.js";
+import {
+  FoldMintAct,
+  LiquidityHolderDatum,
   LiquidityRewardFoldDatum,
+  LiquiditySetNode,
 } from "../core/contract.types.js";
-import { InitRewardFoldConfig, Result } from "../core/types.js";
+import { InitLiquidityRewardFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 
 export const initLqRewardFold = async (
   lucid: Lucid,
-  config: InitRewardFoldConfig,
+  config: InitLiquidityRewardFoldConfig,
 ): Promise<Result<TxComplete>> => {
-  const tokenHolderValidator: SpendingValidator = {
-    type: "PlutusV2",
-    script: config.scripts.tokenHolderValidator,
-  };
-
-  const tokenHolderPolicy: MintingPolicy = {
-    type: "PlutusV2",
-    script: config.scripts.tokenHolderPolicy,
-  };
-  const tokenHolderPolicyId = lucid.utils.mintingPolicyToId(tokenHolderPolicy);
+  config.currenTime ??= Date.now();
 
   const rewardFoldValidator: SpendingValidator = {
     type: "PlutusV2",
     script: config.scripts.rewardFoldValidator,
   };
+
   const rewardFoldValidatorAddr =
     lucid.utils.validatorToAddress(rewardFoldValidator);
 
@@ -43,35 +43,41 @@ export const initLqRewardFold = async (
     type: "PlutusV2",
     script: config.scripts.rewardFoldPolicy,
   };
+
   const rewardFoldPolicyId = lucid.utils.mintingPolicyToId(rewardFoldPolicy);
 
-  const commitFoldValidator: SpendingValidator = {
+  const liquidityPolicy: MintingPolicy = {
     type: "PlutusV2",
-    script: config.scripts.foldValidator,
-  };
-  const commitFoldValidatorAddr =
-    lucid.utils.validatorToAddress(commitFoldValidator);
-
-  const commitFoldPolicy: MintingPolicy = {
-    type: "PlutusV2",
-    script: config.scripts.foldPolicy,
-  };
-  const commitFoldPolicyId = lucid.utils.mintingPolicyToId(commitFoldPolicy);
-
-  const discoveryPolicy: MintingPolicy = {
-    type: "PlutusV2",
-    script: config.scripts.nodePolicy,
+    script: config.scripts.liquidityPolicy,
   };
 
-  const discoveryValidator: SpendingValidator = {
+  const liquidityValidator: SpendingValidator = {
     type: "PlutusV2",
-    script: config.scripts.nodeValidator,
+    script: config.scripts.liquidityValidator,
   };
+
+  const liquidityTokenHolderPolicy: MintingPolicy = {
+    type: "PlutusV2",
+    script: config.scripts.tokenHolderPolicy,
+  };
+
+  const liquidityTokenHolderPolicyId = lucid.utils.mintingPolicyToId(
+    liquidityTokenHolderPolicy,
+  );
+
+  const liquidityTokenHolderValidator: SpendingValidator = {
+    type: "PlutusV2",
+    script: config.scripts.tokenHolderValidator,
+  };
+
+  const liquidityTokenHolderValidatorAddr = lucid.utils.validatorToAddress(
+    liquidityTokenHolderValidator,
+  );
 
   const [headNodeUTxO] = await lucid.utxosAtWithUnit(
-    lucid.utils.validatorToAddress(discoveryValidator),
+    lucid.utils.validatorToAddress(liquidityValidator),
     toUnit(
-      lucid.utils.mintingPolicyToId(discoveryPolicy),
+      lucid.utils.mintingPolicyToId(liquidityPolicy),
       fromText(SETNODE_PREFIX),
     ),
   );
@@ -79,98 +85,79 @@ export const initLqRewardFold = async (
   if (!headNodeUTxO || !headNodeUTxO.datum)
     return { type: "error", error: new Error("missing nodeRefInputUTxO") };
 
-  const headNodeDatum = Data.from(headNodeUTxO.datum, LiquiditySetNode);
+  const currentNode = Data.from(headNodeUTxO.datum, LiquiditySetNode);
 
-  const ptHolderUnit = toUnit(tokenHolderPolicyId, fromText("PTHolder"));
+  const tokenHolderAsset = toUnit(
+    liquidityTokenHolderPolicyId,
+    fromText(PTHOLDER),
+  );
 
-  const tokenHolderUTxO = await lucid.utxoByUnit(ptHolderUnit);
+  const rewardFoldAsset = toUnit(rewardFoldPolicyId, rFold);
 
-  const commitFoldUnit = toUnit(commitFoldPolicyId, cFold);
-  const commitFoldUTxO = (
-    await lucid.utxosAtWithUnit(commitFoldValidatorAddr, commitFoldUnit)
-  ).find((value) => {
-    if (value.datum) {
-      const datum = Data.from(value.datum, FoldDatum);
-      return datum.currNode.next == null;
-    }
-  });
+  const [tokenUtxo] = await lucid.provider.getUtxosWithUnit(
+    liquidityTokenHolderValidatorAddr,
+    tokenHolderAsset,
+  );
 
-  if (!commitFoldUTxO || !commitFoldUTxO.datum)
-    return { type: "error", error: new Error("missing commitFoldUTxO") };
+  const tokenUtxoDatumHex =
+    config?.datums?.[tokenUtxo.datumHash as string] ??
+    (await lucid.provider.getDatum(tokenUtxo.datumHash as string));
 
-  const commitFoldDatum = Data.from(commitFoldUTxO.datum, FoldDatum);
-
-  const projectUnit = toUnit(config.projectCS, fromText(config.projectTN));
+  const tokenUtxoDatum = Data.from(tokenUtxoDatumHex, LiquidityHolderDatum);
 
   const datum = Data.to(
     {
-      currNode: headNodeDatum,
-      totalProjectTokens: tokenHolderUTxO.assets[projectUnit],
-      totalCommitted: commitFoldDatum.committed,
-      owner: fromAddress(await lucid.wallet.address()),
+      currNode: currentNode,
+      owner: fromAddress(await lucid.wallet.address()), //NOTE: owner is not being used in fold minting or validator
+      totalCommitted: tokenUtxoDatum.totalCommitted,
+      totalProjectTokens: tokenUtxoDatum.totalLpTokens,
     },
     LiquidityRewardFoldDatum,
   );
 
-  const burnPTHolderAct = Data.to(new Constr(1, []));
-  const burnCommitFoldAct = Data.to(new Constr(1, []));
-  const reclaimCommitFoldAct = Data.to(new Constr(1, []));
+  const outputAssets: Assets = {
+    ...tokenUtxo.assets,
+  };
 
-  config.currenTime ??= Date.now();
+  delete outputAssets[tokenHolderAsset];
+
   const upperBound = config.currenTime + TIME_TOLERANCE_MS;
   const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   try {
-    const tx = await lucid
+    const tx = lucid
       .newTx()
+      .collectFrom([tokenUtxo], Data.to(new Constr(2, [])))
       .readFrom([headNodeUTxO])
-      .collectFrom([tokenHolderUTxO], Data.void())
-      .collectFrom([commitFoldUTxO], reclaimCommitFoldAct)
-      .payToContract(
-        rewardFoldValidatorAddr,
-        { inline: datum },
+      .payToContract(rewardFoldValidatorAddr, { inline: datum }, outputAssets)
+      .mintAssets(
         {
-          [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n,
-          [projectUnit]: tokenHolderUTxO.assets[projectUnit],
+          [rewardFoldAsset]: 1n,
         },
+        Data.to("MintFold", FoldMintAct),
       )
       .mintAssets(
-        { [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n },
-        Data.void(),
+        {
+          [tokenHolderAsset]: -1n,
+        },
+        Data.to("BurnFold", FoldMintAct),
       )
-      .mintAssets({ [commitFoldUnit]: -1n }, burnCommitFoldAct)
-      .mintAssets({ [ptHolderUnit]: -1n }, burnPTHolderAct)
-      .compose(
-        config.refScripts?.tokenHolderValidator
-          ? lucid.newTx().readFrom([config.refScripts.tokenHolderValidator])
-          : lucid.newTx().attachSpendingValidator(tokenHolderValidator),
-      )
-      .compose(
-        config.refScripts?.commitFoldValidator
-          ? lucid.newTx().readFrom([config.refScripts.commitFoldValidator])
-          : lucid.newTx().attachSpendingValidator(commitFoldValidator),
-      )
-      .compose(
-        config.refScripts?.rewardFoldPolicy
-          ? lucid.newTx().readFrom([config.refScripts.rewardFoldPolicy])
-          : lucid.newTx().attachMintingPolicy(rewardFoldPolicy),
-      )
-      .compose(
-        config.refScripts?.commitFoldPolicy
-          ? lucid.newTx().readFrom([config.refScripts.commitFoldPolicy])
-          : lucid.newTx().attachMintingPolicy(commitFoldPolicy),
-      )
-      .compose(
-        config.refScripts?.tokenHolderPolicy
-          ? lucid.newTx().readFrom([config.refScripts.tokenHolderPolicy])
-          : lucid.newTx().attachMintingPolicy(tokenHolderPolicy),
-      )
-      .addSigner(await lucid.wallet.address())
       .validFrom(lowerBound)
-      .validTo(upperBound)
-      .complete();
+      .validTo(upperBound);
 
-    return { type: "ok", data: tx };
+    if (config.refScripts) {
+      tx.readFrom([config.refScripts.tokenHolderPolicy as UTxO])
+        .readFrom([config.refScripts.rewardFoldPolicy as UTxO])
+        .readFrom([config.refScripts.tokenHolderValidator as UTxO]);
+    } else {
+      tx.attachMintingPolicy(rewardFoldPolicy)
+        .attachMintingPolicy(liquidityTokenHolderPolicy)
+        .attachSpendingValidator(liquidityValidator);
+    }
+
+    const txComplete = await tx.complete();
+
+    return { type: "ok", data: txComplete };
   } catch (error) {
     if (error instanceof Error) return { type: "error", error: error };
 

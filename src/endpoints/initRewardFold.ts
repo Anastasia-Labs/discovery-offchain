@@ -1,17 +1,17 @@
 import {
-  Lucid,
-  SpendingValidator,
-  MintingPolicy,
-  Data,
-  toUnit,
-  TxComplete,
   Constr,
+  Data,
+  Lucid,
+  MintingPolicy,
+  SpendingValidator,
+  TxComplete,
   fromText,
+  toUnit,
 } from "lucid-fork";
-import { cFold, SETNODE_PREFIX } from "../core/constants.js";
-import { SetNode, FoldDatum, RewardFoldDatum } from "../core/contract.types.js";
+import { SETNODE_PREFIX, cFold } from "../core/constants.js";
+import { FoldDatum, RewardFoldDatum, SetNode } from "../core/contract.types.js";
 import { InitRewardFoldConfig, Result } from "../core/types.js";
-import { fromAddress, toAddress } from "../index.js";
+import { fromAddress } from "../index.js";
 
 export const initRewardFold = async (
   lucid: Lucid,

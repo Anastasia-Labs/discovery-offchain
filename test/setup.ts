@@ -1,38 +1,19 @@
+import { expect } from "vitest";
 import {
-  buildScripts,
-  CborHex,
-  deployRefScripts,
-  DeployRefScriptsConfig,
+  Deploy,
   Emulator,
-  fromText,
-  generateAccountSeedPhrase,
-  initNode,
-  InitNodeConfig,
-  initTokenHolder,
-  InitTokenHolderConfig,
+  InsertNodeConfig,
   Lucid,
+  Result,
+  Scripts,
+  UTxO,
+  deployRefScripts,
+  fromText,
+  insertNode,
   parseUTxOsAtScript,
   replacer,
-  Script,
   toUnit,
-  utxosAtScript,
-  Scripts,
-  Deploy,
-  Result,
-  UTxO,
-  InsertNodeConfig,
-  insertNode,
 } from "../src/index.js";
-import { test, expect, beforeEach } from "vitest";
-import discoveryValidator from "./compiled/discoveryValidator.json";
-import discoveryPolicy from "./compiled/discoveryMinting.json";
-import discoveryStake from "./compiled/discoveryStakeValidator.json";
-import foldPolicy from "./compiled/foldMint.json";
-import foldValidator from "./compiled/foldValidator.json";
-import rewardPolicy from "./compiled/rewardFoldMint.json";
-import rewardValidator from "./compiled/rewardFoldValidator.json";
-import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
-import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFails.json";
 
 export async function deploy(
@@ -50,7 +31,8 @@ export async function deploy(
 
   expect(deploy1.type).toBe("ok");
   if (deploy1.type == "ok") {
-    (await deploy1.data.tx.sign().complete()).submit();
+    const txComplete = await deploy1.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -63,7 +45,8 @@ export async function deploy(
 
   expect(deploy2.type).toBe("ok");
   if (deploy2.type == "ok") {
-    (await deploy2.data.tx.sign().complete()).submit();
+    const txComplete = await deploy2.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -76,7 +59,8 @@ export async function deploy(
 
   expect(deployStake.type).toBe("ok");
   if (deployStake.type == "ok") {
-    (await deployStake.data.tx.sign().complete()).submit();
+    const txComplete = await deployStake.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -89,7 +73,8 @@ export async function deploy(
 
   expect(deploy3.type).toBe("ok");
   if (deploy3.type == "ok") {
-    (await deploy3.data.tx.sign().complete()).submit();
+    const txComplete = await deploy3.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -102,7 +87,8 @@ export async function deploy(
 
   expect(deploy4.type).toBe("ok");
   if (deploy4.type == "ok") {
-    (await deploy4.data.tx.sign().complete()).submit();
+    const txComplete = await deploy4.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -115,7 +101,8 @@ export async function deploy(
 
   expect(deploy5.type).toBe("ok");
   if (deploy5.type == "ok") {
-    (await deploy5.data.tx.sign().complete()).submit();
+    const txComplete = await deploy5.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -131,7 +118,8 @@ export async function deploy(
   }
   expect(deploy6.type).toBe("ok");
   if (deploy6.type == "ok") {
-    (await deploy6.data.tx.sign().complete()).submit();
+    const txComplete = await deploy6.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -144,7 +132,8 @@ export async function deploy(
 
   expect(deploy7.type).toBe("ok");
   if (deploy7.type == "ok") {
-    (await deploy7.data.tx.sign().complete()).submit();
+    const txComplete = await deploy7.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -157,7 +146,8 @@ export async function deploy(
 
   expect(deploy8.type).toBe("ok");
   if (deploy8.type == "ok") {
-    (await deploy8.data.tx.sign().complete()).submit();
+    const txComplete = await deploy8.data.tx.complete();
+    (await txComplete.sign().complete()).submit();
     emulator.awaitBlock(4);
   }
 
@@ -293,7 +283,7 @@ export async function insertThreeNodes(
       nodeValidator: refUTxOs.nodeValidatorUTxO,
       nodePolicy: refUTxOs.nodePolicyUTxO,
     },
-    amountLovelace: 4_000_000,
+    amountLovelace: 4_000_000n,
     currenTime: emulator.now(),
   };
 
@@ -322,7 +312,7 @@ export async function insertThreeNodes(
       nodeValidator: refUTxOs.nodeValidatorUTxO,
       nodePolicy: refUTxOs.nodePolicyUTxO,
     },
-    amountLovelace: 5_000_000,
+    amountLovelace: 5_000_000n,
     currenTime: emulator.now(),
   };
 
@@ -348,7 +338,7 @@ export async function insertThreeNodes(
       nodeValidator: refUTxOs.nodeValidatorUTxO,
       nodePolicy: refUTxOs.nodePolicyUTxO,
     },
-    amountLovelace: 5_000_000,
+    amountLovelace: 5_000_000n,
     currenTime: emulator.now(),
   };
 

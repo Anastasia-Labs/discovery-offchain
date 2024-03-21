@@ -1,12 +1,4 @@
-import {
-  Address,
-  Assets,
-  MintingPolicy,
-  OutRef,
-  PolicyId,
-  SpendingValidator,
-  UTxO,
-} from "lucid-fork";
+import { Address, Assets, OutRef, PolicyId, UTxO } from "lucid-fork";
 import { SetNode } from "./contract.types.js";
 
 export type CborHex = string;
@@ -66,7 +58,7 @@ export type SpendToProxyConfig = {
   v1PoolPolicyId: string;
   scripts: {
     tokenHolderValidator: CborHex;
-    proxyTokenHolderV1Validator: CborHex;
+    proxyTokenHolderValidator: CborHex;
   };
   refScripts: {
     liquidityTokenHolderPolicy: OutRef;
@@ -119,6 +111,19 @@ export type RemoveNodeConfig = {
   deadline: POSIXTime;
   penaltyAddress: Address;
   currenTime?: POSIXTime;
+};
+
+export type ClaimNodeConfig = {
+  currenTime?: POSIXTime;
+  nodeUTxOs?: UTxO[];
+  scripts: {
+    liquidityPolicy: CborHex;
+    liquidityValidator: CborHex;
+  };
+  refScripts?: {
+    liquidityPolicy: UTxO;
+    liquidityValidator: UTxO;
+  };
 };
 
 export type InitFoldConfig = {
@@ -202,6 +207,31 @@ export type InitRewardFoldConfig = {
     nodePolicy?: UTxO;
     commitFoldPolicy?: UTxO;
     commitFoldValidator?: UTxO;
+    rewardFoldPolicy?: UTxO;
+    rewardFoldValidator?: UTxO;
+    tokenHolderPolicy?: UTxO;
+    tokenHolderValidator?: UTxO;
+  };
+};
+
+export type InitLiquidityRewardFoldConfig = {
+  currenTime?: POSIXTime;
+  projectCS: string;
+  projectTN: string;
+  datums?: {
+    [hash: string]: CborHex;
+  };
+  scripts: {
+    liquidityValidator: CborHex;
+    liquidityPolicy: CborHex;
+    rewardFoldPolicy: CborHex;
+    rewardFoldValidator: CborHex;
+    tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
+  };
+  refScripts?: {
+    liquidityValidator?: UTxO;
+    liquidityPolicy?: UTxO;
     rewardFoldPolicy?: UTxO;
     rewardFoldValidator?: UTxO;
     tokenHolderPolicy?: UTxO;

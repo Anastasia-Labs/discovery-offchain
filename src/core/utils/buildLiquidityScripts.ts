@@ -190,20 +190,30 @@ export const buildLiquidityScripts = (
     ],
   );
 
-  //NOTE: PROJECT TOKEN HOLDER VALIDATOR
-  // pprojectTokenHolder :: Term s (PAsData PCurrencySymbol :--> PValidator)
-  // pprojectTokenHolder = phoistAcyclic $ plam $ \rewardsCS _dat _redeemer ctx -> unTermCont $ do
-  const liquidityTokenHolderValidator = applyParamsToScript(
-    config.unapplied.tokenHolderValidator,
-    [
-      lucid.utils.mintingPolicyToId(rewardFoldMintingPolicy),
-      lucid.utils.mintingPolicyToId(collectFoldMintingPolicy),
-    ],
-  );
-
   const proxyValidatorScript = applyParamsToScript(
     config.unapplied.proxyTokenHolderValidator,
     [config.proxyTokenHolderValidator.poolPolicyId],
+  );
+
+  const proxyValidatorScriptWithParamsAddr = lucid.utils.validatorToAddress({
+    type: "PlutusV1",
+    script: proxyValidatorScript,
+  });
+
+  const proxyValidatorParam = fromAddressToData(
+    proxyValidatorScriptWithParamsAddr,
+  );
+  if (proxyValidatorParam.type === "error") {
+    throw new Error("Could not build proxy validator address.");
+  }
+
+  const liquidityTokenHolderValidator = applyParamsToScript(
+    config.unapplied.tokenHolderValidator,
+    [
+      proxyValidatorParam.data,
+      lucid.utils.mintingPolicyToId(rewardFoldMintingPolicy),
+      lucid.utils.mintingPolicyToId(collectFoldMintingPolicy),
+    ],
   );
 
   return {

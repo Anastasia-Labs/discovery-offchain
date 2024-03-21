@@ -1,34 +1,27 @@
+import { beforeEach, expect, test } from "vitest";
 import {
   buildScripts,
-  deployRefScripts,
-  DeployRefScriptsConfig,
   Emulator,
   generateAccountSeedPhrase,
   initNode,
   InitNodeConfig,
-  insertNode,
-  InsertNodeConfig,
   Lucid,
   ONE_HOUR_MS,
   parseUTxOsAtScript,
-  PROTOCOL_PAYMENT_KEY,
-  PROTOCOL_STAKE_KEY,
   removeNode,
   RemoveNodeConfig,
   replacer,
   TWENTY_FOUR_HOURS_MS,
 } from "../src/index.js";
-import { test, expect, beforeEach } from "vitest";
-import discoveryValidator from "./compiled/discoveryValidator.json";
 import discoveryPolicy from "./compiled/discoveryMinting.json";
+import discoveryStakeValidator from "./compiled/discoveryStakeValidator.json";
+import discoveryValidator from "./compiled/discoveryValidator.json";
 import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
 import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
 import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
-import alwaysFailValidator from "./compiled/alwaysFails.json";
-import discoveryStakeValidator from "./compiled/discoveryStakeValidator.json";
 import { deploy, getRefUTxOs, insertThreeNodes } from "./setup.js";
 
 type LucidContext = {
