@@ -58,19 +58,20 @@ export type AddCollectedConfig = {
   refScripts: {
     tokenHolderPolicy: OutRef;
     tokenHolderValidator: OutRef;
-  }
+  };
 };
 
 export type SpendToProxyConfig = {
   currenTime?: POSIXTime;
+  v1PoolPolicyId: string;
   scripts: {
+    tokenHolderValidator: CborHex;
     proxyTokenHolderV1Validator: CborHex;
   };
   refScripts: {
     liquidityTokenHolderPolicy: OutRef;
     liquidityTokenHolderValidator: OutRef;
-  }
-  liquidityTokenHolderInputs: UTxO[];
+  };
 };
 
 export type InitNodeConfig = {
@@ -141,18 +142,18 @@ export type CreateV1PoolConfig = {
   projectToken: {
     policyId: CborHex;
     assetName: CborHex;
-  },
+  };
   datums: {
     [hash: CborHex]: CborHex;
-  }
+  };
   scripts: {
     proxyTokenHolderScript: CborHex;
     v1PoolPolicyScript: CborHex;
     v1FactoryValidatorScript: CborHex;
     tokenHolderPolicy: CborHex;
-  }
+  };
   emulator?: boolean;
-}
+};
 
 export type MultiFoldConfig = {
   nodeRefInputs: OutRef[];
@@ -169,7 +170,7 @@ export type MultiFoldConfig = {
     liquidityValidator: UTxO;
     collectStake: UTxO;
     foldValidator: UTxO;
-  }
+  };
   currenTime?: POSIXTime;
 };
 
@@ -227,6 +228,29 @@ export type RewardFoldConfig = {
   projectTN: string;
 };
 
+export type RewardLiquidityFoldConfig = {
+  currenTime?: number;
+  nodeRefInputs: OutRef[];
+  indices: number[];
+  feeInput: UTxO;
+  changeAddress: string;
+  scripts: {
+    liquidityValidator: CborHex;
+    rewardStake: CborHex;
+    rewardFoldPolicy: CborHex;
+    rewardFoldValidator: CborHex;
+  };
+  refInputs: {
+    liquidityValidator: UTxO;
+    rewardStake: UTxO;
+    rewardFoldPolicy: UTxO;
+    rewardFoldValidator: UTxO;
+  };
+  projectAddress: Address;
+  projectCS: PolicyId;
+  projectTN: string;
+};
+
 export type BuildScriptsConfig = {
   discoveryPolicy: {
     initUTXO: UTxO;
@@ -264,6 +288,9 @@ export type BuildLiquidityScriptsConfig = {
     projectCS: PolicyId;
     projectLpPolicyId: PolicyId;
     projectAddr: Address;
+  };
+  proxyTokenHolderValidator: {
+    poolPolicyId: PolicyId;
   };
   projectTokenHolder: {
     initUTXO: UTxO;

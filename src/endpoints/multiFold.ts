@@ -14,7 +14,7 @@ import { CFOLD, NODE_ADA, TIME_TOLERANCE_MS } from "../index.js";
 
 export const multiFold = async (
   lucid: Lucid,
-  config: MultiFoldConfig
+  config: MultiFoldConfig,
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
@@ -37,7 +37,7 @@ export const multiFold = async (
 
   const [foldUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress(foldValidator),
-    toUnit(lucid.utils.mintingPolicyToId(foldPolicy), fromText(CFOLD))
+    toUnit(lucid.utils.mintingPolicyToId(foldPolicy), fromText(CFOLD)),
   );
 
   if (!foldUTxO || !foldUTxO.datum)
@@ -67,7 +67,7 @@ export const multiFold = async (
       committed: oldFoldDatum.committed + committed,
       owner: oldFoldDatum.owner,
     },
-    FoldDatum
+    FoldDatum,
   );
   // console.log("indices", config.indices);
 
@@ -75,10 +75,10 @@ export const multiFold = async (
     {
       FoldNodes: {
         nodeIdxs: config.indices.map(BigInt),
-        outputIdxs: []
+        outputIdxs: [],
       },
     },
-    FoldAct
+    FoldAct,
   );
 
   const upperBound = config.currenTime + TIME_TOLERANCE_MS;
@@ -93,7 +93,7 @@ export const multiFold = async (
       .payToContract(
         foldValidatorAddr,
         { inline: newFoldDatum },
-        foldUTxO.assets
+        foldUTxO.assets,
       )
       .validFrom(lowerBound)
       .validTo(upperBound)

@@ -1,22 +1,31 @@
 import {
-  Lucid,
-  SpendingValidator,
   Data,
-  TxComplete,
+  Lucid,
   MintingPolicy,
+  SpendingValidator,
+  TxComplete,
+  UTxO,
+  WithdrawalValidator,
   fromText,
   toUnit,
-  UTxO,
-  Constr,
-  WithdrawalValidator,
 } from "lucid-fork";
-import { FoldAct, FoldDatum, LiquidityFoldDatum, LiquidityNodeValidatorAction, LiquiditySetNode, NodeValidatorAction, SetNode } from "../core/contract.types.js";
+import {
+  FoldAct,
+  LiquidityFoldDatum,
+  LiquidityNodeValidatorAction,
+  LiquiditySetNode,
+} from "../core/contract.types.js";
 import { MultiFoldConfig, Result } from "../core/types.js";
-import { CFOLD, FOLDING_FEE_ADA, NODE_ADA, TIME_TOLERANCE_MS, TT_UTXO_ADDITIONAL_ADA } from "../index.js";
+import {
+  CFOLD,
+  FOLDING_FEE_ADA,
+  TIME_TOLERANCE_MS,
+  TT_UTXO_ADDITIONAL_ADA,
+} from "../index.js";
 
-export const multiLqFold = async (
+export const liquidityFoldNodes = async (
   lucid: Lucid,
-  config: MultiFoldConfig
+  config: MultiFoldConfig,
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
@@ -27,13 +36,13 @@ export const multiLqFold = async (
 
   const collectStakeValidator: WithdrawalValidator = {
     type: "PlutusV2",
-    script: config.scripts.collectStake
-  }
+    script: config.scripts.collectStake,
+  };
 
   const liquidityValidator: SpendingValidator = {
     type: "PlutusV2",
-    script: config.scripts.liquidityValidator
-  }
+    script: config.scripts.liquidityValidator,
+  };
 
   const foldPolicy: MintingPolicy = {
     type: "PlutusV2",
@@ -44,7 +53,7 @@ export const multiLqFold = async (
 
   const [foldUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress(foldValidator),
-    toUnit(lucid.utils.mintingPolicyToId(foldPolicy), fromText(CFOLD))
+    toUnit(lucid.utils.mintingPolicyToId(foldPolicy), fromText(CFOLD)),
   );
 
   if (!foldUTxO || !foldUTxO.datum)
@@ -64,12 +73,19 @@ export const multiLqFold = async (
     return a.outputIndex - b.outputIndex;
   });
 
-  const indexingPairs = sortedUtxos.map((item, index) => {
-    return {
-      item,
-      index
-    }
-  }).filter(({ item }) => nodeUtxos.find(({ txHash, outputIndex }) => `${txHash}#${outputIndex}` === `${item.txHash}#${item.outputIndex}`))
+  const indexingPairs = sortedUtxos
+    .map((item, index) => {
+      return {
+        item,
+        index,
+      };
+    })
+    .filter(({ item }) =>
+      nodeUtxos.find(
+        ({ txHash, outputIndex }) =>
+          `${txHash}#${outputIndex}` === `${item.txHash}#${item.outputIndex}`,
+      ),
+    );
 
   const sortedIndexingPairs = indexingPairs.sort((a, b) => {
     const aKey = Data.from(a.item.datum as string, LiquiditySetNode);
@@ -77,11 +93,11 @@ export const multiLqFold = async (
 
     if (aKey.key === null) return -1;
     if (bKey.key === null) return -1;
-    
+
     if (aKey.key < bKey.key) return -1;
-    
+
     return 1;
-  })
+  });
 
   const lastNodeRef = sortedIndexingPairs[config.indices.length - 1].item.datum;
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
@@ -96,100 +112,103 @@ export const multiLqFold = async (
       currNode: {
         key: oldFoldDatum.currNode.key,
         next: lastNodeRefDatum.next,
-        commitment: 0n
+        commitment: 0n,
       },
       committed: oldFoldDatum.committed + totalAda,
       owner: oldFoldDatum.owner,
     },
-    LiquidityFoldDatum
+    LiquidityFoldDatum,
   );
 
   const upperBound = config.currenTime + TIME_TOLERANCE_MS;
   const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   try {
-    const indexingSet = sortedIndexingPairs.map(({ index }) => BigInt(index))
+    const indexingSet = sortedIndexingPairs.map(({ index }) => BigInt(index));
 
     const foldNodes = {
       nodeIdxs: indexingSet,
-      outputIdxs: [...new Array(nodeUtxos.length).keys()].map(BigInt)
+      outputIdxs: [...new Array(nodeUtxos.length).keys()].map(BigInt),
     };
 
     const foldRedeemer = Data.to(
       {
         FoldNodes: foldNodes,
       },
-      FoldAct
+      FoldAct,
     );
 
-    const tx = lucid.newTx()
+    const tx = lucid
+      .newTx()
       .collectFrom([config.feeInput])
-      .collectFrom([foldUTxO], foldRedeemer)
+      .collectFrom([foldUTxO], foldRedeemer);
 
     if (config.refInputs) {
-      tx
-        .readFrom([config.refInputs.foldValidator])
+      tx.readFrom([config.refInputs.foldValidator])
         .readFrom([config.refInputs.liquidityValidator])
-        .readFrom([config.refInputs.collectStake])
+        .readFrom([config.refInputs.collectStake]);
     } else {
-      tx
-        .attachSpendingValidator(foldValidator)
+      tx.attachSpendingValidator(foldValidator)
         .attachSpendingValidator(liquidityValidator)
-        .attachWithdrawalValidator(collectStakeValidator)
+        .attachWithdrawalValidator(collectStakeValidator);
     }
 
     nodeUtxos.forEach((utxo) => {
       const redeemer = Data.to("CommitFoldAct", LiquidityNodeValidatorAction);
-      
-      const datum = Data.from(utxo.datum as string, LiquiditySetNode)
-      console.log(`Folding: ${utxo.txHash}#${utxo.outputIndex} with key: ${datum.key}`)
-      tx.collectFrom([utxo], redeemer)
+
+      const datum = Data.from(utxo.datum as string, LiquiditySetNode);
+      console.log(
+        `Folding: ${utxo.txHash}#${utxo.outputIndex} with key: ${datum.key}`,
+      );
+      tx.collectFrom([utxo], redeemer);
     });
 
     sortedIndexingPairs.forEach(({ item: utxo }) => {
       const datumCommitment = utxo.assets.lovelace - TT_UTXO_ADDITIONAL_ADA;
       const oldDatum = Data.from(utxo.datum as string, LiquiditySetNode);
-      const newDatum = Data.to({
-        ...oldDatum,
-        commitment: datumCommitment
-      }, LiquiditySetNode);
+      const newDatum = Data.to(
+        {
+          ...oldDatum,
+          commitment: datumCommitment,
+        },
+        LiquiditySetNode,
+      );
 
       const newAssets = {
         ...utxo.assets,
-        lovelace: utxo.assets.lovelace - datumCommitment - FOLDING_FEE_ADA
+        lovelace: utxo.assets.lovelace - datumCommitment - FOLDING_FEE_ADA,
       };
 
       tx.payToContract(
         lucid.utils.validatorToAddress(liquidityValidator),
         { inline: newDatum },
-        newAssets
-      )
-    })
-    
-    tx
-      .payToContract(
-        foldValidatorAddr,
-        { inline: newFoldDatum },
-        {
-          ...foldUTxO.assets,
-          lovelace: foldUTxO.assets.lovelace + totalAda
-        }
-      )
+        newAssets,
+      );
+    });
+
+    tx.payToContract(
+      foldValidatorAddr,
+      { inline: newFoldDatum },
+      {
+        ...foldUTxO.assets,
+        lovelace: foldUTxO.assets.lovelace + totalAda,
+      },
+    )
       .withdraw(
         lucid.utils.validatorToRewardAddress(collectStakeValidator),
         0n,
-        Data.void()
+        Data.void(),
       )
       .validFrom(lowerBound)
-      .validTo(upperBound)
-      
+      .validTo(upperBound);
+
     const txComplete = await tx.complete({
       coinSelection: false,
       nativeUplc: true,
       change: {
         address: config.changeAddress,
-      }
-    })
+      },
+    });
 
     return { type: "ok", data: txComplete };
   } catch (error) {

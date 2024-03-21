@@ -12,7 +12,7 @@ import { InitNodeConfig, Result } from "../core/types.js";
 
 export const dinitNode = async (
   lucid: Lucid,
-  config: InitNodeConfig
+  config: InitNodeConfig,
 ): Promise<Result<TxComplete>> => {
   const nodeValidator: SpendingValidator = {
     type: "PlutusV2",
@@ -31,7 +31,7 @@ export const dinitNode = async (
   //TODO: make sure FCN and FSN tokens are in node validator
   const [emptySetUTXO] = await lucid.utxosAtWithUnit(
     nodeValidatorAddr,
-    toUnit(nodePolicyId, corrNodeTokenName)
+    toUnit(nodePolicyId, corrNodeTokenName),
   );
 
   const assets = {

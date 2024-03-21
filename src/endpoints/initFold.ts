@@ -8,14 +8,21 @@ import {
   fromText,
 } from "lucid-fork";
 import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
-import { AddressD, FoldDatum, FoldMintAct, LiquidityFoldDatum, LiquiditySetNode, SetNode } from "../core/contract.types.js";
+import {
+  AddressD,
+  FoldDatum,
+  FoldMintAct,
+  LiquidityFoldDatum,
+  LiquiditySetNode,
+  SetNode,
+} from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 
 export const initFold = async (
   lucid: Lucid,
   config: InitFoldConfig,
-  type: "Direct" | "Liquidity" = "Liquidity"
+  type: "Direct" | "Liquidity" = "Liquidity",
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
@@ -47,8 +54,8 @@ export const initFold = async (
     lucid.utils.validatorToAddress(discoveryValidator),
     toUnit(
       lucid.utils.mintingPolicyToId(discoveryPolicy),
-      fromText(SETNODE_PREFIX)
-    )
+      fromText(SETNODE_PREFIX),
+    ),
   );
 
   if (!headNodeUTxO || !headNodeUTxO.datum)
@@ -61,18 +68,18 @@ export const initFold = async (
       {
         currNode: Data.from(headNodeUTxO.datum, LiquiditySetNode),
         committed: 0n,
-        owner
+        owner,
       },
-      LiquidityFoldDatum
-    )
+      LiquidityFoldDatum,
+    );
   } else {
     datum = Data.to(
       {
         currNode: Data.from(headNodeUTxO.datum, SetNode),
         committed: 0n,
-        owner
+        owner,
       },
-      FoldDatum
+      FoldDatum,
     );
   }
 

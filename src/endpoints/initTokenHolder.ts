@@ -22,7 +22,7 @@ export const TokenHolderMintAction =
 
 export const initTokenHolder = async (
   lucid: Lucid,
-  config: InitTokenHolderConfig
+  config: InitTokenHolderConfig,
 ): Promise<Result<TxComplete>> => {
   const tokenHolderValidator: SpendingValidator = {
     type: "PlutusV2",
@@ -52,9 +52,9 @@ export const initTokenHolder = async (
         {
           [ptHolderAsset]: BigInt(1),
           [toUnit(config.projectCS, fromText(config.projectTN))]: BigInt(
-            config.projectAmount
+            config.projectAmount,
           ),
-        }
+        },
       )
       .mintAssets({ [ptHolderAsset]: BigInt(1) }, mintPTHolderAct)
       .attachMintingPolicy(tokenHolderPolicy)

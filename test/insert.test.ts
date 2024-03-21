@@ -25,8 +25,8 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
-import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFails.json";
 import { deploy, getRefUTxOs } from "./setup.js";
 
@@ -46,7 +46,7 @@ beforeEach<LucidContext>(async (context) => {
       lovelace: BigInt(500_000_000),
       [toUnit(
         "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
-        fromText("LOBSTER")
+        fromText("LOBSTER"),
       )]: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
@@ -80,7 +80,9 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode"
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
-  const [project1UTxO] = await lucid.selectWalletFromSeed(users.project1.seedPhrase).wallet.getUtxos()
+  const [project1UTxO] = await lucid
+    .selectWalletFromSeed(users.project1.seedPhrase)
+    .wallet.getUtxos();
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
@@ -93,8 +95,8 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode"
       projectTN: "LOBSTER",
       projectAddr: treasuryAddress,
     },
-    projectTokenHolder:{
-      initUTXO: project1UTxO
+    projectTokenHolder: {
+      initUTXO: project1UTxO,
     },
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
@@ -105,18 +107,23 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode"
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
       tokenHolderPolicy: tokenHolderPolicy.cborHex,
-      tokenHolderValidator: tokenHolderValidator.cborHex
+      tokenHolderValidator: tokenHolderValidator.cborHex,
     },
   });
 
   expect(newScripts.type).toBe("ok");
-  if (newScripts.type == "error") return
+  if (newScripts.type == "error") return;
 
   // DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
-  
-  const deployRefScripts = await deploy(lucid, emulator, newScripts.data, emulator.now());
-  
+
+  const deployRefScripts = await deploy(
+    lucid,
+    emulator,
+    newScripts.data,
+    emulator.now(),
+  );
+
   //Find node refs script
   const deployPolicyId =
     deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
@@ -125,7 +132,7 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode"
 
   // INIT NODE
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
-  
+
   const initNodeConfig: InitNodeConfig = {
     initUTXO: treasuryUTxO,
     scripts: {
@@ -134,10 +141,10 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode"
     },
     refScripts: {
       nodePolicy: refUTxOs.nodePolicyUTxO,
-    }
+    },
   };
   const initNodeUnsigned = await initNode(lucid, initNodeConfig);
-  
+
   expect(initNodeUnsigned.type).toBe("ok");
   if (initNodeUnsigned.type == "error") return;
 
@@ -153,8 +160,8 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode"
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 
@@ -191,8 +198,8 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode"
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 
@@ -228,8 +235,8 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode"
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 });

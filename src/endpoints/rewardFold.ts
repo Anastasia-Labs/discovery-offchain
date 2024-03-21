@@ -12,7 +12,7 @@ import {
   NodeValidatorAction,
   SetNode,
   RewardFoldDatum,
-  RewardFoldAct
+  RewardFoldAct,
 } from "../core/contract.types.js";
 import { Result, RewardFoldConfig } from "../core/types.js";
 import {
@@ -24,7 +24,7 @@ import {
 
 export const rewardFold = async (
   lucid: Lucid,
-  config: RewardFoldConfig
+  config: RewardFoldConfig,
 ): Promise<Result<TxComplete>> => {
   const nodeValidator: SpendingValidator = {
     type: "PlutusV2",
@@ -52,7 +52,7 @@ export const rewardFold = async (
 
   const [rewardUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress(rewardFoldValidator),
-    toUnit(lucid.utils.mintingPolicyToId(rewardFoldPolicy), fromText("RFold"))
+    toUnit(lucid.utils.mintingPolicyToId(rewardFoldPolicy), fromText("RFold")),
   );
   if (!rewardUTxO.datum)
     return { type: "error", error: new Error("missing RewardFoldDatum") };
@@ -80,7 +80,7 @@ export const rewardFold = async (
       totalCommitted: oldRewardFoldDatum.totalCommitted,
       owner: oldRewardFoldDatum.owner,
     },
-    RewardFoldDatum
+    RewardFoldDatum,
   );
 
   const nodeCommitment = nodeInput.assets["lovelace"] - NODE_ADA;
@@ -93,7 +93,7 @@ export const rewardFold = async (
   const [nodeAsset] = Object.entries(nodeInput.assets).filter(
     ([key, value]) => {
       return key != "lovelace";
-    }
+    },
   );
 
   const remainingProjectTokenAmount =
@@ -109,7 +109,7 @@ export const rewardFold = async (
         .withdraw(
           lucid.utils.validatorToRewardAddress(discoveryStakeValidator),
           0n,
-          Data.void()
+          Data.void(),
         )
         .payToContract(
           rewardFoldValidatorAddr,
@@ -118,11 +118,11 @@ export const rewardFold = async (
             ["lovelace"]: rewardUTxO.assets["lovelace"],
             [toUnit(
               lucid.utils.mintingPolicyToId(rewardFoldPolicy),
-              fromText("RFold")
+              fromText("RFold"),
             )]: 1n,
             [toUnit(config.projectCS, fromText(config.projectTN))]:
               remainingProjectTokenAmount,
-          }
+          },
         )
         .payToContract(
           nodeValidatorAddr,
@@ -132,31 +132,28 @@ export const rewardFold = async (
             [toUnit(config.projectCS, fromText(config.projectTN))]:
               owedProjectTokenAmount,
             ["lovelace"]: NODE_ADA - FOLDING_FEE_ADA,
-          }
+          },
         )
         .payToAddress(config.projectAddress, { lovelace: nodeCommitment })
         .payToAddress(
           lucid.utils.credentialToAddress(
             lucid.utils.keyHashToCredential(PROTOCOL_PAYMENT_KEY),
-            lucid.utils.keyHashToCredential(PROTOCOL_STAKE_KEY)
+            lucid.utils.keyHashToCredential(PROTOCOL_STAKE_KEY),
           ),
           {
             lovelace: FOLDING_FEE_ADA,
-          }
+          },
         )
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])
         .readFrom([config.refScripts.discoveryStake]);
 
-      return { 
-        type: "ok", 
-        data: await 
-              (
-                process.env.NODE_ENV == "emulator" 
-                  ? tx.complete() 
-                  : tx.complete({nativeUplc : false})
-              )
-        };
+      return {
+        type: "ok",
+        data: await (process.env.NODE_ENV == "emulator"
+          ? tx.complete()
+          : tx.complete({ nativeUplc: false })),
+      };
     } else {
       const tx = await lucid
         .newTx()
@@ -165,7 +162,7 @@ export const rewardFold = async (
         .withdraw(
           lucid.utils.validatorToRewardAddress(discoveryStakeValidator),
           0n,
-          Data.void()
+          Data.void(),
         )
         .payToContract(
           nodeValidatorAddr,
@@ -177,17 +174,17 @@ export const rewardFold = async (
                 toUnit(config.projectCS, fromText(config.projectTN))
               ],
             ["lovelace"]: NODE_ADA - FOLDING_FEE_ADA,
-          }
+          },
         )
         .payToAddress(config.projectAddress, { lovelace: nodeCommitment })
         .payToAddress(
           lucid.utils.credentialToAddress(
             lucid.utils.keyHashToCredential(PROTOCOL_PAYMENT_KEY),
-            lucid.utils.keyHashToCredential(PROTOCOL_STAKE_KEY)
+            lucid.utils.keyHashToCredential(PROTOCOL_STAKE_KEY),
           ),
           {
             lovelace: FOLDING_FEE_ADA,
-          }
+          },
         )
         .readFrom([config.refScripts.rewardFoldValidator])
         .readFrom([config.refScripts.nodeValidator])

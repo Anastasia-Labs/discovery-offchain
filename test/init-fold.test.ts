@@ -31,7 +31,6 @@ import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
 import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
 import { deploy, getRefUTxOs, insertThreeNodes } from "./setup.js";
 
-
 type LucidContext = {
   lucid: Lucid;
   users: any;
@@ -48,7 +47,7 @@ beforeEach<LucidContext>(async (context) => {
       lovelace: BigInt(100_000_000),
       [toUnit(
         "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
-        fromText("LOBSTER")
+        fromText("LOBSTER"),
       )]: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
@@ -79,7 +78,7 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
   emulator,
 }) => {
   const logFlag = false;
-  
+
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
@@ -120,9 +119,14 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
 
   // DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
-  
-  const deployRefScripts = await deploy(lucid, emulator, newScripts.data, emulator.now());
-  
+
+  const deployRefScripts = await deploy(
+    lucid,
+    emulator,
+    newScripts.data,
+    emulator.now(),
+  );
+
   //Find node refs script
   const deployPolicyId =
     deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
@@ -138,7 +142,7 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
     },
     refScripts: {
       nodePolicy: refUTxOs.nodePolicyUTxO,
-    }
+    },
   };
 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
@@ -159,13 +163,20 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 
   // INSERT NODES, ACCOUNT 1 -> ACCOUNT 2 -> ACCOUNT 3
-  await insertThreeNodes(lucid, emulator, users, newScripts.data, refUTxOs, logFlag);
+  await insertThreeNodes(
+    lucid,
+    emulator,
+    users,
+    newScripts.data,
+    refUTxOs,
+    logFlag,
+  );
 
   // Wait for deadline to pass
   emulator.awaitBlock(6000);
@@ -189,7 +200,7 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
   expect(initFoldUnsigned.type).toBe("ok");
   if (initFoldUnsigned.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  
+
   const initFoldSigned = await initFoldUnsigned.data.sign().complete();
   const initFoldHash = await initFoldSigned.submit();
 
@@ -201,8 +212,8 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
         JSON.stringify(
           await utxosAtScript(lucid, newScripts.data.foldValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 });

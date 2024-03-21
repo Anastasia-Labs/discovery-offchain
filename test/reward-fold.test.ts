@@ -30,7 +30,7 @@ import {
   toUnit,
   TWENTY_FOUR_HOURS_MS,
   utxosAtScript,
-  FoldDatum
+  FoldDatum,
 } from "../src/index.js";
 import { test, expect, beforeEach } from "vitest";
 import discoveryValidator from "./compiled/discoveryValidator.json";
@@ -61,7 +61,7 @@ beforeEach<LucidContext>(async (context) => {
       lovelace: BigInt(500_000_000),
       [toUnit(
         "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
-        fromText("LOBSTER")
+        fromText("LOBSTER"),
       )]: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
@@ -136,12 +136,17 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
   // DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
   const deployTime = emulator.now();
-  
-  const deployRefScripts = await deploy(lucid, emulator, newScripts.data, emulator.now());
-  
+
+  const deployRefScripts = await deploy(
+    lucid,
+    emulator,
+    newScripts.data,
+    emulator.now(),
+  );
+
   // Find node refs script
   const deployPolicyId =
-  deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
+    deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
 
   const refUTxOs = await getRefUTxOs(lucid, deployPolicyId);
 
@@ -163,7 +168,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
       )
         .sign()
         .complete()
-    ).submit()
+    ).submit(),
   );
 
   // INIT PROJECT TOKEN HOLDER
@@ -181,7 +186,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
   lucid.selectWalletFromSeed(users.project1.seedPhrase);
   const initTokenHolderUnsigned = await initTokenHolder(
     lucid,
-    initTokenHolderConfig
+    initTokenHolderConfig,
   );
   // console.log(initTokenHolderUnsigned)
 
@@ -225,16 +230,27 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
     ? console.log(
         "initNode result ",
         JSON.stringify(
-          await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct"),
+          await parseUTxOsAtScript(
+            lucid,
+            newScripts.data.discoveryValidator,
+            "Direct",
+          ),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 
   // INSERT NODES, ACCOUNT 1 -> ACCOUNT 2 -> ACCOUNT 3
-  await insertThreeNodes(lucid, emulator, users, newScripts.data, refUTxOs, logFlag);
-  
+  await insertThreeNodes(
+    lucid,
+    emulator,
+    users,
+    newScripts.data,
+    refUTxOs,
+    logFlag,
+  );
+
   // Wait for deadline to pass
   emulator.awaitBlock(6000);
 
@@ -264,12 +280,20 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
 
   const multiFoldConfig: MultiFoldConfig = {
     nodeRefInputs: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
+      await parseUTxOsAtScript(
+        lucid,
+        newScripts.data.discoveryValidator,
+        "Direct",
+      ),
     ).map((data) => {
       return data.value.outRef;
     }),
     indices: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
+      await parseUTxOsAtScript(
+        lucid,
+        newScripts.data.discoveryValidator,
+        "Direct",
+      ),
     ).map((data) => {
       return data.index;
     }),
@@ -324,7 +348,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initRewardFoldUnsigned = await initRewardFold(
     lucid,
-    initRewardFoldConfig
+    initRewardFoldConfig,
   );
 
   expect(initRewardFoldUnsigned.type).toBe("ok");
@@ -336,7 +360,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
   const initRewardFoldHash = await initRewardFoldSigned.submit();
 
   emulator.awaitBlock(4);
-  
+
   // const utxos = await utxosAtScript(lucid,newScripts.data.rewardValidator);
   // logFlag
   //   ? console.log(
@@ -348,7 +372,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
   //       )
   //     )
   //   : null;
-  
+
   // logFlag
   // ? console.log(
   //     "RewardFoldDatum",
@@ -364,7 +388,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
 
   const nodeUTxOs = await utxosAtScript(
     lucid,
-    newScripts.data.discoveryValidator
+    newScripts.data.discoveryValidator,
   );
 
   const refScripts = {
@@ -484,17 +508,22 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
 
   emulator.awaitBlock(4);
 
-  logFlag ?
-    console.log(
-      "utxos at discovery validator",
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
-    ) : null;
+  logFlag
+    ? console.log(
+        "utxos at discovery validator",
+        await parseUTxOsAtScript(
+          lucid,
+          newScripts.data.discoveryValidator,
+          "Direct",
+        ),
+      )
+    : null;
 
   // console.log(
   //   "users.treasury1.address",
   //   await lucid.utxosAt(users.treasury1.address)
   // );
-  
+
   // console.log(
   //   "utxos at reward fold",
   //   await utxosAtScript(lucid, newScripts.data.rewardValidator)

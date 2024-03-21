@@ -6,14 +6,22 @@ import {
   toUnit,
   TxComplete,
 } from "lucid-fork";
-import { MIN_COMMITMENT_ADA, TT_UTXO_ADDITIONAL_ADA, originNodeTokenName } from "../core/constants.js";
-import { DiscoveryNodeAction, LiquidityNodeAction, LiquiditySetNode } from "../core/contract.types.js";
+import {
+  MIN_COMMITMENT_ADA,
+  TT_UTXO_ADDITIONAL_ADA,
+  originNodeTokenName,
+} from "../core/constants.js";
+import {
+  DiscoveryNodeAction,
+  LiquidityNodeAction,
+  LiquiditySetNode,
+} from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";
 import { NODE_ADA } from "../core/constants.js";
 
 export const initLqNode = async (
   lucid: Lucid,
-  config: InitNodeConfig
+  config: InitNodeConfig,
 ): Promise<Result<TxComplete>> => {
   const nodeValidator: SpendingValidator = {
     type: "PlutusV2",
@@ -40,7 +48,7 @@ export const initLqNode = async (
       next: null,
       commitment: BigInt(0),
     },
-    LiquiditySetNode
+    LiquiditySetNode,
   );
 
   const liquidityNodePolicyRedeemer = Data.to("PLInit", LiquidityNodeAction);
@@ -52,14 +60,14 @@ export const initLqNode = async (
       .payToContract(
         nodeValidatorAddr,
         { inline: datum },
-        { ...assets, lovelace: TT_UTXO_ADDITIONAL_ADA + MIN_COMMITMENT_ADA }
+        { ...assets, lovelace: TT_UTXO_ADDITIONAL_ADA + MIN_COMMITMENT_ADA },
       )
       .mintAssets(assets, liquidityNodePolicyRedeemer)
       // .attachMintingPolicy(nodePolicy)
       .compose(
         config.refScripts?.nodePolicy
           ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
-          : lucid.newTx().attachMintingPolicy(nodePolicy)
+          : lucid.newTx().attachMintingPolicy(nodePolicy),
       )
       .complete();
 

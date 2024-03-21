@@ -34,8 +34,8 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
-import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFails.json";
 import discoveryStakeValidator from "./compiled/discoveryStakeValidator.json";
 import { deploy, getRefUTxOs, insertThreeNodes } from "./setup.js";
@@ -56,7 +56,7 @@ beforeEach<LucidContext>(async (context) => {
       lovelace: BigInt(100_000_000),
       [toUnit(
         "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
-        fromText("LOBSTER")
+        fromText("LOBSTER"),
       )]: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
@@ -91,7 +91,9 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
   const treasuryAddress = await lucid.wallet.address();
   const [treasuryUTxO] = await lucid.wallet.getUtxos();
   const deadline = emulator.now() + TWENTY_FOUR_HOURS_MS + ONE_HOUR_MS; // 24 hours + 1 hour
-  const [project1UTxO] = await lucid.selectWalletFromSeed(users.project1.seedPhrase).wallet.getUtxos()
+  const [project1UTxO] = await lucid
+    .selectWalletFromSeed(users.project1.seedPhrase)
+    .wallet.getUtxos();
 
   const newScripts = buildScripts(lucid, {
     discoveryPolicy: {
@@ -104,8 +106,8 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
       projectTN: "LOBSTER",
       projectAddr: treasuryAddress,
     },
-    projectTokenHolder:{
-      initUTXO: project1UTxO
+    projectTokenHolder: {
+      initUTXO: project1UTxO,
     },
     unapplied: {
       discoveryPolicy: discoveryPolicy.cborHex,
@@ -116,7 +118,7 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
       rewardPolicy: rewardPolicy.cborHex,
       rewardValidator: rewardValidator.cborHex,
       tokenHolderPolicy: tokenHolderPolicy.cborHex,
-      tokenHolderValidator: tokenHolderValidator.cborHex
+      tokenHolderValidator: tokenHolderValidator.cborHex,
     },
   });
 
@@ -125,9 +127,14 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
 
   // DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
-  
-  const deployRefScripts = await deploy(lucid, emulator, newScripts.data, emulator.now());
-  
+
+  const deployRefScripts = await deploy(
+    lucid,
+    emulator,
+    newScripts.data,
+    emulator.now(),
+  );
+
   //Find node refs script
   const deployPolicyId =
     deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
@@ -143,7 +150,7 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
     },
     refScripts: {
       nodePolicy: refUTxOs.nodePolicyUTxO,
-    }
+    },
   };
 
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
@@ -164,17 +171,24 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 
   // INSERT NODES, ACCOUNT 1 -> ACCOUNT 2 -> ACCOUNT 3
-  await insertThreeNodes(lucid, emulator, users, newScripts.data, refUTxOs, logFlag);
-  
+  await insertThreeNodes(
+    lucid,
+    emulator,
+    users,
+    newScripts.data,
+    refUTxOs,
+    logFlag,
+  );
+
   // Wait for deadline to pass
   emulator.awaitBlock(6000);
-  
+
   // INIT FOLD
   const initFoldConfig: InitFoldConfig = {
     scripts: {
@@ -228,12 +242,20 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
 
   const multiFoldConfig: MultiFoldConfig = {
     nodeRefInputs: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
+      await parseUTxOsAtScript(
+        lucid,
+        newScripts.data.discoveryValidator,
+        "Direct",
+      ),
     ).map((data) => {
       return data.value.outRef;
     }),
     indices: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
+      await parseUTxOsAtScript(
+        lucid,
+        newScripts.data.discoveryValidator,
+        "Direct",
+      ),
     ).map((data) => {
       return data.index;
     }),
@@ -256,26 +278,15 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
 
   emulator.awaitBlock(4);
 
-  const utxos = await utxosAtScript(lucid,newScripts.data.foldValidator);
+  const utxos = await utxosAtScript(lucid, newScripts.data.foldValidator);
+  logFlag
+    ? console.log("multi fold result", JSON.stringify(utxos, replacer, 2))
+    : null;
+
   logFlag
     ? console.log(
-        "multi fold result",
-        JSON.stringify(
-          utxos,
-          replacer,
-          2
-        )
+        "FoldDatum",
+        JSON.stringify(Data.from(utxos[0].datum!, FoldDatum), replacer, 2),
       )
     : null;
-  
-  logFlag
-  ? console.log(
-      "FoldDatum",
-      JSON.stringify(
-        Data.from(utxos[0].datum!, FoldDatum),
-        replacer,
-        2
-      )
-    )
-  : null;
 });

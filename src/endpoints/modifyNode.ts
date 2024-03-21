@@ -1,4 +1,3 @@
-
 import {
   Lucid,
   SpendingValidator,
@@ -8,15 +7,18 @@ import {
   TxComplete,
   Assets,
 } from "lucid-fork";
-import { DiscoveryNodeAction, NodeValidatorAction, SetNode } from "../core/contract.types.js";
+import {
+  DiscoveryNodeAction,
+  NodeValidatorAction,
+  SetNode,
+} from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
 import { mkNodeKeyTN } from "../index.js";
 
 export const modifyNode = async (
   lucid: Lucid,
-  config: InsertNodeConfig
+  config: InsertNodeConfig,
 ): Promise<Result<TxComplete>> => {
-
   const nodeValidator: SpendingValidator = {
     type: "PlutusV2",
     script: config.scripts.nodeValidator,
@@ -37,9 +39,9 @@ export const modifyNode = async (
 
   //TODO: move this to utils
   const ownNode = nodeUTXOs.find((utxo) => {
-    if (utxo.datum){
-      const nodeDat = Data.from(utxo.datum, SetNode)
-      return nodeDat.key == userKey 
+    if (utxo.datum) {
+      const nodeDat = Data.from(utxo.datum, SetNode);
+      return nodeDat.key == userKey;
     }
   });
   // console.log("found covering node ", coveringNode)
@@ -47,11 +49,17 @@ export const modifyNode = async (
   if (!ownNode || !ownNode.datum)
     return { type: "error", error: new Error("missing ownNode") };
 
-  const redeemerNodeValidator = Data.to("ModifyCommitment",NodeValidatorAction)
+  const redeemerNodeValidator = Data.to(
+    "ModifyCommitment",
+    NodeValidatorAction,
+  );
 
-  const newNodeAssets : Assets = {}
-  Object.keys(ownNode.assets).forEach((unit) => newNodeAssets[unit] = ownNode.assets[unit]);
-  newNodeAssets['lovelace'] = newNodeAssets['lovelace'] + BigInt(config.amountLovelace)
+  const newNodeAssets: Assets = {};
+  Object.keys(ownNode.assets).forEach(
+    (unit) => (newNodeAssets[unit] = ownNode.assets[unit]),
+  );
+  newNodeAssets["lovelace"] =
+    newNodeAssets["lovelace"] + BigInt(config.amountLovelace);
 
   try {
     const tx = await lucid
@@ -60,12 +68,12 @@ export const modifyNode = async (
       .compose(
         config.refScripts?.nodeValidator
           ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
-          : lucid.newTx().attachSpendingValidator(nodeValidator)
+          : lucid.newTx().attachSpendingValidator(nodeValidator),
       )
       .payToContract(
         nodeValidatorAddr,
         { inline: ownNode.datum },
-        newNodeAssets
+        newNodeAssets,
       )
       .complete();
 

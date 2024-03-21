@@ -20,13 +20,13 @@ import {
 import { test, expect, beforeEach } from "vitest";
 import discoveryValidator from "./compiled/discoveryValidator.json";
 import discoveryPolicy from "./compiled/discoveryMinting.json";
-import discoveryStake from "./compiled/discoveryStakeValidator.json"
+import discoveryStake from "./compiled/discoveryStakeValidator.json";
 import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
-import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFails.json";
 import { deploy, getRefUTxOs } from "./setup.js";
 
@@ -46,7 +46,7 @@ beforeEach<LucidContext>(async (context) => {
       lovelace: BigInt(500_000_000),
       [toUnit(
         "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
-        fromText("LOBSTER")
+        fromText("LOBSTER"),
       )]: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
@@ -123,11 +123,16 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
 
   const deployTime = emulator.now();
 
-  const deployRefScripts = await deploy(lucid, emulator, newScripts.data, deployTime);
-  
+  const deployRefScripts = await deploy(
+    lucid,
+    emulator,
+    newScripts.data,
+    deployTime,
+  );
+
   //Find node refs script
   const deployPolicyId =
-  deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
+    deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
 
   const refUTxOs = await getRefUTxOs(lucid, deployPolicyId);
 
@@ -146,7 +151,7 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
   lucid.selectWalletFromSeed(users.project1.seedPhrase);
   const initTokenHolderUnsigned = await initTokenHolder(
     lucid,
-    initTokenHolderConfig
+    initTokenHolderConfig,
   );
 
   expect(initTokenHolderUnsigned.type).toBe("ok");
@@ -157,7 +162,7 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
     const initTokenHolderHash = await initTokenHolderSigned.submit();
   }
   // RESET WALLET
-  lucid.selectWalletFromSeed(users.null.seedPhrase)
+  lucid.selectWalletFromSeed(users.null.seedPhrase);
 
   emulator.awaitBlock(4);
   // console.log(
@@ -186,7 +191,7 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
   const initNodeHash = await initNodeSigned.submit();
   // console.log(initNodeHash)
   // RESET WALLET
-  lucid.selectWalletFromSeed(users.null.seedPhrase)
+  lucid.selectWalletFromSeed(users.null.seedPhrase);
 
   emulator.awaitBlock(4);
   logFlag
@@ -195,8 +200,8 @@ test<LucidContext>("Test - deploy - initTokenHolder - initNode", async ({
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 });

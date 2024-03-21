@@ -5,7 +5,7 @@ import { Either, ReadableUTxO } from "../types.js";
 export const utxosAtScript = async (
   lucid: Lucid,
   script: string,
-  stakeCredentialHash?: string
+  stakeCredentialHash?: string,
 ) => {
   const scriptValidator: SpendingValidator = {
     type: "PlutusV2",
@@ -15,7 +15,7 @@ export const utxosAtScript = async (
   const scriptValidatorAddr = stakeCredentialHash
     ? lucid.utils.validatorToAddress(
         scriptValidator,
-        lucid.utils.keyHashToCredential(stakeCredentialHash)
+        lucid.utils.keyHashToCredential(stakeCredentialHash),
       )
     : lucid.utils.validatorToAddress(scriptValidator);
 
@@ -26,11 +26,14 @@ export const utxosAtScript = async (
 export const parseDatum = <T = SetNode>(
   lucid: Lucid,
   utxo: UTxO,
-  type: "Direct" | "Liquidity" = "Liquidity"
+  type: "Direct" | "Liquidity" = "Liquidity",
 ): Either<string, T> => {
   if (utxo.datum) {
     try {
-      const parsedDatum = Data.from(utxo.datum, type === "Liquidity" ? LiquiditySetNode : SetNode);
+      const parsedDatum = Data.from(
+        utxo.datum,
+        type === "Liquidity" ? LiquiditySetNode : SetNode,
+      );
 
       return {
         type: "right",
@@ -49,7 +52,7 @@ export const parseUTxOsAtScript = async <T = SetNode>(
   lucid: Lucid,
   script: string,
   type: "Direct" | "Liquidity" = "Liquidity",
-  stakeCredentialHash?: string
+  stakeCredentialHash?: string,
 ): Promise<ReadableUTxO<T>[]> => {
   const utxos = await utxosAtScript(lucid, script, stakeCredentialHash);
   return utxos.flatMap((utxo) => {
@@ -76,13 +79,13 @@ export type ResultSorted = {
 
 export const sortByDatumKeys = (
   utxos: ResultSorted[],
-  startKey: string | null
+  startKey: string | null,
 ) => {
   const firstItem = utxos.find((readableUTxO) => {
     return readableUTxO.value.datum.key == startKey;
   });
   if (!firstItem) throw new Error("firstItem error");
-  if (!startKey) throw new Error("startKey error")
+  if (!startKey) throw new Error("startKey error");
 
   return utxos.reduce(
     (result, current) => {
@@ -97,7 +100,7 @@ export const sortByDatumKeys = (
       result.push(item);
       return result;
     },
-    [firstItem] as ResultSorted[]
+    [firstItem] as ResultSorted[],
   );
 };
 
@@ -131,7 +134,7 @@ export const sortByOutRefWithIndex = (utxos: ReadableUTxO[]) => {
       };
     });
 
-  return sortByDatumKeys(sortedByOutRef, head.datum.next)
+  return sortByDatumKeys(sortedByOutRef, head.datum.next);
 };
 
 export const chunkArray = <T>(array: T[], chunkSize: number) => {

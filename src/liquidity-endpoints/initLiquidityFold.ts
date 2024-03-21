@@ -8,13 +8,17 @@ import {
   fromText,
 } from "lucid-fork";
 import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
-import { FoldMintAct, LiquidityFoldDatum, LiquiditySetNode } from "../core/contract.types.js";
+import {
+  FoldMintAct,
+  LiquidityFoldDatum,
+  LiquiditySetNode,
+} from "../core/contract.types.js";
 import { InitFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 
 export const initLqFold = async (
   lucid: Lucid,
-  config: InitFoldConfig
+  config: InitFoldConfig,
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
@@ -46,8 +50,8 @@ export const initLqFold = async (
     lucid.utils.validatorToAddress(discoveryValidator),
     toUnit(
       lucid.utils.mintingPolicyToId(discoveryPolicy),
-      fromText(SETNODE_PREFIX)
-    )
+      fromText(SETNODE_PREFIX),
+    ),
   );
 
   if (!headNodeUTxO || !headNodeUTxO.datum)
@@ -61,7 +65,7 @@ export const initLqFold = async (
       committed: 0n,
       owner: fromAddress(await lucid.wallet.address()), //NOTE: owner is not being used in fold minting or validator
     },
-    LiquidityFoldDatum
+    LiquidityFoldDatum,
   );
 
   const redeemerFoldPolicy = Data.to("MintFold", FoldMintAct);

@@ -16,9 +16,8 @@ export type Deploy = {
 //TODO: make this generic
 export const deployRefScripts = async (
   lucid: Lucid,
-  config: DeployRefScriptsConfig
+  config: DeployRefScriptsConfig,
 ): Promise<Result<Deploy>> => {
-
   const walletUtxos = await lucid.wallet.getUtxos();
 
   if (!walletUtxos.length)
@@ -65,20 +64,20 @@ export const deployRefScripts = async (
       .payToAddressWithData(
         alwaysFailsAddr,
         { scriptRef: script },
-        { [toUnit(deployPolicyId, fromText(config.name))]: 1n }
+        { [toUnit(deployPolicyId, fromText(config.name))]: 1n },
       )
       .validTo(config.currenTime + 800_000);
 
     if (config.spendingInput) {
-      tx.collectFrom([config.spendingInput])
+      tx.collectFrom([config.spendingInput]);
     }
 
     return {
       type: "ok",
       data: {
         tx,
-        deployPolicyId: deployPolicyId
-      }
+        deployPolicyId: deployPolicyId,
+      },
     };
   } catch (error) {
     if (error instanceof Error) return { type: "error", error: error };

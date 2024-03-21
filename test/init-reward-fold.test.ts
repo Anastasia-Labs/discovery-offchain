@@ -57,7 +57,7 @@ beforeEach<LucidContext>(async (context) => {
       lovelace: BigInt(500_000_000),
       [toUnit(
         "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e2650505",
-        fromText("LOBSTER")
+        fromText("LOBSTER"),
       )]: BigInt(100_000_000),
     }),
     account1: await generateAccountSeedPhrase({
@@ -128,12 +128,17 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
 
   // DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
-  
-  const deployRefScripts = await deploy(lucid, emulator, newScripts.data, emulator.now());
-  
+
+  const deployRefScripts = await deploy(
+    lucid,
+    emulator,
+    newScripts.data,
+    emulator.now(),
+  );
+
   // Find node refs script
   const deployPolicyId =
-  deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
+    deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
 
   const refUTxOs = await getRefUTxOs(lucid, deployPolicyId);
 
@@ -152,7 +157,7 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
   lucid.selectWalletFromSeed(users.project1.seedPhrase);
   const initTokenHolderUnsigned = await initTokenHolder(
     lucid,
-    initTokenHolderConfig
+    initTokenHolderConfig,
   );
   // console.log(initTokenHolderUnsigned)
 
@@ -200,17 +205,24 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 
   // INSERT NODES, ACCOUNT 1 -> ACCOUNT 2 -> ACCOUNT 3
-  await insertThreeNodes(lucid, emulator, users, newScripts.data, refUTxOs, logFlag);
-  
+  await insertThreeNodes(
+    lucid,
+    emulator,
+    users,
+    newScripts.data,
+    refUTxOs,
+    logFlag,
+  );
+
   // Wait for deadline to pass
   emulator.awaitBlock(6000);
-  
+
   // INIT FOLD
   const initFoldConfig: InitFoldConfig = {
     scripts: {
@@ -237,12 +249,20 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
 
   const multiFoldConfig: MultiFoldConfig = {
     nodeRefInputs: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
+      await parseUTxOsAtScript(
+        lucid,
+        newScripts.data.discoveryValidator,
+        "Direct",
+      ),
     ).map((data) => {
       return data.value.outRef;
     }),
     indices: sortByOutRefWithIndex(
-      await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator, "Direct")
+      await parseUTxOsAtScript(
+        lucid,
+        newScripts.data.discoveryValidator,
+        "Direct",
+      ),
     ).map((data) => {
       return data.index;
     }),
@@ -290,17 +310,17 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
       rewardFoldValidator: refUTxOs.rewardValidatorUTxO,
       tokenHolderPolicy: refUTxOs.tokenHolderPolicyUTxO,
       tokenHolderValidator: refUTxOs.tokenHolderValidatorUTxO,
-    }
+    },
   };
 
   const initRewardFoldUnsigned = await initRewardFold(
     lucid,
-    initRewardFoldConfig
+    initRewardFoldConfig,
   );
 
   expect(initRewardFoldUnsigned.type).toBe("ok");
   if (initRewardFoldUnsigned.type == "error") return;
-  
+
   lucid.selectWalletFromSeed(users.treasury1.seedPhrase);
   const initRewardFoldSigned = await initRewardFoldUnsigned.data
     .sign()
@@ -309,26 +329,19 @@ test<LucidContext>("Test - initProjectTokenHolder - initNode  - insertNodes - in
 
   emulator.awaitBlock(4);
 
-  const utxos = await utxosAtScript(lucid,newScripts.data.rewardValidator);
+  const utxos = await utxosAtScript(lucid, newScripts.data.rewardValidator);
+  logFlag
+    ? console.log("init reward fold result", JSON.stringify(utxos, replacer, 2))
+    : null;
+
   logFlag
     ? console.log(
-        "init reward fold result",
+        "RewardFoldDatum",
         JSON.stringify(
-          utxos,
+          Data.from(utxos[0].datum!, RewardFoldDatum),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
-  
-  logFlag
-  ? console.log(
-      "RewardFoldDatum",
-      JSON.stringify(
-        Data.from(utxos[0].datum!, RewardFoldDatum),
-        replacer,
-        2
-      )
-    )
-  : null;
 });

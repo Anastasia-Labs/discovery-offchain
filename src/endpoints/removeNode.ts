@@ -12,11 +12,16 @@ import {
   SetNode,
 } from "../core/contract.types.js";
 import { RemoveNodeConfig, Result } from "../core/types.js";
-import { divCeil, mkNodeKeyTN, TIME_TOLERANCE_MS, TWENTY_FOUR_HOURS_MS } from "../index.js";
+import {
+  divCeil,
+  mkNodeKeyTN,
+  TIME_TOLERANCE_MS,
+  TWENTY_FOUR_HOURS_MS,
+} from "../index.js";
 
 export const removeNode = async (
   lucid: Lucid,
-  config: RemoveNodeConfig
+  config: RemoveNodeConfig,
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
@@ -40,7 +45,7 @@ export const removeNode = async (
   const nodePolicyId = lucid.utils.mintingPolicyToId(nodePolicy);
 
   const userPubKeyHash = lucid.utils.getAddressDetails(
-    await lucid.wallet.address()
+    await lucid.wallet.address(),
   ).paymentCredential?.hash;
 
   if (!userPubKeyHash)
@@ -92,12 +97,12 @@ export const removeNode = async (
         coveringNode: newPrevNode,
       },
     },
-    DiscoveryNodeAction
+    DiscoveryNodeAction,
   );
 
   const redeemerNodeValidator = Data.to("LinkedListAct", NodeValidatorAction);
-  const upperBound = (config.currenTime + TIME_TOLERANCE_MS)
-  const lowerBound = (config.currenTime - TIME_TOLERANCE_MS)
+  const upperBound = config.currenTime + TIME_TOLERANCE_MS;
+  const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
 
   const beforeDeadline = upperBound < config.deadline;
   const beforeTwentyFourHours =
@@ -132,12 +137,12 @@ export const removeNode = async (
         .compose(
           config.refScripts?.nodeValidator
             ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
-            : lucid.newTx().attachSpendingValidator(nodeValidator)
+            : lucid.newTx().attachSpendingValidator(nodeValidator),
         )
         .payToContract(
           nodeValidatorAddr,
           { inline: newPrevNodeDatum },
-          prevNode.assets
+          prevNode.assets,
         )
         .addSignerKey(userPubKeyHash)
         .mintAssets(assets, redeemerNodePolicy)
@@ -145,7 +150,7 @@ export const removeNode = async (
         .compose(
           config.refScripts?.nodePolicy
             ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
-            : lucid.newTx().attachMintingPolicy(nodePolicy)
+            : lucid.newTx().attachMintingPolicy(nodePolicy),
         )
         .validFrom(lowerBound)
         .validTo(upperBound)
@@ -165,12 +170,12 @@ export const removeNode = async (
         .compose(
           config.refScripts?.nodeValidator
             ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
-            : lucid.newTx().attachSpendingValidator(nodeValidator)
+            : lucid.newTx().attachSpendingValidator(nodeValidator),
         )
         .payToContract(
           nodeValidatorAddr,
           { inline: newPrevNodeDatum },
-          prevNode.assets
+          prevNode.assets,
         )
         .payToAddress(config.penaltyAddress, {
           lovelace: penaltyAmount,
@@ -181,7 +186,7 @@ export const removeNode = async (
         .compose(
           config.refScripts?.nodePolicy
             ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
-            : lucid.newTx().attachMintingPolicy(nodePolicy)
+            : lucid.newTx().attachMintingPolicy(nodePolicy),
         )
         .validFrom(lowerBound)
         .validTo(upperBound)
@@ -197,12 +202,12 @@ export const removeNode = async (
         .compose(
           config.refScripts?.nodeValidator
             ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
-            : lucid.newTx().attachSpendingValidator(nodeValidator)
+            : lucid.newTx().attachSpendingValidator(nodeValidator),
         )
         .payToContract(
           nodeValidatorAddr,
           { inline: newPrevNodeDatum },
-          prevNode.assets
+          prevNode.assets,
         )
         .addSignerKey(userPubKeyHash)
         .mintAssets(assets, redeemerNodePolicy)
@@ -210,7 +215,7 @@ export const removeNode = async (
         .compose(
           config.refScripts?.nodePolicy
             ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
-            : lucid.newTx().attachMintingPolicy(nodePolicy)
+            : lucid.newTx().attachMintingPolicy(nodePolicy),
         )
         .validFrom(lowerBound)
         .validTo(upperBound)

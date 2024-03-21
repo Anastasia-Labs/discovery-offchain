@@ -9,13 +9,17 @@ import {
   fromText,
 } from "lucid-fork";
 import { cFold, SETNODE_PREFIX, TIME_TOLERANCE_MS } from "../core/constants.js";
-import { FoldDatum, LiquiditySetNode, LiquidityRewardFoldDatum } from "../core/contract.types.js";
+import {
+  FoldDatum,
+  LiquiditySetNode,
+  LiquidityRewardFoldDatum,
+} from "../core/contract.types.js";
 import { InitRewardFoldConfig, Result } from "../core/types.js";
 import { fromAddress } from "../index.js";
 
 export const initLqRewardFold = async (
   lucid: Lucid,
-  config: InitRewardFoldConfig
+  config: InitRewardFoldConfig,
 ): Promise<Result<TxComplete>> => {
   const tokenHolderValidator: SpendingValidator = {
     type: "PlutusV2",
@@ -68,8 +72,8 @@ export const initLqRewardFold = async (
     lucid.utils.validatorToAddress(discoveryValidator),
     toUnit(
       lucid.utils.mintingPolicyToId(discoveryPolicy),
-      fromText(SETNODE_PREFIX)
-    )
+      fromText(SETNODE_PREFIX),
+    ),
   );
 
   if (!headNodeUTxO || !headNodeUTxO.datum)
@@ -105,7 +109,7 @@ export const initLqRewardFold = async (
       totalCommitted: commitFoldDatum.committed,
       owner: fromAddress(await lucid.wallet.address()),
     },
-    LiquidityRewardFoldDatum
+    LiquidityRewardFoldDatum,
   );
 
   const burnPTHolderAct = Data.to(new Constr(1, []));
@@ -128,38 +132,38 @@ export const initLqRewardFold = async (
         {
           [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n,
           [projectUnit]: tokenHolderUTxO.assets[projectUnit],
-        }
+        },
       )
       .mintAssets(
         { [toUnit(rewardFoldPolicyId, fromText("RFold"))]: 1n },
-        Data.void()
+        Data.void(),
       )
       .mintAssets({ [commitFoldUnit]: -1n }, burnCommitFoldAct)
       .mintAssets({ [ptHolderUnit]: -1n }, burnPTHolderAct)
       .compose(
         config.refScripts?.tokenHolderValidator
           ? lucid.newTx().readFrom([config.refScripts.tokenHolderValidator])
-          : lucid.newTx().attachSpendingValidator(tokenHolderValidator)
+          : lucid.newTx().attachSpendingValidator(tokenHolderValidator),
       )
       .compose(
         config.refScripts?.commitFoldValidator
           ? lucid.newTx().readFrom([config.refScripts.commitFoldValidator])
-          : lucid.newTx().attachSpendingValidator(commitFoldValidator)
+          : lucid.newTx().attachSpendingValidator(commitFoldValidator),
       )
       .compose(
         config.refScripts?.rewardFoldPolicy
           ? lucid.newTx().readFrom([config.refScripts.rewardFoldPolicy])
-          : lucid.newTx().attachMintingPolicy(rewardFoldPolicy)
+          : lucid.newTx().attachMintingPolicy(rewardFoldPolicy),
       )
       .compose(
         config.refScripts?.commitFoldPolicy
           ? lucid.newTx().readFrom([config.refScripts.commitFoldPolicy])
-          : lucid.newTx().attachMintingPolicy(commitFoldPolicy)
+          : lucid.newTx().attachMintingPolicy(commitFoldPolicy),
       )
       .compose(
         config.refScripts?.tokenHolderPolicy
           ? lucid.newTx().readFrom([config.refScripts.tokenHolderPolicy])
-          : lucid.newTx().attachMintingPolicy(tokenHolderPolicy)
+          : lucid.newTx().attachMintingPolicy(tokenHolderPolicy),
       )
       .addSigner(await lucid.wallet.address())
       .validFrom(lowerBound)

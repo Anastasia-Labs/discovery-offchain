@@ -62,11 +62,11 @@ export function toAddress(address: AddressD, lucid: Lucid): Address {
   const paymentCredential = (() => {
     if ("PublicKeyCredential" in address.paymentCredential) {
       return lucid.utils.keyHashToCredential(
-        address.paymentCredential.PublicKeyCredential[0]
+        address.paymentCredential.PublicKeyCredential[0],
       );
     } else {
       return lucid.utils.scriptHashToCredential(
-        address.paymentCredential.ScriptCredential[0]
+        address.paymentCredential.ScriptCredential[0],
       );
     }
   })();
@@ -75,11 +75,11 @@ export function toAddress(address: AddressD, lucid: Lucid): Address {
     if ("Inline" in address.stakeCredential) {
       if ("PublicKeyCredential" in address.stakeCredential.Inline[0]) {
         return lucid.utils.keyHashToCredential(
-          address.stakeCredential.Inline[0].PublicKeyCredential[0]
+          address.stakeCredential.Inline[0].PublicKeyCredential[0],
         );
       } else {
         return lucid.utils.scriptHashToCredential(
-          address.stakeCredential.Inline[0].ScriptCredential[0]
+          address.stakeCredential.Inline[0].ScriptCredential[0],
         );
       }
     } else {
@@ -146,7 +146,6 @@ function rootNth(value: bigint, k = 2n) {
 export function sqrt(a: bigint, b: bigint) {
   return rootNth(a * b);
 }
-
 
 // const tokenHolderValidator: SpendingValidator = {
 //   type: "PlutusV2",

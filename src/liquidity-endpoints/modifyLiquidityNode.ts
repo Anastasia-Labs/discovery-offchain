@@ -1,4 +1,3 @@
-
 import {
   Lucid,
   SpendingValidator,
@@ -8,15 +7,20 @@ import {
   TxComplete,
   Assets,
 } from "lucid-fork";
-import { DiscoveryNodeAction, LiquidityNodeValidatorAction, LiquiditySetNode, NodeValidatorAction, SetNode } from "../core/contract.types.js";
+import {
+  DiscoveryNodeAction,
+  LiquidityNodeValidatorAction,
+  LiquiditySetNode,
+  NodeValidatorAction,
+  SetNode,
+} from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
 import { TIME_TOLERANCE_MS, mkNodeKeyTN } from "../index.js";
 
 export const modifyLqNode = async (
   lucid: Lucid,
-  config: InsertNodeConfig
+  config: InsertNodeConfig,
 ): Promise<Result<TxComplete>> => {
-
   const nodeValidator: SpendingValidator = {
     type: "PlutusV2",
     script: config.scripts.nodeValidator,
@@ -37,9 +41,9 @@ export const modifyLqNode = async (
 
   //TODO: move this to utils
   const ownNode = nodeUTXOs.find((utxo) => {
-    if (utxo.datum){
-      const nodeDat = Data.from(utxo.datum, LiquiditySetNode)
-      return nodeDat.key == userKey 
+    if (utxo.datum) {
+      const nodeDat = Data.from(utxo.datum, LiquiditySetNode);
+      return nodeDat.key == userKey;
     }
   });
   // console.log("found covering node ", coveringNode)
@@ -47,11 +51,17 @@ export const modifyLqNode = async (
   if (!ownNode || !ownNode.datum)
     return { type: "error", error: new Error("missing ownNode") };
 
-  const redeemerNodeValidator = Data.to("ModifyCommitment", LiquidityNodeValidatorAction)
+  const redeemerNodeValidator = Data.to(
+    "ModifyCommitment",
+    LiquidityNodeValidatorAction,
+  );
 
-  const newNodeAssets : Assets = {}
-  Object.keys(ownNode.assets).forEach((unit) => newNodeAssets[unit] = ownNode.assets[unit]);
-  newNodeAssets['lovelace'] = newNodeAssets['lovelace'] + BigInt(config.amountLovelace)
+  const newNodeAssets: Assets = {};
+  Object.keys(ownNode.assets).forEach(
+    (unit) => (newNodeAssets[unit] = ownNode.assets[unit]),
+  );
+  newNodeAssets["lovelace"] =
+    newNodeAssets["lovelace"] + BigInt(config.amountLovelace);
 
   config.currenTime ??= Date.now();
   const upperBound = config.currenTime + TIME_TOLERANCE_MS;
@@ -64,12 +74,12 @@ export const modifyLqNode = async (
       .compose(
         config.refScripts?.nodeValidator
           ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
-          : lucid.newTx().attachSpendingValidator(nodeValidator)
+          : lucid.newTx().attachSpendingValidator(nodeValidator),
       )
       .payToContract(
         nodeValidatorAddr,
         { inline: ownNode.datum },
-        newNodeAssets
+        newNodeAssets,
       )
       .validFrom(lowerBound)
       .validTo(upperBound)

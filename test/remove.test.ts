@@ -25,8 +25,8 @@ import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
-import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFails.json";
 import discoveryStakeValidator from "./compiled/discoveryStakeValidator.json";
 import { deploy, getRefUTxOs, insertThreeNodes } from "./setup.js";
@@ -115,13 +115,18 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
   // DEPLOY
   lucid.selectWalletFromSeed(users.account3.seedPhrase);
   const deployTime = emulator.now();
-  
+
   // Total blocks elapsed in step - 36
-  const deployRefScripts = await deploy(lucid, emulator, newScripts.data, emulator.now());
-  
+  const deployRefScripts = await deploy(
+    lucid,
+    emulator,
+    newScripts.data,
+    emulator.now(),
+  );
+
   // Find node refs script
   const deployPolicyId =
-  deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
+    deployRefScripts.type == "ok" ? deployRefScripts.data.deployPolicyId : "";
 
   const refUTxOs = await getRefUTxOs(lucid, deployPolicyId);
 
@@ -153,19 +158,26 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 
   // INSERT NODES, ACCOUNT 1 -> ACCOUNT 2 -> ACCOUNT 3
   // Total blocks elapsed in step - 12
-  await insertThreeNodes(lucid, emulator, users, newScripts.data, refUTxOs, logFlag);
+  await insertThreeNodes(
+    lucid,
+    emulator,
+    users,
+    newScripts.data,
+    refUTxOs,
+    logFlag,
+  );
 
   //1 block = 20 secs
   //1 hour = 180 blocks
   //24 hours = 4320 blocks
-  
+
   // Total blocks eplased till now = 36 + 12 = 48
 
   // before 24 hours - up to 148 blocks
@@ -187,8 +199,8 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 
@@ -224,15 +236,16 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
   logFlag
     ? console.log(
-    "treasury address with penalty",
-    await lucid.utxosAt(users.treasury1.address)
-  ): null;
+        "treasury address with penalty",
+        await lucid.utxosAt(users.treasury1.address),
+      )
+    : null;
 
   // FAIL REMOVE NODE
   const removeNodeConfig2: RemoveNodeConfig = {
@@ -268,8 +281,8 @@ test<LucidContext>("Test - initNode - account1 insertNode - account2 insertNode 
         JSON.stringify(
           await parseUTxOsAtScript(lucid, newScripts.data.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 });

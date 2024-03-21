@@ -12,11 +12,16 @@ import {
   SetNode,
 } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
-import { NODE_ADA, mkNodeKeyTN, TIME_TOLERANCE_MS, MIN_COMMITMENT_ADA } from "../index.js";
+import {
+  NODE_ADA,
+  mkNodeKeyTN,
+  TIME_TOLERANCE_MS,
+  MIN_COMMITMENT_ADA,
+} from "../index.js";
 
 export const insertNode = async (
   lucid: Lucid,
-  config: InsertNodeConfig
+  config: InsertNodeConfig,
 ): Promise<Result<TxComplete>> => {
   config.currenTime ??= Date.now();
 
@@ -72,7 +77,7 @@ export const insertNode = async (
       key: coveringNodeDatum.key,
       next: userKey,
     },
-    SetNode
+    SetNode,
   );
   // const prevNodeDatum = Data.to(
   //   new Constr(0, [new Constr(1, []), new Constr(0, [userKey])])
@@ -83,7 +88,7 @@ export const insertNode = async (
       key: userKey,
       next: coveringNodeDatum.next,
     },
-    SetNode
+    SetNode,
   );
   // const nodeDatum = Data.to(
   //   new Constr(0, [new Constr(0, [userKey]), new Constr(1, [])])
@@ -97,7 +102,7 @@ export const insertNode = async (
         coveringNode: coveringNodeDatum,
       },
     },
-    DiscoveryNodeAction
+    DiscoveryNodeAction,
   );
   // console.log(JSON.stringify(Data.from(redeemerNodePolicy),undefined,2))
 
@@ -129,18 +134,18 @@ export const insertNode = async (
       .compose(
         config.refScripts?.nodeValidator
           ? lucid.newTx().readFrom([config.refScripts.nodeValidator])
-          : lucid.newTx().attachSpendingValidator(nodeValidator)
+          : lucid.newTx().attachSpendingValidator(nodeValidator),
       )
       // .attachSpendingValidator(nodeValidator)
       .payToContract(
         nodeValidatorAddr,
         { inline: prevNodeDatum },
-        coveringNode.assets
+        coveringNode.assets,
       )
       .payToContract(
         nodeValidatorAddr,
         { inline: nodeDatum },
-        { ...assets, lovelace: correctAmount }
+        { ...assets, lovelace: correctAmount },
       )
       .addSignerKey(userKey)
       .mintAssets(assets, redeemerNodePolicy)
@@ -148,7 +153,7 @@ export const insertNode = async (
       .compose(
         config.refScripts?.nodePolicy
           ? lucid.newTx().readFrom([config.refScripts.nodePolicy])
-          : lucid.newTx().attachMintingPolicy(nodePolicy)
+          : lucid.newTx().attachMintingPolicy(nodePolicy),
       )
       .validFrom(lowerBound)
       .validTo(upperBound)

@@ -21,31 +21,31 @@ import {
   Result,
   UTxO,
   InsertNodeConfig,
-  insertNode
+  insertNode,
 } from "../src/index.js";
 import { test, expect, beforeEach } from "vitest";
 import discoveryValidator from "./compiled/discoveryValidator.json";
 import discoveryPolicy from "./compiled/discoveryMinting.json";
-import discoveryStake from "./compiled/discoveryStakeValidator.json"
+import discoveryStake from "./compiled/discoveryStakeValidator.json";
 import foldPolicy from "./compiled/foldMint.json";
 import foldValidator from "./compiled/foldValidator.json";
 import rewardPolicy from "./compiled/rewardFoldMint.json";
 import rewardValidator from "./compiled/rewardFoldValidator.json";
-import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json"
-import tokenHolderValidator from "./compiled/tokenHolderValidator.json"
+import tokenHolderPolicy from "./compiled/tokenHolderPolicy.json";
+import tokenHolderValidator from "./compiled/tokenHolderValidator.json";
 import alwaysFailValidator from "./compiled/alwaysFails.json";
 
 export async function deploy(
-  lucid: Lucid, 
-  emulator: Emulator, 
-  scripts: Scripts, 
-  deployTime: number
+  lucid: Lucid,
+  emulator: Emulator,
+  scripts: Scripts,
+  deployTime: number,
 ): Promise<Result<Deploy>> {
   const deploy1 = await deployRefScripts(lucid, {
     script: scripts.discoveryPolicy,
     name: "DiscoveryPolicy",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
   expect(deploy1.type).toBe("ok");
@@ -58,7 +58,7 @@ export async function deploy(
     script: scripts.discoveryValidator,
     name: "DiscoveryValidator",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
   expect(deploy2.type).toBe("ok");
@@ -71,7 +71,7 @@ export async function deploy(
     script: scripts.discoveryStake,
     name: "DiscoveryStakeValidator",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
   expect(deployStake.type).toBe("ok");
@@ -84,7 +84,7 @@ export async function deploy(
     script: scripts.foldPolicy,
     name: "FoldPolicy",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
   expect(deploy3.type).toBe("ok");
@@ -97,7 +97,7 @@ export async function deploy(
     script: scripts.foldValidator,
     name: "FoldValidator",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
   expect(deploy4.type).toBe("ok");
@@ -110,7 +110,7 @@ export async function deploy(
     script: scripts.rewardPolicy,
     name: "RewardFoldPolicy",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
   expect(deploy5.type).toBe("ok");
@@ -123,10 +123,10 @@ export async function deploy(
     script: scripts.rewardValidator,
     name: "RewardFoldValidator",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
-  if(deploy6.type == "error"){
+  if (deploy6.type == "error") {
     console.log(deploy6.error);
   }
   expect(deploy6.type).toBe("ok");
@@ -139,7 +139,7 @@ export async function deploy(
     script: scripts.tokenHolderPolicy,
     name: "TokenHolderPolicy",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
   expect(deploy7.type).toBe("ok");
@@ -152,7 +152,7 @@ export async function deploy(
     script: scripts.tokenHolderValidator,
     name: "TokenHolderValidator",
     alwaysFails: alwaysFailValidator.cborHex,
-    currenTime: deployTime
+    currenTime: deployTime,
   });
 
   expect(deploy8.type).toBe("ok");
@@ -166,24 +166,24 @@ export async function deploy(
 
 export async function getRefUTxOs(
   lucid: Lucid,
-  deployPolicyId: string
+  deployPolicyId: string,
 ): Promise<{
-  nodeValidatorUTxO: UTxO,
-  nodePolicyUTxO: UTxO,
-  nodeStakeValidatorUTxO: UTxO,
-  foldPolicyUTxO: UTxO,
-  foldValidatorUTxO: UTxO,
-  rewardPolicyUTxO: UTxO,
-  rewardValidatorUTxO: UTxO,
-  tokenHolderPolicyUTxO: UTxO,
-  tokenHolderValidatorUTxO: UTxO,  
-}>{
+  nodeValidatorUTxO: UTxO;
+  nodePolicyUTxO: UTxO;
+  nodeStakeValidatorUTxO: UTxO;
+  foldPolicyUTxO: UTxO;
+  foldValidatorUTxO: UTxO;
+  rewardPolicyUTxO: UTxO;
+  rewardValidatorUTxO: UTxO;
+  tokenHolderPolicyUTxO: UTxO;
+  tokenHolderValidatorUTxO: UTxO;
+}> {
   const [nodeValidatorUTxO] = await lucid.utxosAtWithUnit(
     lucid.utils.validatorToAddress({
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("DiscoveryValidator"))
+    toUnit(deployPolicyId, fromText("DiscoveryValidator")),
   );
 
   const [nodeStakeValidatorUTxO] = await lucid.utxosAtWithUnit(
@@ -191,7 +191,7 @@ export async function getRefUTxOs(
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("DiscoveryStakeValidator"))
+    toUnit(deployPolicyId, fromText("DiscoveryStakeValidator")),
   );
 
   const [nodePolicyUTxO] = await lucid.utxosAtWithUnit(
@@ -199,7 +199,7 @@ export async function getRefUTxOs(
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("DiscoveryPolicy"))
+    toUnit(deployPolicyId, fromText("DiscoveryPolicy")),
   );
 
   const [foldPolicyUTxO] = await lucid.utxosAtWithUnit(
@@ -207,7 +207,7 @@ export async function getRefUTxOs(
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("FoldPolicy"))
+    toUnit(deployPolicyId, fromText("FoldPolicy")),
   );
 
   const [foldValidatorUTxO] = await lucid.utxosAtWithUnit(
@@ -215,7 +215,7 @@ export async function getRefUTxOs(
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("FoldValidator"))
+    toUnit(deployPolicyId, fromText("FoldValidator")),
   );
 
   const [rewardPolicyUTxO] = await lucid.utxosAtWithUnit(
@@ -223,7 +223,7 @@ export async function getRefUTxOs(
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("RewardFoldPolicy"))
+    toUnit(deployPolicyId, fromText("RewardFoldPolicy")),
   );
 
   const [rewardValidatorUTxO] = await lucid.utxosAtWithUnit(
@@ -231,7 +231,7 @@ export async function getRefUTxOs(
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("RewardFoldValidator"))
+    toUnit(deployPolicyId, fromText("RewardFoldValidator")),
   );
 
   const [tokenHolderPolicyUTxO] = await lucid.utxosAtWithUnit(
@@ -239,7 +239,7 @@ export async function getRefUTxOs(
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("TokenHolderPolicy"))
+    toUnit(deployPolicyId, fromText("TokenHolderPolicy")),
   );
 
   const [tokenHolderValidatorUTxO] = await lucid.utxosAtWithUnit(
@@ -247,7 +247,7 @@ export async function getRefUTxOs(
       type: "PlutusV2",
       script: alwaysFailValidator.cborHex,
     }),
-    toUnit(deployPolicyId, fromText("TokenHolderValidator"))
+    toUnit(deployPolicyId, fromText("TokenHolderValidator")),
   );
 
   return {
@@ -259,8 +259,8 @@ export async function getRefUTxOs(
     rewardPolicyUTxO: rewardPolicyUTxO,
     rewardValidatorUTxO: rewardValidatorUTxO,
     tokenHolderPolicyUTxO: tokenHolderPolicyUTxO,
-    tokenHolderValidatorUTxO: tokenHolderValidatorUTxO  
-  }
+    tokenHolderValidatorUTxO: tokenHolderValidatorUTxO,
+  };
 }
 
 // Inserts three nodes belonging to account 1, 2 & 3 in the same order
@@ -270,17 +270,17 @@ export async function insertThreeNodes(
   users: any,
   scripts: Scripts,
   refUTxOs: {
-    nodeValidatorUTxO: UTxO,
-  nodePolicyUTxO: UTxO,
-  nodeStakeValidatorUTxO: UTxO,
-  foldPolicyUTxO: UTxO,
-  foldValidatorUTxO: UTxO,
-  rewardPolicyUTxO: UTxO,
-  rewardValidatorUTxO: UTxO,
-  tokenHolderPolicyUTxO: UTxO,
-  tokenHolderValidatorUTxO: UTxO, 
+    nodeValidatorUTxO: UTxO;
+    nodePolicyUTxO: UTxO;
+    nodeStakeValidatorUTxO: UTxO;
+    foldPolicyUTxO: UTxO;
+    foldValidatorUTxO: UTxO;
+    rewardPolicyUTxO: UTxO;
+    rewardValidatorUTxO: UTxO;
+    tokenHolderPolicyUTxO: UTxO;
+    tokenHolderValidatorUTxO: UTxO;
   },
-  logFlag: Boolean
+  logFlag: Boolean,
 ): Promise<void> {
   // INSERT NODE ACCOUNT 1
 
@@ -331,7 +331,7 @@ export async function insertThreeNodes(
 
   expect(insertNodeUnsigned2.type).toBe("ok");
   if (insertNodeUnsigned2.type == "error") return;
-  
+
   const insertNodeSigned2 = await insertNodeUnsigned2.data.sign().complete();
   const insertNodeHash2 = await insertNodeSigned2.submit();
 
@@ -358,7 +358,7 @@ export async function insertThreeNodes(
   expect(insertNodeUnsigned3.type).toBe("ok");
   if (insertNodeUnsigned3.type == "error") return;
   // console.log(insertNodeUnsigned.data.txComplete.to_json())
-  
+
   const insertNodeSigned3 = await insertNodeUnsigned3.data.sign().complete();
   const insertNodeHash3 = await insertNodeSigned3.submit();
 
@@ -370,8 +370,8 @@ export async function insertThreeNodes(
         JSON.stringify(
           await parseUTxOsAtScript(lucid, scripts.discoveryValidator),
           replacer,
-          2
-        )
+          2,
+        ),
       )
     : null;
 }

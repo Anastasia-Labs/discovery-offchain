@@ -24,7 +24,7 @@ export type Scripts = {
 
 export const buildScripts = (
   lucid: Lucid,
-  config: BuildScriptsConfig
+  config: BuildScriptsConfig,
 ): Result<Scripts> => {
   const initUTXOprojectTokenHolder = new Constr(0, [
     new Constr(0, [config.projectTokenHolder.initUTXO.txHash]),
@@ -33,7 +33,7 @@ export const buildScripts = (
 
   const tokenHolderPolicy = applyParamsToScript(
     config.unapplied.tokenHolderPolicy,
-    [initUTXOprojectTokenHolder]
+    [initUTXOprojectTokenHolder],
   );
 
   const tokenHolderMintingPolicy: MintingPolicy = {
@@ -47,7 +47,7 @@ export const buildScripts = (
   ]);
 
   const penaltyAddress = fromAddressToData(
-    config.discoveryPolicy.penaltyAddress
+    config.discoveryPolicy.penaltyAddress,
   );
 
   if (penaltyAddress.type == "error")
@@ -74,7 +74,7 @@ export const buildScripts = (
         BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
         penaltyAddress.data, // penaltyAddress PAddress
       ]),
-    ]
+    ],
   );
 
   const discoveryMintingPolicy: MintingPolicy = {
@@ -97,7 +97,7 @@ export const buildScripts = (
   };
 
   const foldValidatorAddress = fromAddressToData(
-    lucid.utils.validatorToAddress(foldSpendingValidator)
+    lucid.utils.validatorToAddress(foldSpendingValidator),
   );
 
   if (foldValidatorAddress.type == "error")
@@ -160,7 +160,7 @@ export const buildScripts = (
         fromText(config.rewardValidator.projectTN), // projectTN
         projectAddress.data, // projectAddr
       ]),
-    ]
+    ],
   );
 
   const rewardSpendingValidator: SpendingValidator = {
@@ -169,7 +169,7 @@ export const buildScripts = (
   };
 
   const rewardValidatorAddress = fromAddressToData(
-    lucid.utils.validatorToAddress(rewardSpendingValidator)
+    lucid.utils.validatorToAddress(rewardSpendingValidator),
   );
 
   if (rewardValidatorAddress.type == "error")
@@ -237,9 +237,13 @@ export const buildScripts = (
       new Constr(0, [
         BigInt(config.discoveryPolicy.deadline), // discoveryDeadline PInteger
         penaltyAddress.data, // penaltyAddress PAddress
-        new Constr(0, [new Constr(1, [lucid.utils.validatorToScriptHash(discoveryStakeValidator)])]), // PStakingCredential
+        new Constr(0, [
+          new Constr(1, [
+            lucid.utils.validatorToScriptHash(discoveryStakeValidator),
+          ]),
+        ]), // PStakingCredential
       ]),
-    ]
+    ],
   );
 
   const discoverySpendingValidator: SpendingValidator = {
@@ -252,7 +256,7 @@ export const buildScripts = (
   // pprojectTokenHolder = phoistAcyclic $ plam $ \rewardsCS _dat _redeemer ctx -> unTermCont $ do
   const tokenHolderValidator = applyParamsToScript(
     config.unapplied.tokenHolderValidator,
-    [lucid.utils.mintingPolicyToId(rewardMintingPolicy)]
+    [lucid.utils.mintingPolicyToId(rewardMintingPolicy)],
   );
 
   return {
