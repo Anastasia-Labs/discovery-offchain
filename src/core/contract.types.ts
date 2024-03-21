@@ -271,7 +271,7 @@ export const LiquidityProxyDatum =
 
 export const LiquidityRewardFoldDatumSchema = Data.Object({
   currNode: LiquiditySetNodeSchema,
-  totalProjectTokens: Data.Integer(),
+  totalLPTokens: Data.Integer(),
   totalCommitted: Data.Integer(),
   owner: AddressSchema,
 });

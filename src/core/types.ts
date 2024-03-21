@@ -276,9 +276,7 @@ export type RewardLiquidityFoldConfig = {
     rewardFoldPolicy: UTxO;
     rewardFoldValidator: UTxO;
   };
-  projectAddress: Address;
-  projectCS: PolicyId;
-  projectTN: string;
+  lpTokenAssetId: string;
 };
 
 export type BuildScriptsConfig = {

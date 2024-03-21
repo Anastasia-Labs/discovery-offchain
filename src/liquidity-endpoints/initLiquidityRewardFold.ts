@@ -110,13 +110,14 @@ export const initLqRewardFold = async (
       currNode: currentNode,
       owner: fromAddress(await lucid.wallet.address()), //NOTE: owner is not being used in fold minting or validator
       totalCommitted: tokenUtxoDatum.totalCommitted,
-      totalProjectTokens: tokenUtxoDatum.totalLpTokens,
+      totalLPTokens: tokenUtxoDatum.totalLpTokens,
     },
     LiquidityRewardFoldDatum,
   );
 
   const outputAssets: Assets = {
     ...tokenUtxo.assets,
+    [rewardFoldAsset]: 1n,
   };
 
   delete outputAssets[tokenHolderAsset];
@@ -159,8 +160,17 @@ export const initLqRewardFold = async (
 
     return { type: "ok", data: txComplete };
   } catch (error) {
-    if (error instanceof Error) return { type: "error", error: error };
+    if (error instanceof Error)
+      return {
+        type: "error",
+        error: new Error(error.message.replace("\\n", "\n")),
+      };
 
-    return { type: "error", error: new Error(`${JSON.stringify(error)}`) };
+    return {
+      type: "error",
+      error: new Error(
+        `${JSON.stringify(error, null, 5).replace("\\n", "\n")}`,
+      ),
+    };
   }
 };

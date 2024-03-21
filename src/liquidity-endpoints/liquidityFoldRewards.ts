@@ -1,27 +1,21 @@
 import {
+  Assets,
   Data,
   Lucid,
   MintingPolicy,
   SpendingValidator,
   TxComplete,
-  UTxO,
   WithdrawalValidator,
-  fromText,
   toUnit,
 } from "lucid-fork";
 import {
-  FoldAct,
-  LiquidityFoldDatum,
   LiquidityNodeValidatorAction,
+  LiquidityRewardFoldDatum,
   LiquiditySetNode,
+  RewardFoldAct,
 } from "../core/contract.types.js";
 import { Result, RewardLiquidityFoldConfig } from "../core/types.js";
-import {
-  CFOLD,
-  FOLDING_FEE_ADA,
-  TIME_TOLERANCE_MS,
-  TT_UTXO_ADDITIONAL_ADA,
-} from "../index.js";
+import { FOLDING_FEE_ADA, TIME_TOLERANCE_MS, rFold } from "../index.js";
 
 export const liquidityFoldRewards = async (
   lucid: Lucid,
@@ -52,15 +46,18 @@ export const liquidityFoldRewards = async (
   const rewardFoldValidatorAddr =
     lucid.utils.validatorToAddress(rewardFoldValidator);
 
-  const [rewardFoldUTxO] = await lucid.utxosAtWithUnit(
+  const [rewardFoldUTxO] = await lucid.provider.getUtxosWithUnit(
     rewardFoldValidatorAddr,
-    toUnit(lucid.utils.mintingPolicyToId(rewardFoldPolicy), fromText(CFOLD)),
+    toUnit(lucid.utils.mintingPolicyToId(rewardFoldPolicy), rFold),
   );
 
   if (!rewardFoldUTxO || !rewardFoldUTxO.datum)
     return { type: "error", error: new Error("missing foldUTxO") };
 
-  const oldFoldDatum = Data.from(rewardFoldUTxO.datum, LiquidityFoldDatum);
+  const oldFoldDatum = Data.from(
+    rewardFoldUTxO.datum,
+    LiquidityRewardFoldDatum,
+  );
 
   //NOTE: node nodeRefUTxOs shuold be already ordered by keys, utxo type is better than outref since outref does not holds datum information, not sure yet if using utxo though
   const nodeUtxos = await lucid.utxosByOutRef(config.nodeRefInputs);
@@ -106,21 +103,16 @@ export const liquidityFoldRewards = async (
   if (!lastNodeRef) return { type: "error", error: new Error("missing datum") };
 
   const lastNodeRefDatum = Data.from(lastNodeRef, LiquiditySetNode);
-  const totalAda = nodeUtxos.reduce((result: bigint, utxo: UTxO) => {
-    return result + utxo.assets.lovelace - TT_UTXO_ADDITIONAL_ADA;
-  }, 0n);
 
   const newFoldDatum = Data.to(
     {
+      ...oldFoldDatum,
       currNode: {
-        key: oldFoldDatum.currNode.key,
+        ...oldFoldDatum.currNode,
         next: lastNodeRefDatum.next,
-        commitment: 0n,
       },
-      committed: oldFoldDatum.committed + totalAda,
-      owner: oldFoldDatum.owner,
     },
-    LiquidityFoldDatum,
+    LiquidityRewardFoldDatum,
   );
 
   const upperBound = config.currenTime + TIME_TOLERANCE_MS;
@@ -131,14 +123,14 @@ export const liquidityFoldRewards = async (
 
     const foldNodes = {
       nodeIdxs: indexingSet,
-      outputIdxs: [...new Array(nodeUtxos.length).keys()].map(BigInt),
+      nodeOutIdxs: [...new Array(nodeUtxos.length).keys()].map(BigInt),
     };
 
     const foldRedeemer = Data.to(
       {
-        FoldNodes: foldNodes,
+        RewardsFoldNodes: foldNodes,
       },
-      FoldAct,
+      RewardFoldAct,
     );
 
     const tx = lucid
@@ -148,7 +140,6 @@ export const liquidityFoldRewards = async (
 
     if (config.refInputs) {
       tx.readFrom([config.refInputs.liquidityValidator])
-        .readFrom([config.refInputs.rewardFoldPolicy])
         .readFrom([config.refInputs.rewardFoldValidator])
         .readFrom([config.refInputs.rewardStake]);
     } else {
@@ -158,36 +149,34 @@ export const liquidityFoldRewards = async (
     }
 
     nodeUtxos.forEach((utxo) => {
-      const redeemer = Data.to("CommitFoldAct", LiquidityNodeValidatorAction);
-
-      const datum = Data.from(utxo.datum as string, LiquiditySetNode);
-      console.log(
-        `Folding: ${utxo.txHash}#${utxo.outputIndex} with key: ${datum.key}`,
-      );
+      const redeemer = Data.to("RewardFoldAct", LiquidityNodeValidatorAction);
       tx.collectFrom([utxo], redeemer);
     });
 
+    let leftOverLpTokens = rewardFoldUTxO.assets[config.lpTokenAssetId];
     sortedIndexingPairs.forEach(({ item: utxo }) => {
-      const datumCommitment = utxo.assets.lovelace - TT_UTXO_ADDITIONAL_ADA;
-      const oldDatum = Data.from(utxo.datum as string, LiquiditySetNode);
-      const newDatum = Data.to(
-        {
-          ...oldDatum,
-          commitment: datumCommitment,
-        },
-        LiquiditySetNode,
-      );
+      const datum = Data.from(utxo.datum as string, LiquiditySetNode);
+      const utxoLpTokenAmount =
+        (datum.commitment * oldFoldDatum.totalLPTokens) /
+        oldFoldDatum.totalCommitted;
 
-      const newAssets = {
+      const newAssets: Assets = {
         ...utxo.assets,
-        lovelace: utxo.assets.lovelace - datumCommitment - FOLDING_FEE_ADA,
+        lovelace: utxo.assets.lovelace - FOLDING_FEE_ADA,
+        [config.lpTokenAssetId]: utxoLpTokenAmount,
       };
 
       tx.payToContract(
         lucid.utils.validatorToAddress(liquidityValidator),
-        { inline: newDatum },
+        { inline: utxo.datum as string },
         newAssets,
       );
+
+      console.log(
+        `Folding: ${utxo.txHash}#${utxo.outputIndex} with ${utxoLpTokenAmount} LP Tokens`,
+      );
+
+      leftOverLpTokens -= utxoLpTokenAmount;
     });
 
     tx.payToContract(
@@ -195,7 +184,8 @@ export const liquidityFoldRewards = async (
       { inline: newFoldDatum },
       {
         ...rewardFoldUTxO.assets,
-        lovelace: rewardFoldUTxO.assets.lovelace + totalAda,
+        lovelace: rewardFoldUTxO.assets.lovelace,
+        [config.lpTokenAssetId]: leftOverLpTokens,
       },
     )
       .withdraw(

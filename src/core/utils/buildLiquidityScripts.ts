@@ -1,7 +1,6 @@
 import {
   applyParamsToScript,
   Constr,
-  fromText,
   Lucid,
   MintingPolicy,
   SpendingValidator,
@@ -117,7 +116,7 @@ export const buildLiquidityScripts = (
     [
       new Constr(0, [
         lucid.utils.mintingPolicyToId(liquidityMintingPolicy), //nodeCS
-        fromText(config.rewardFoldValidator.projectLpPolicyId), // pool LP cs
+        config.rewardFoldValidator.projectLpPolicyId, // pool LP cs
         projectAddress.data, // projectAddr
       ]),
     ],
