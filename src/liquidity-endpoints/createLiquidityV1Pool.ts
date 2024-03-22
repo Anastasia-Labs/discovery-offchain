@@ -26,9 +26,7 @@ import { CreateV1PoolConfig, Result } from "../core/types.js";
 export const createLiquidityV1Pool = async (
   lucid: Lucid,
   config: CreateV1PoolConfig,
-): Promise<
-  Result<{ tx: TxComplete; lpTokenAsset: string; newProxyDatum: string }>
-> => {
+): Promise<Result<{ tx: TxComplete; poolLpTokenName: string }>> => {
   try {
     const v1FactoryValidatorScript: SpendingValidator = {
       type: "PlutusV1",
@@ -65,11 +63,11 @@ export const createLiquidityV1Pool = async (
     );
 
     const projectTokenAmount = proxyUtxo.assets[projectTokenUnit];
-    const proxyDatumHex =
-      (await lucid.provider.getDatum(proxyUtxo.datumHash as string)) ??
-      config.datums[proxyUtxo.datumHash as string];
+    const proxyDatumHex = await lucid.provider.getDatum(
+      proxyUtxo.datumHash as string,
+    );
     const proxyDatum = Data.from(
-      proxyDatumHex ?? (proxyUtxo.datum as string),
+      await lucid.provider.getDatum(proxyUtxo.datumHash as string),
       LiquidityProxyDatum,
     );
 
@@ -223,8 +221,7 @@ export const createLiquidityV1Pool = async (
       type: "ok",
       data: {
         tx,
-        lpTokenAsset,
-        newProxyDatum,
+        poolLpTokenName,
       },
     };
   } catch (error) {

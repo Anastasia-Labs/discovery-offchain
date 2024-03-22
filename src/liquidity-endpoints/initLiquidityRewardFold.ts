@@ -99,9 +99,9 @@ export const initLqRewardFold = async (
     tokenHolderAsset,
   );
 
-  const tokenUtxoDatumHex =
-    config?.datums?.[tokenUtxo.datumHash as string] ??
-    (await lucid.provider.getDatum(tokenUtxo.datumHash as string));
+  const tokenUtxoDatumHex = await lucid.provider.getDatum(
+    tokenUtxo.datumHash as string,
+  );
 
   const tokenUtxoDatum = Data.from(tokenUtxoDatumHex, LiquidityHolderDatum);
 

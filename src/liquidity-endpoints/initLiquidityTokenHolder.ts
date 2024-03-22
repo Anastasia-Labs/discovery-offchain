@@ -53,7 +53,7 @@ export const initLqTokenHolder = async (
         {
           lovelace: 2_000_000n,
           [ptHolderAsset]: BigInt(1),
-          [toUnit(config.projectCS, fromText(config.projectTN))]: BigInt(
+          [toUnit(config.projectCS, config.projectTN)]: BigInt(
             config.projectAmount,
           ),
         },
