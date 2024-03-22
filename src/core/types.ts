@@ -261,6 +261,7 @@ export type RewardFoldConfig = {
 
 export type RewardLiquidityFoldConfig = {
   currenTime?: number;
+  disableNativeUplc?: boolean;
   nodeRefInputs: OutRef[];
   indices: number[];
   feeInput: UTxO;

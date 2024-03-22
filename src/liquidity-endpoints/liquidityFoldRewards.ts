@@ -196,9 +196,10 @@ export const liquidityFoldRewards = async (
       .validFrom(lowerBound)
       .validTo(upperBound);
 
+    const nativeUplc = !Boolean(config.disableNativeUplc === true);
     const txComplete = await tx.complete({
       coinSelection: false,
-      nativeUplc: true,
+      nativeUplc,
       change: {
         address: config.changeAddress,
       },
