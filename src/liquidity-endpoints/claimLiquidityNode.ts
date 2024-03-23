@@ -9,8 +9,8 @@ import {
 import { ClaimNodeConfig, Result } from "../core/types.js";
 import {
   LiquidityNodeAction,
+  LiquidityNodeValidatorAction,
   LiquiditySetNode,
-  NodeValidatorAction,
   TIME_TOLERANCE_MS,
   mkNodeKeyTN,
   rFold,
@@ -69,7 +69,10 @@ export const claimLiquidityNode = async (
   if (!node || !node.datum)
     return { type: "error", error: new Error("missing node") };
 
-  const redeemerNodeValidator = Data.to("LinkedListAct", NodeValidatorAction);
+  const redeemerNodeValidator = Data.to(
+    "ClaimAct",
+    LiquidityNodeValidatorAction,
+  );
 
   const burnRedeemer = Data.to(
     {
@@ -94,14 +97,17 @@ export const claimLiquidityNode = async (
       .collectFrom([node], redeemerNodeValidator)
       .readFrom([rewardFoldUtxo])
       .addSignerKey(userPubKeyHash)
-      .mintAssets(
+      .validFrom(lowerBound)
+      .validTo(upperBound);
+
+    if (config.burnToken) {
+      tx.mintAssets(
         {
           [toUnit(liquidityPolicyId, mkNodeKeyTN(userPubKeyHash))]: -1n,
         },
         burnRedeemer,
-      )
-      .validFrom(lowerBound)
-      .validTo(upperBound);
+      );
+    }
 
     if (config.refScripts) {
       tx.readFrom([config.refScripts.liquidityPolicy]).readFrom([

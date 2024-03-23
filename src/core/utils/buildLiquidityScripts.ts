@@ -117,7 +117,6 @@ export const buildLiquidityScripts = (
       new Constr(0, [
         lucid.utils.mintingPolicyToId(liquidityMintingPolicy), //nodeCS
         config.rewardFoldValidator.projectLpPolicyId, // pool LP cs
-        projectAddress.data, // projectAddr
       ]),
     ],
   );
@@ -143,6 +142,7 @@ export const buildLiquidityScripts = (
         rewardValidatorAddress.data, // rewardScriptAddr
         config.rewardFoldValidator.projectLpPolicyId, // pool lp cs
         lucid.utils.mintingPolicyToId(collectFoldMintingPolicy), // commitFoldCS
+        projectAddress.data, // projectAddr
       ]),
     ],
   );
@@ -185,6 +185,7 @@ export const buildLiquidityScripts = (
             lucid.utils.validatorToScriptHash(rewardStakeValidator),
           ]),
         ]),
+        lucid.utils.mintingPolicyToId(rewardFoldMintingPolicy),
       ]),
     ],
   );

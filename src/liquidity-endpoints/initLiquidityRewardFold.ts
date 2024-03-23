@@ -105,32 +105,55 @@ export const initLqRewardFold = async (
 
   const tokenUtxoDatum = Data.from(tokenUtxoDatumHex, LiquidityHolderDatum);
 
-  const datum = Data.to(
-    {
-      currNode: currentNode,
-      owner: fromAddress(await lucid.wallet.address()), //NOTE: owner is not being used in fold minting or validator
-      totalCommitted: tokenUtxoDatum.totalCommitted,
-      totalLPTokens: tokenUtxoDatum.totalLpTokens,
-    },
-    LiquidityRewardFoldDatum,
+  const lpTokenAssetId = toUnit(
+    config.project.lpTokenPolicyId,
+    config.project.lpTokenAssetName,
   );
+  const projectLpTokenAmount = tokenUtxoDatum.totalLpTokens / 2n;
+  const rewardFoldLpTokenAmount =
+    tokenUtxoDatum.totalLpTokens - projectLpTokenAmount;
 
-  const outputAssets: Assets = {
+  const rewardFoldAssets: Assets = {
     ...tokenUtxo.assets,
+    [lpTokenAssetId]: rewardFoldLpTokenAmount,
     [rewardFoldAsset]: 1n,
   };
 
-  delete outputAssets[tokenHolderAsset];
+  delete rewardFoldAssets[tokenHolderAsset];
+
+  const projectAssets: Assets = {
+    lovelace: 2_000_000n,
+    [lpTokenAssetId]: projectLpTokenAmount,
+  };
 
   const upperBound = config.currenTime + TIME_TOLERANCE_MS;
   const lowerBound = config.currenTime - TIME_TOLERANCE_MS;
+
+  const datum = Data.to(
+    {
+      currNode: currentNode,
+      owner: fromAddress(await lucid.wallet.address()),
+      totalCommitted: tokenUtxoDatum.totalCommitted,
+      totalLPTokens: rewardFoldLpTokenAmount,
+    },
+    LiquidityRewardFoldDatum,
+  );
 
   try {
     const tx = lucid
       .newTx()
       .collectFrom([tokenUtxo], Data.to(new Constr(2, [])))
       .readFrom([headNodeUTxO])
-      .payToContract(rewardFoldValidatorAddr, { inline: datum }, outputAssets)
+      .payToContract(
+        rewardFoldValidatorAddr,
+        { inline: datum },
+        rewardFoldAssets,
+      )
+      .payToAddressWithData(
+        config.project.address,
+        { inline: Data.void() },
+        projectAssets,
+      )
       .mintAssets(
         {
           [rewardFoldAsset]: 1n,

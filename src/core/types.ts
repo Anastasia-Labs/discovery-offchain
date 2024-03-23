@@ -116,6 +116,7 @@ export type RemoveNodeConfig = {
 export type ClaimNodeConfig = {
   currenTime?: POSIXTime;
   nodeUTxOs?: UTxO[];
+  burnToken?: boolean;
   scripts: {
     liquidityPolicy: CborHex;
     liquidityValidator: CborHex;
@@ -217,8 +218,13 @@ export type InitRewardFoldConfig = {
 
 export type InitLiquidityRewardFoldConfig = {
   currenTime?: POSIXTime;
-  projectCS: string;
-  projectTN: string;
+  project: {
+    policyId: string;
+    tokenName: string;
+    address: string;
+    lpTokenPolicyId: string;
+    lpTokenAssetName: string;
+  };
   datums?: {
     [hash: string]: CborHex;
   };

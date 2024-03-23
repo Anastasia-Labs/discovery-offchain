@@ -119,6 +119,7 @@ export const LiquidityNodeValidatorActionSchema = Data.Enum([
   Data.Literal("ModifyCommitment"),
   Data.Literal("CommitFoldAct"),
   Data.Literal("RewardFoldAct"),
+  Data.Literal("ClaimAct"),
 ]);
 export type LiquidityNodeValidatorAction = Data.Static<
   typeof LiquidityNodeValidatorActionSchema
