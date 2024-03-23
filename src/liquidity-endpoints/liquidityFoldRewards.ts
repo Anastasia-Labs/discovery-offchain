@@ -179,14 +179,25 @@ export const liquidityFoldRewards = async (
       leftOverLpTokens -= utxoLpTokenAmount;
     });
 
+    const rewardFoldAssets: Assets = {
+      ...rewardFoldUTxO.assets,
+      lovelace: rewardFoldUTxO.assets.lovelace,
+    };
+
+    if (leftOverLpTokens > 0n) {
+      rewardFoldAssets[config.lpTokenAssetId] = leftOverLpTokens;
+    } else if (leftOverLpTokens === 0n) {
+      delete rewardFoldAssets[config.lpTokenAssetId];
+    } else if (leftOverLpTokens < 0n) {
+      throw new Error(
+        "Attempted to send negative lp tokens to reward fold utxo.",
+      );
+    }
+
     tx.payToContract(
       rewardFoldValidatorAddr,
       { inline: newFoldDatum },
-      {
-        ...rewardFoldUTxO.assets,
-        lovelace: rewardFoldUTxO.assets.lovelace,
-        [config.lpTokenAssetId]: leftOverLpTokens,
-      },
+      rewardFoldAssets,
     )
       .withdraw(
         lucid.utils.validatorToRewardAddress(rewardStakeValidator),
