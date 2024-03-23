@@ -1,22 +1,22 @@
 import {
-  Lucid,
-  SpendingValidator,
-  MintingPolicy,
   Data,
-  toUnit,
+  Lucid,
+  MintingPolicy,
+  SpendingValidator,
   TxComplete,
+  toUnit,
 } from "lucid-fork";
 import {
   LiquidityNodeAction,
+  LiquidityNodeValidatorAction,
   LiquiditySetNode,
-  NodeValidatorAction,
 } from "../core/contract.types.js";
 import { InsertNodeConfig, Result } from "../core/types.js";
 import {
-  mkNodeKeyTN,
-  TIME_TOLERANCE_MS,
   MIN_COMMITMENT_ADA,
+  TIME_TOLERANCE_MS,
   TT_UTXO_ADDITIONAL_ADA,
+  mkNodeKeyTN,
 } from "../index.js";
 
 export const insertLqNode = async (
@@ -90,7 +90,10 @@ export const insertLqNode = async (
     LiquidityNodeAction,
   );
 
-  const redeemerNodeValidator = Data.to("LinkedListAct", NodeValidatorAction);
+  const redeemerNodeValidator = Data.to(
+    "LinkedListAct",
+    LiquidityNodeValidatorAction,
+  );
 
   const assets = {
     [toUnit(nodePolicyId, mkNodeKeyTN(userKey))]: 1n,
