@@ -187,15 +187,6 @@ export const removeLqNode = async (
         Math.max(Number(quarterAmount), Number(TT_UTXO_ADDITIONAL_ADA)),
       );
 
-      console.log({
-        lovelace: node.assets.lovelace,
-        deduction: TT_UTXO_ADDITIONAL_ADA,
-        penaltyAmount,
-        lowerBound,
-        upperBound,
-        deadline: config.deadline,
-      });
-
       const tx = await lucid
         .newTx()
         .collectFrom([node, prevNode], redeemerNodeValidator)
