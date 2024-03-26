@@ -5,6 +5,7 @@ import {
   MintingPolicy,
   SpendingValidator,
   TxComplete,
+  UTxO,
   fromText,
   toUnit,
 } from "lucid-fork";
@@ -43,10 +44,13 @@ export const initLqTokenHolder = async (
   const ptHolderAsset = toUnit(tokenHolderPolicyId, fromText(PTHOLDER));
   const mintPTHolderAct = Data.to("PMintHolder", TokenHolderMintAction);
 
+  const collectFromUtxos: UTxO[] = [config.initUTXO];
+  config.collectFrom && collectFromUtxos.push(config.collectFrom);
+
   try {
     const tx = await lucid
       .newTx()
-      .collectFrom([config.initUTXO])
+      .collectFrom(collectFromUtxos)
       .payToContract(
         tokenHolderValidatorAddr,
         { inline: Data.to(new Constr(0, ["", 0n, 0n])) },

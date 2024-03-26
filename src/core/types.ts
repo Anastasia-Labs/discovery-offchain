@@ -32,6 +32,7 @@ export type DeployRefScriptsConfig = {
 
 export type InitTokenHolderConfig = {
   initUTXO: UTxO;
+  collectFrom?: UTxO;
   projectCS: string;
   projectTN: string;
   projectAmount: number;
