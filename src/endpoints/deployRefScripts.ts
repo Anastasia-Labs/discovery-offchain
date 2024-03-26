@@ -1,10 +1,10 @@
 import {
   Lucid,
+  Script,
   SpendingValidator,
   Tx,
-  toUnit,
   fromText,
-  Script,
+  toUnit,
 } from "lucid-fork";
 import { DeployRefScriptsConfig, Result } from "../core/types.js";
 
@@ -28,12 +28,17 @@ export const deployRefScripts = async (
     script: config.script,
   };
 
-  const alwaysFailsValidator: SpendingValidator = {
-    type: "PlutusV2",
-    script: config.alwaysFails,
-  };
+  let spendToAddress: string;
+  if (config.spendToAddress) {
+    spendToAddress = config.spendToAddress;
+  } else {
+    const alwaysFailsValidator: SpendingValidator = {
+      type: "PlutusV2",
+      script: config.alwaysFails,
+    };
 
-  const alwaysFailsAddr = lucid.utils.validatorToAddress(alwaysFailsValidator);
+    spendToAddress = lucid.utils.validatorToAddress(alwaysFailsValidator);
+  }
 
   const deployKey = lucid.utils.getAddressDetails(await lucid.wallet.address())
     .paymentCredential?.hash;
@@ -62,7 +67,7 @@ export const deployRefScripts = async (
         [toUnit(deployPolicyId, fromText(config.name))]: 1n,
       })
       .payToAddressWithData(
-        alwaysFailsAddr,
+        spendToAddress,
         { scriptRef: script },
         { [toUnit(deployPolicyId, fromText(config.name))]: 1n },
       )

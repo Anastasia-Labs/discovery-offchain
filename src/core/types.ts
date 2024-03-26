@@ -24,6 +24,7 @@ export type AssetClass = {
 
 export type DeployRefScriptsConfig = {
   spendingInput?: UTxO;
+  spendToAddress?: string;
   script: CborHex;
   name: string;
   alwaysFails: CborHex;
