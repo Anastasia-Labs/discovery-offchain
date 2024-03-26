@@ -44,8 +44,10 @@ export const initLqTokenHolder = async (
   const ptHolderAsset = toUnit(tokenHolderPolicyId, fromText(PTHOLDER));
   const mintPTHolderAct = Data.to("PMintHolder", TokenHolderMintAction);
 
-  const collectFromUtxos: UTxO[] = [config.initUTXO];
-  config.collectFrom && collectFromUtxos.push(config.collectFrom);
+  const collectFromUtxos: UTxO[] = [
+    config.initUTXO,
+    ...(config.collectFrom ?? []),
+  ];
 
   try {
     const tx = await lucid
