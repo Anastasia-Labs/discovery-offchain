@@ -14,6 +14,7 @@ import {
 import { RemoveNodeConfig, Result } from "../core/types.js";
 import {
   TIME_TOLERANCE_MS,
+  TT_UTXO_ADDITIONAL_ADA,
   TWENTY_FOUR_HOURS_MS,
   divCeil,
   mkNodeKeyTN,
@@ -177,7 +178,23 @@ export const removeLqNode = async (
         LiquidityNodeAction,
       );
 
-      const penaltyAmount = divCeil(node.assets["lovelace"], 4n);
+      const quarterAmount = divCeil(
+        node.assets["lovelace"] - TT_UTXO_ADDITIONAL_ADA,
+        4n,
+      );
+
+      const penaltyAmount = BigInt(
+        Math.max(Number(quarterAmount), Number(TT_UTXO_ADDITIONAL_ADA)),
+      );
+
+      console.log({
+        lovelace: node.assets.lovelace,
+        deduction: TT_UTXO_ADDITIONAL_ADA,
+        penaltyAmount,
+        lowerBound,
+        upperBound,
+        deadline: config.deadline,
+      });
 
       const tx = await lucid
         .newTx()
