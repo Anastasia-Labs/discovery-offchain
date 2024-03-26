@@ -63,9 +63,10 @@ export const createLiquidityV1Pool = async (
     );
 
     const projectTokenAmount = proxyUtxo.assets[projectTokenUnit];
-    const proxyDatumHex = await lucid.provider.getDatum(
-      proxyUtxo.datumHash as string,
-    );
+    const proxyDatumHex =
+      proxyUtxo?.datum ??
+      (await lucid.provider.getDatum(proxyUtxo.datumHash as string));
+
     const proxyDatum = Data.from(
       await lucid.provider.getDatum(proxyUtxo.datumHash as string),
       LiquidityProxyDatum,
@@ -81,8 +82,10 @@ export const createLiquidityV1Pool = async (
     }
 
     const oldFactoryDatum =
+      factoryUtxo.datum ??
       (await lucid.provider.getDatum(factoryUtxo.datumHash as string)) ??
       config.datums[factoryUtxo?.datumHash as string];
+
     const { nextPoolIdent, ...rest } = Data.from(
       oldFactoryDatum as string,
       LiquidityFactoryDatum,

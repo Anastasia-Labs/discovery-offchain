@@ -99,9 +99,15 @@ export const initLqRewardFold = async (
     tokenHolderAsset,
   );
 
-  const tokenUtxoDatumHex = await lucid.provider.getDatum(
-    tokenUtxo.datumHash as string,
-  );
+  if (!tokenUtxo) {
+    throw new Error(
+      "Could not find the token utxo at the token holder validator script address.",
+    );
+  }
+
+  const tokenUtxoDatumHex =
+    tokenUtxo?.datum ??
+    (await lucid.provider.getDatum(tokenUtxo.datumHash as string));
 
   const tokenUtxoDatum = Data.from(tokenUtxoDatumHex, LiquidityHolderDatum);
 
