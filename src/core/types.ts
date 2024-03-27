@@ -43,6 +43,17 @@ export type InitTokenHolderConfig = {
   };
 };
 
+export type InitLiquidityTokenHolderConfig = {
+  collectFrom?: UTxO[];
+  projectCS: string;
+  projectTN: string;
+  projectAmount: number;
+  scripts: {
+    tokenHolderPolicy: CborHex;
+    tokenHolderValidator: CborHex;
+  };
+};
+
 export type AddCollectedConfig = {
   currenTime?: POSIXTime;
   scripts: {

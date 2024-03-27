@@ -5,12 +5,11 @@ import {
   MintingPolicy,
   SpendingValidator,
   TxComplete,
-  UTxO,
   fromText,
   toUnit,
 } from "lucid-fork";
 import { PTHOLDER } from "../core/constants.js";
-import { InitTokenHolderConfig, Result } from "../core/types.js";
+import { InitLiquidityTokenHolderConfig, Result } from "../core/types.js";
 
 export const TokenHolderMintActionSchema = Data.Enum([
   Data.Literal("PMintHolder"),
@@ -24,7 +23,7 @@ export const TokenHolderMintAction =
 
 export const initLqTokenHolder = async (
   lucid: Lucid,
-  config: InitTokenHolderConfig,
+  config: InitLiquidityTokenHolderConfig,
 ): Promise<Result<TxComplete>> => {
   const tokenHolderValidator: SpendingValidator = {
     type: "PlutusV2",
@@ -44,15 +43,9 @@ export const initLqTokenHolder = async (
   const ptHolderAsset = toUnit(tokenHolderPolicyId, fromText(PTHOLDER));
   const mintPTHolderAct = Data.to("PMintHolder", TokenHolderMintAction);
 
-  const collectFromUtxos: UTxO[] = [
-    config.initUTXO,
-    ...(config.collectFrom ?? []),
-  ];
-
   try {
     const tx = await lucid
       .newTx()
-      .collectFrom(collectFromUtxos)
       .payToContract(
         tokenHolderValidatorAddr,
         { inline: Data.to(new Constr(0, ["", 0n, 0n])) },
