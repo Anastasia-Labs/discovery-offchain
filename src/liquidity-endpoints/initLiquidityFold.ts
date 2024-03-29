@@ -46,16 +46,33 @@ export const initLqFold = async (
     script: config.scripts.nodeValidator,
   };
 
-  const [headNodeUTxO] = await lucid.utxosAtWithUnit(
-    lucid.utils.validatorToAddress(discoveryValidator),
-    toUnit(
-      lucid.utils.mintingPolicyToId(discoveryPolicy),
-      fromText(SETNODE_PREFIX),
-    ),
+  const headNodeAddr = lucid.utils.validatorToAddress(discoveryValidator);
+  const headNodeUnit = toUnit(
+    lucid.utils.mintingPolicyToId(discoveryPolicy),
+    fromText(SETNODE_PREFIX),
   );
 
-  if (!headNodeUTxO || !headNodeUTxO.datum)
-    return { type: "error", error: new Error("missing nodeRefInputUTxO") };
+  const [headNodeUTxO] = await lucid.utxosAtWithUnit(
+    headNodeAddr,
+    headNodeUnit,
+  );
+
+  if (!headNodeUTxO) {
+    return {
+      type: "error",
+      error: new Error(
+        `missing head node at ${headNodeAddr} with ${headNodeUnit}`,
+      ),
+    };
+  }
+
+  if (!headNodeUTxO.datum) {
+    console.log({ headNodeUTxO });
+    return {
+      type: "error",
+      error: new Error(`could not retrieve head node datum.`),
+    };
+  }
 
   const currentNode = Data.from(headNodeUTxO.datum, LiquiditySetNode);
 

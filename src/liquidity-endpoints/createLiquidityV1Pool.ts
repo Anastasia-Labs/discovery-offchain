@@ -77,14 +77,14 @@ export const createLiquidityV1Pool = async (
       toUnit(config.v1FactoryToken.policyId, config.v1FactoryToken.assetName),
     );
 
-    if (!factoryUtxo?.datumHash) {
-      throw new Error("Could not find the datum hash of the factory UTXO.");
-    }
-
     const oldFactoryDatum =
       factoryUtxo.datum ??
       (await lucid.provider.getDatum(factoryUtxo.datumHash as string)) ??
       config.datums[factoryUtxo?.datumHash as string];
+
+    if (!oldFactoryDatum) {
+      throw new Error("Could not resolve the datum of the factory UTXO.");
+    }
 
     const { nextPoolIdent, ...rest } = Data.from(
       oldFactoryDatum as string,
@@ -172,11 +172,13 @@ export const createLiquidityV1Pool = async (
 
     const collectFromProxy: UTxO = {
       ...proxyUtxo,
+      datumHash: lucid.utils.datumToHash(proxyDatumHex),
       datum: proxyDatumHex,
     };
 
     const collectFromFactory: UTxO = {
       ...factoryUtxo,
+      datumHash: lucid.utils.datumToHash(oldFactoryDatum),
       datum: oldFactoryDatum,
     };
 

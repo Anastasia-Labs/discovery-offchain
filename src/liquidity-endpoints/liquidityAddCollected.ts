@@ -1,33 +1,22 @@
 import {
-  Lucid,
-  SpendingValidator,
-  MintingPolicy,
+  Assets,
+  Constr,
   Data,
+  fromText,
+  Lucid,
+  MintingPolicy,
+  SpendingValidator,
   toUnit,
   TxComplete,
-  fromText,
-  Constr,
-  Assets,
-  OutRef,
-  Script,
 } from "lucid-fork";
-import {
-  cFold,
-  PTHOLDER,
-  SETNODE_PREFIX,
-  TIME_TOLERANCE_MS,
-} from "../core/constants.js";
+
+import { cFold, PTHOLDER, TIME_TOLERANCE_MS } from "../core/constants.js";
 import {
   FoldAct,
-  FoldDatum,
-  FoldMintAct,
   LiquidityFoldDatum,
   LiquidityHolderDatum,
-  LiquiditySetNode,
-  SetNode,
 } from "../core/contract.types.js";
-import { AddCollectedConfig, InitFoldConfig, Result } from "../core/types.js";
-import { fromAddress } from "../index.js";
+import { AddCollectedConfig, Result } from "../core/types.js";
 
 export const addCollected = async (
   lucid: Lucid,
