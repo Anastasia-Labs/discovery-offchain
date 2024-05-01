@@ -220,6 +220,6 @@ export const liquidityFoldRewards = async (
   } catch (error) {
     if (error instanceof Error) return { type: "error", error: error };
 
-    return { type: "error", error: new Error(`${JSON.stringify(error)}`) };
+    return { type: "error", error: new Error(JSON.stringify(error)) };
   }
 };

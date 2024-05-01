@@ -1,10 +1,10 @@
 import {
-  Lucid,
-  SpendingValidator,
-  MintingPolicy,
   Data,
-  toUnit,
+  Lucid,
+  MintingPolicy,
+  SpendingValidator,
   TxComplete,
+  toUnit,
 } from "lucid-fork";
 import {
   MIN_COMMITMENT_ADA,
@@ -12,12 +12,10 @@ import {
   originNodeTokenName,
 } from "../core/constants.js";
 import {
-  DiscoveryNodeAction,
   LiquidityNodeAction,
   LiquiditySetNode,
 } from "../core/contract.types.js";
 import { InitNodeConfig, Result } from "../core/types.js";
-import { NODE_ADA } from "../core/constants.js";
 
 export const initLqNode = async (
   lucid: Lucid,

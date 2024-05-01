@@ -192,14 +192,12 @@ export const initLqRewardFold = async (
     if (error instanceof Error)
       return {
         type: "error",
-        error: new Error(error.message.replace("\\n", "\n")),
+        error: new Error(error.message),
       };
 
     return {
       type: "error",
-      error: new Error(
-        `${JSON.stringify(error, null, 5).replace("\\n", "\n")}`,
-      ),
+      error: new Error(JSON.stringify(error, null, 5)),
     };
   }
 };
